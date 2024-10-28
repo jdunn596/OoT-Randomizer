@@ -1,19 +1,18 @@
 use {
     std::sync::Arc,
-    futures::future::FutureExt as _,
+    futures::future::{
+        Future,
+        FutureExt as _,
+    },
     iced::{
-        Command,
-        pure::{
-            Application,
-            Element,
-            widget::{
-                Button,
-                Row,
-                Text,
-            },
+        Element,
+        Task,
+        widget::{
+            Button,
+            Row,
+            Text,
         },
     },
-    iced_native::command::Action,
     pyo3::{
         prelude::*,
         types::PyDict,
@@ -22,15 +21,10 @@ use {
     tokio::task::spawn_blocking,
 };
 
-#[pyclass(dict)]
-#[derive(Debug, Clone, Copy)]
-struct Window;
-
-#[pymethods]
-impl Window {
-    #[new] fn new() -> Self { Self }
-    fn update_status(&self, text: &str) { let _ = text; } //TODO
-    fn update_progress(&self, val: f64) { let _ = val; } //TODO
+fn cmd(future: impl Future<Output = Result<Message, Error>> + Send + 'static) -> Task<Message> {
+    Task::future(
+        future.map(|res| res.unwrap_or_else(|e| Message::CommandError(Arc::new(e.into()))))
+    )
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -42,12 +36,11 @@ enum Error {
 
 #[derive(Debug, Clone /*TODO this requires PyO3's py-clone feature, remove*/)]
 enum Message {
+    CommandError(Arc<Error>),
     Done,
-    Error(Arc<Error>),
     Generate,
     SelectOutDir {
-        settings: Py<PyAny>,
-        window: Window,
+        base_settings: Py<PyAny>,
         spoiler: Py<PyAny>,
         rom: Py<PyAny>,
     },
@@ -59,64 +52,54 @@ struct Gui {
     generating: bool,
 }
 
-impl Application for Gui {
-    type Executor = iced::executor::Default;
-    type Message = Message;
-    type Flags = ();
-
-    fn new((): ()) -> (Self, Command<Message>) { (Self::default(), Command::none()) } //TODO move Python version check here
-    fn title(&self) -> String { format!("OoT Randomizer") }
-
-    fn update(&mut self, msg: Message) -> Command<Message> {
+impl Gui {
+    fn update(&mut self, msg: Message) -> Task<Message> {
         match msg {
+            Message::CommandError(e) => self.error = Some(e),
             Message::Done => self.generating = false,
-            Message::Error(e) => self.error = Some(e),
             Message::Generate => {
                 self.generating = true;
                 //TODO if goal hints are used and there are more than 5 worlds, ask for confirmation due to long generation times
                 //TODO when generating a multiworld rom/wad, ask for the player number. The text field is initially blank
-                return Command::single(Action::Future(spawn_blocking(|| Python::with_gil(|py| {
-                    let sys = py.import_bound("sys")?;
-                    sys.getattr("path")?.call_method1("append", (env!("CARGO_MANIFEST_DIR"),))?;
-                    let settings = py.import_bound("Settings")?.call_method1("Settings", (PyDict::new_bound(py),))?; //TODO populate settings
-                    let window = Window::new();
-                    py.import_bound("HintList")?.call_method0("clearHintExclusionCache")?;
-                    let main = py.import_bound("Main")?;
-                    let rom = main.call_method1("resolve_settings", (&settings, window))?;
-                    let mut attempt = 0;
-                    let spoiler = loop {
-                        attempt += 1;
-                        match main.call_method1("generate", (&settings, window)) {
-                            Ok(spoiler) => break spoiler,
-                            Err(e) if e.is_instance_bound(py, py.import_bound("Fill")?.getattr("ShuffleError")?.downcast()?) => {
-                                if attempt == 10 { return Err(e) }
+                return cmd(async move {
+                    let (base_settings, spoiler, rom) = spawn_blocking(|| Python::with_gil(|py| {
+                        let sys = py.import_bound("sys")?;
+                        sys.getattr("path")?.call_method1("append", (concat!(env!("CARGO_MANIFEST_DIR"), "/../.."),))?;
+                        let base_settings = py.import_bound("Settings")?.call_method1("Settings", (PyDict::new_bound(py),))?; //TODO populate settings
+                        py.import_bound("HintList")?.call_method0("clear_hint_exclusion_cache")?;
+                        let main = py.import_bound("Main")?;
+                        let (rom, world_settings) = main.call_method1("resolve_settings", (&base_settings,))?.extract::<(_, Vec<Bound<'_, PyAny>>)>()?;
+                        let mut attempt = 0;
+                        let spoiler = loop {
+                            attempt += 1;
+                            match main.call_method1("generate", (world_settings.clone(),)) {
+                                Ok(spoiler) => break spoiler,
+                                Err(e) if e.is_instance_bound(py, py.import_bound("Fill")?.getattr("ShuffleError")?.downcast()?) => {
+                                    if attempt == 10 { return Err(e) }
+                                }
+                                Err(e) => return Err(e),
                             }
-                            Err(e) => return Err(e),
-                        }
-                        settings.call_method0("reset_distribution")?;
-                    };
-                    Ok((settings.to_object(py), window, spoiler.to_object(py), rom.to_object(py)))
-                })).map(|res| match res {
-                    Ok(Ok((settings, window, spoiler, rom))) => Message::SelectOutDir { settings, window, spoiler, rom },
-                    Ok(Err(e)) => Message::Error(Arc::new(e.into())),
-                    Err(e) => Message::Error(Arc::new(e.into())),
-                }).boxed()))
+                            for settings in &world_settings {
+                                settings.call_method0("reset_distribution")?;
+                            }
+                        };
+                        Ok((base_settings.to_object(py), spoiler.to_object(py), rom))
+                    })).await??;
+                    Ok(Message::SelectOutDir { base_settings, spoiler, rom })
+                })
             }
-            Message::SelectOutDir { settings, window, spoiler, rom } => return Command::single(Action::Future(async move {
+            Message::SelectOutDir { base_settings, spoiler, rom } => return cmd(async move {
                 if let Some(folder) = AsyncFileDialog::new().pick_folder().await {
                     spawn_blocking(move || Python::with_gil(move |py| {
-                        settings.setattr(py, "output_dir", folder.path())?;
-                        py.import_bound("Main")?.call_method1("patch_and_output", (settings, window, spoiler, rom))?;
+                        base_settings.setattr(py, "output_dir", folder.path())?;
+                        py.import_bound("Main")?.call_method1("patch_and_output", (base_settings, spoiler, rom))?;
                         PyResult::Ok(())
                     })).await??
                 }
-                Ok(())
-            }.map(|res| match res {
-                Ok(()) => Message::Done,
-                Err(e) => Message::Error(Arc::new(e)),
-            }).boxed())),
+                Ok(Message::Done)
+            }),
         }
-        Command::none()
+        Task::none()
     }
 
     fn view(&self) -> Element<'_, Message> {
@@ -145,10 +128,10 @@ impl Application for Gui {
 fn main() -> Result<(), Error> {
     Python::with_gil(|py| {
         let py_version = py.version_info();
-        if py_version < (3, 6) {
-            panic!("Randomizer requires at least Python 3.6 and you are using {}.{}.{}", py_version.major, py_version.minor, py_version.patch); //TODO GUI dialog
+        if py_version < (3, 8) {
+            panic!("Randomizer requires at least Python 3.8 and you are using {}.{}.{}", py_version.major, py_version.minor, py_version.patch); //TODO GUI dialog
         }
     });
-    Gui::run(iced::Settings::default())?;
+    iced::run("OoT Randomizer", Gui::update, Gui::view)?; //TODO move Python version check to initial message
     Ok(())
 }
