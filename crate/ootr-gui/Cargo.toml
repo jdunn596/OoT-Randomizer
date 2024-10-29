@@ -14,13 +14,20 @@ unused_qualifications = "deny"
 warnings = "deny"
 
 [dependencies]
-fs-err = "3.0.0"
 futures = "0.3"
 iced = { version = "0.13", default-features = false, features = ["auto-detect-theme", "tiny-skia", "tokio"] }
+indexmap = { version = "2.6.0", features = ["serde"] }
+itertools = "0.13.0"
 pyo3 = { version = "0.22", features = [
     "auto-initialize",
     "py-clone", #TODO remove
 ] }
 rfd = "0.15"
+serde = { version = "1.0.214", features = ["derive"] }
+serde_json = { package = "serde_json_path_to_error", version = "0.1" }
+serde_json_inner = { package = "serde_json", version = "1.0.132", features = [
+    "preserve_order", # required to correctly display presets
+] }
 thiserror = "1"
 tokio = { version = "1", features = ["rt-multi-thread"] }
+wheel = { git = "https://github.com/fenhl/wheel", branch = "main", features = ["serde", "serde_json", "serde_json_path_to_error"] }
