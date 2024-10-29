@@ -1,5 +1,11 @@
 use {
-    std::sync::Arc,
+    std::{
+        collections::HashMap,
+        convert::identity,
+        path::PathBuf,
+        sync::Arc,
+    },
+    fs_err::PathExt as _,
     futures::future::{
         Future,
         FutureExt as _,
@@ -9,14 +15,13 @@ use {
         Task,
         widget::{
             Button,
+            Column,
             Row,
             Text,
+            TextInput,
         },
     },
-    pyo3::{
-        prelude::*,
-        types::PyDict,
-    },
+    pyo3::prelude::*,
     rfd::AsyncFileDialog,
     tokio::task::spawn_blocking,
 };
@@ -30,42 +35,67 @@ fn cmd(future: impl Future<Output = Result<Message, Error>> + Send + 'static) ->
 #[derive(Debug, thiserror::Error)]
 enum Error {
     #[error(transparent)] Iced(#[from] iced::Error),
+    #[error(transparent)] Io(#[from] tokio::io::Error),
     #[error(transparent)] Python(#[from] PyErr),
     #[error(transparent)] Task(#[from] tokio::task::JoinError),
 }
 
 #[derive(Debug, Clone /*TODO this requires PyO3's py-clone feature, remove*/)]
 enum Message {
+    BaseRomBrowse,
     CommandError(Arc<Error>),
     Done,
     Generate,
+    Nop,
     SelectOutDir {
         base_settings: Py<PyAny>,
         spoiler: Py<PyAny>,
         rom: Py<PyAny>,
     },
+    SetBaseRomPath(PathBuf),
 }
 
 #[derive(Default)]
 struct Gui {
     error: Option<Arc<Error>>,
+    base_rom_path: PathBuf,
     generating: bool,
 }
 
 impl Gui {
+    fn has_cached_base_rom(&self) -> bool {
+        Python::with_gil(|py| {
+            Ok::<_, Error>(py.import_bound("Utils")?.call_method1("local_path", ("ZOOTDEC.z64",))?.extract::<PathBuf>()?.fs_err_try_exists()?)
+        }).is_ok_and(identity) //TODO error handling? (e.g. make this async as part of path picker widget initialization)
+    }
+
     fn update(&mut self, msg: Message) -> Task<Message> {
         match msg {
+            Message::BaseRomBrowse => return cmd(async move {
+                Ok(if let Some(file) = AsyncFileDialog::new()
+                    .add_filter("Nintendo 64 rom", &["n64", "v64", "z64"])
+                    .pick_file().await
+                {
+                    Message::SetBaseRomPath(file.path().to_owned())
+                } else {
+                    Message::Nop
+                })
+            }),
             Message::CommandError(e) => self.error = Some(e),
             Message::Done => self.generating = false,
             Message::Generate => {
                 self.generating = true;
                 //TODO if goal hints are used and there are more than 5 worlds, ask for confirmation due to long generation times
                 //TODO when generating a multiworld rom/wad, ask for the player number. The text field is initially blank
+                let base_rom_path = self.base_rom_path.clone();
                 return cmd(async move {
-                    let (base_settings, spoiler, rom) = spawn_blocking(|| Python::with_gil(|py| {
-                        let sys = py.import_bound("sys")?;
-                        sys.getattr("path")?.call_method1("append", (concat!(env!("CARGO_MANIFEST_DIR"), "/../.."),))?;
-                        let base_settings = py.import_bound("Settings")?.call_method1("Settings", (PyDict::new_bound(py),))?; //TODO populate settings
+                    let (base_settings, spoiler, rom) = spawn_blocking(move || Python::with_gil(|py| {
+                        let mut settings_base = HashMap::new();
+                        if !base_rom_path.as_os_str().is_empty() {
+                            settings_base.insert("rom", &base_rom_path);
+                        }
+                        //TODO populate other settings
+                        let base_settings = py.import_bound("Settings")?.call_method1("Settings", (settings_base,))?;
                         py.import_bound("HintList")?.call_method0("clear_hint_exclusion_cache")?;
                         let main = py.import_bound("Main")?;
                         let (rom, world_settings) = main.call_method1("resolve_settings", (&base_settings,))?.extract::<(_, Vec<Bound<'_, PyAny>>)>()?;
@@ -88,6 +118,7 @@ impl Gui {
                     Ok(Message::SelectOutDir { base_settings, spoiler, rom })
                 })
             }
+            Message::Nop => {}
             Message::SelectOutDir { base_settings, spoiler, rom } => return cmd(async move {
                 if let Some(folder) = AsyncFileDialog::new().pick_folder().await {
                     spawn_blocking(move || Python::with_gil(move |py| {
@@ -98,6 +129,7 @@ impl Gui {
                 }
                 Ok(Message::Done)
             }),
+            Message::SetBaseRomPath(new_path) => self.base_rom_path = new_path,
         }
         Task::none()
     }
@@ -108,30 +140,51 @@ impl Gui {
         if let Some(ref e) = self.error {
             Text::new(e.to_string()).into()
         } else {
-            Row::new()
+            Column::new()
             //TODO “Generate from” (dropdown, random seed/set seed/patch file)
             //TODO “Seed” (text field, only if “Generate from set seed”)
-            //TODO “Base rom” (file select)
+            .push(Row::new()
+                .push("Base rom:")
+                .push(TextInput::new(if self.has_cached_base_rom() { "Using cached rom" } else { "Required" }, &self.base_rom_path.to_string_lossy())
+                    .on_input(|s| Message::SetBaseRomPath(PathBuf::from(s)))
+                    .on_paste(|s| Message::SetBaseRomPath(PathBuf::from(s)))
+                )
+                .push(Button::new("Browse…").on_press(Message::BaseRomBrowse))
+                .align_y(iced::Alignment::Center)
+                .spacing(8)
+            )
             //TODO “Settings” (dropdown with “Customize” button, only if “Generate from set/random seed”)
             //TODO “Cosmetics” (dropdown with “Customize” button)
             //TODO “Output type” (dropdown with options depending on world count)
             .push({
                 let mut btn = Button::new(Text::new("Generate!"));
-                if !self.generating { btn = btn.on_press(Message::Generate) }
+                let is_enabled = true
+                    && (self.has_cached_base_rom() || !self.base_rom_path.as_os_str().is_empty())
+                    && !self.generating
+                ;
+                if is_enabled { btn = btn.on_press(Message::Generate) }
                 btn
-            }) //TODO keep button enabled but style as disabled if prerequisites to generate seed not met (e.g. generate from patch file but no patch file)
+            }) //TODO keep button enabled but style as disabled if prerequisites to generate seed not met (e.g. generate from patch file but no patch file) so an error can be shown on click
+            .spacing(8)
+            .padding(8)
             .into()
         }
     }
 }
 
 fn main() -> Result<(), Error> {
-    Python::with_gil(|py| {
-        let py_version = py.version_info();
-        if py_version < (3, 8) {
-            panic!("Randomizer requires at least Python 3.8 and you are using {}.{}.{}", py_version.major, py_version.minor, py_version.patch); //TODO GUI dialog
-        }
-    });
-    iced::run("OoT Randomizer", Gui::update, Gui::view)?; //TODO move Python version check to initial message
+    iced::application("OoT Randomizer", Gui::update, Gui::view)
+        .run_with(|| (Gui::default(), cmd(async move {
+            let () = spawn_blocking(move || Python::with_gil(|py| {
+                let py_version = py.version_info();
+                if py_version < (3, 8) {
+                    panic!("Randomizer requires at least Python 3.8 and you are using {}.{}.{}", py_version.major, py_version.minor, py_version.patch); //TODO GUI dialog
+                }
+                let sys = py.import_bound("sys")?;
+                sys.getattr("path")?.call_method1("append", (concat!(env!("CARGO_MANIFEST_DIR"), "/../.."),))?;
+                Ok::<_, Error>(())
+            })).await??;
+            Ok(Message::Nop)
+        })))?;
     Ok(())
 }

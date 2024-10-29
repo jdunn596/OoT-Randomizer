@@ -99,7 +99,7 @@ fn main(Args { log_level, settings_string, convert_settings, settings, settings_
                 return Ok(1)
             }
         }
-        if settings.as_ref().map_or(false, |settings| settings == Path::new("-")) {
+        if settings.as_ref().is_some_and(|settings| settings == Path::new("-")) {
             settings_base.call_method1("update", (json.call_method1("loads", (sys.getattr("stdin")?.call_method0("read")?,))?,))?;
         } else if settings.is_some() || settings_base.is_empty() { // avoid implicitly using settings.sav with presets
             let settings_path = utils.call_method1("local_path", (settings.as_deref().unwrap_or(Path::new("settings.sav")),))?;

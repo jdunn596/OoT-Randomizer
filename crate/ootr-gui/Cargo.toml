@@ -14,6 +14,7 @@ unused_qualifications = "deny"
 warnings = "deny"
 
 [dependencies]
+fs-err = "3.0.0"
 futures = "0.3"
 iced = { version = "0.13", default-features = false, features = ["auto-detect-theme", "tiny-skia", "tokio"] }
 pyo3 = { version = "0.22", features = [
