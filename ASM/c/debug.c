@@ -279,8 +279,6 @@ void draw_debug_float(int whichNumber, float numberToShow) {
     debugNumbersFloat[whichNumber] = numberToShow;
 }
 
-#define CLOCK_TIME(hr, min) ((int32_t)(((hr) * 60 + (min)) * (float)0x10000 / (24 * 60) + 0.5f))
-
 void draw_timeofday(z64_disp_buf_t* db) {
 
     if (!show_clock) {
@@ -633,6 +631,9 @@ void draw_debug_menu(z64_disp_buf_t* db) {
                             }
                         }
                     }
+                    if (z64_game.common.input[0].pad_pressed.a && current_menu_indexes.sub_menu_index < 2) {
+                        current_menu_indexes.sub_menu_index++;
+                    }
                     if (current_menu_indexes.sub_menu_index == 2) {
                         if (z64_game.common.input[0].pad_pressed.dr) {
                             current_menu_indexes.scene_flag++;
@@ -692,9 +693,6 @@ void draw_debug_menu(z64_disp_buf_t* db) {
                                     }
                                     break;
                             }
-                        }
-                        if (z64_game.common.input[0].pad_pressed.a && current_menu_indexes.sub_menu_index < 2) {
-                            current_menu_indexes.sub_menu_index++;
                         }
                     }
                     break;
