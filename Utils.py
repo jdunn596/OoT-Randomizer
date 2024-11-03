@@ -51,11 +51,11 @@ def data_path(path: str = '') -> str:
     return os.path.join(data_path.cached_path, path)
 
 
-def default_output_path(path: str) -> str:
+def default_output_path(path: str, *, create: bool = True) -> str:
     if path == '':
         path = local_path('Output')
 
-    if not os.path.exists(path):
+    if create and not os.path.exists(path):
         os.mkdir(path)
     return path
 

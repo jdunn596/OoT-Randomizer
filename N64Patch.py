@@ -93,7 +93,7 @@ def write_block_section(start: int, key_skip: int, in_data: list[int], patch_dat
 # xor_range is the range the XOR key will read from. This range is not
 # too important, but I tried to choose from a section that didn't really
 # have big gaps of 0s which we want to avoid.
-def create_patch_file(rom: Rom, file: str, xor_range: tuple[int, int] = (0x00B8AD30, 0x00F029A0)) -> None:
+def create_patch_data(rom: Rom, xor_range: tuple[int, int] = (0x00B8AD30, 0x00F029A0)) -> bytes:
     dma_start, dma_end = rom.dma.dma_start, rom.dma.dma_end
 
     # add header
@@ -174,6 +174,11 @@ def create_patch_file(rom: Rom, file: str, xor_range: tuple[int, int] = (0x00B8A
     patch_data = bytes(patch_data.buffer)
     patch_data = zlib.compress(patch_data)
 
+    return patch_data
+
+
+def create_patch_file(rom: Rom, file: str, xor_range: tuple[int, int] = (0x00B8AD30, 0x00F029A0)) -> None:
+    patch_data = create_patch_data(rom, xor_range)
     # save the patch file
     with open(file, 'wb') as outfile:
         outfile.write(patch_data)

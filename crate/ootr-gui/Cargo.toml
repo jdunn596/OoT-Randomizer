@@ -15,14 +15,15 @@ warnings = "deny"
 
 [dependencies]
 futures = "0.3"
-iced = { version = "0.13", default-features = false, features = ["auto-detect-theme", "tiny-skia", "tokio"] }
+iced = { version = "0.13", default-features = false, features = ["auto-detect-theme", "multi-window", "tiny-skia", "tokio"] }
 indexmap = { version = "2.6.0", features = ["serde"] }
 itertools = "0.13.0"
+nonempty-collections = "0.2.9"
 pyo3 = { version = "0.22", features = [
     "auto-initialize",
     "py-clone", #TODO remove
 ] }
-rfd = "0.15"
+rfd = { version = "0.15", features = ["common-controls-v6"] }
 serde = { version = "1.0.214", features = ["derive"] }
 serde_json = { package = "serde_json_path_to_error", version = "0.1" }
 serde_json_inner = { package = "serde_json", version = "1.0.132", features = [
@@ -31,3 +32,7 @@ serde_json_inner = { package = "serde_json", version = "1.0.132", features = [
 thiserror = "1"
 tokio = { version = "1", features = ["rt-multi-thread"] }
 wheel = { git = "https://github.com/fenhl/wheel", branch = "main", features = ["serde", "serde_json", "serde_json_path_to_error"] }
+zip = "2.2.0"
+
+[build-dependencies]
+winresource = "0.1.17"

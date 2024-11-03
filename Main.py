@@ -20,7 +20,7 @@ from HintList import clear_hint_exclusion_cache, misc_item_hint_table, misc_loca
 from ItemPool import generate_itempool
 from MBSDIFFPatch import apply_ootr_3_web_patch
 from Models import patch_model_adult, patch_model_child
-from N64Patch import create_patch_file, apply_patch_file
+from N64Patch import create_patch_data, create_patch_file, apply_patch_file
 from Patches import patch_rom
 from Rom import Rom
 from Rules import set_rules, set_shop_rules
@@ -329,10 +329,11 @@ def generate_wad(wad_file: str, rom_file: str, output_file: str, channel_title: 
         os.remove(rom_file)
 
 
-def patch_and_output(settings: Settings, spoiler: Spoiler, rom: Optional[Rom]) -> None:
+def patch_and_output(settings: Settings, spoiler: Spoiler, rom: Optional[Rom]) -> list[bytes]:
     logger = logging.getLogger('')
     worlds = spoiler.worlds
     cosmetics_log = None
+    patches = []
 
     settings_string_hash = hashlib.sha1(settings.settings_string.encode('utf-8')).hexdigest().upper()[:5]
     if settings.output_file:
@@ -342,22 +343,17 @@ def patch_and_output(settings: Settings, spoiler: Spoiler, rom: Optional[Rom]) -
         if settings.world_count > 1:
             output_filename_base += f"_W{settings.world_count}"
 
-    output_dir = default_output_path(settings.output_dir)
+    output_dir = default_output_path(settings.output_dir, create=not settings.patch_without_output)
 
     compressed_rom = settings.create_compressed_rom or settings.create_wad_file
     uncompressed_rom = compressed_rom or settings.create_uncompressed_rom
-    generate_rom = uncompressed_rom or settings.create_patch_file or settings.patch_without_output
     separate_cosmetics = settings.create_patch_file and uncompressed_rom
 
-    if generate_rom and rom is not None:
+    if rom is not None:
         rng_state = random.getstate()
         file_list = []
         restore_rom = False
         for world in worlds:
-            # If we aren't creating a patch file and this world isn't the one being outputted, move to the next world.
-            if not (settings.create_patch_file or world.id == settings.player_num - 1):
-                continue
-
             if settings.world_count > 1:
                 logger.info(f"Patching ROM: Player {world.id + 1}")
                 player_filename_suffix = f"P{world.id + 1}"
@@ -368,13 +364,16 @@ def patch_and_output(settings: Settings, spoiler: Spoiler, rom: Optional[Rom]) -
             settings.generating_patch_file = settings.create_patch_file
             patch_cosmetics_log = prepare_rom(spoiler, world, rom, settings, rng_state, restore_rom)
             restore_rom = True
+            patch_data = create_patch_data(rom)
+            patches.append(patch_data)
 
             if settings.create_patch_file:
                 patch_filename = f"{output_filename_base}{player_filename_suffix}.zpf"
                 logger.info(f"Creating Patch File: {patch_filename}")
                 output_path = os.path.join(output_dir, patch_filename)
                 file_list.append(patch_filename)
-                create_patch_file(rom, output_path)
+                with open(output_path, 'wb') as outfile:
+                    outfile.write(patch_data)
 
                 # Cosmetics Log for patch file only.
                 if settings.create_cosmetics_log and patch_cosmetics_log:
@@ -436,13 +435,12 @@ def patch_and_output(settings: Settings, spoiler: Spoiler, rom: Optional[Rom]) -
                 os.remove(os.path.join(output_dir, file))
             logger.info("Created patch file archive at: %s" % patch_archive_path)
 
-    if not settings.create_spoiler or settings.output_settings:
-        settings.distribution.update_spoiler(spoiler, False)
+    settings.distribution.update_spoiler(spoiler, True)
+    if (not settings.create_spoiler and not settings.patch_without_output) or settings.output_settings:
         settings_path = os.path.join(output_dir, '%s_Settings.json' % output_filename_base)
         settings.distribution.to_file(settings_path, False)
         logger.info("Created settings log at: %s" % ('%s_Settings.json' % output_filename_base))
     if settings.create_spoiler:
-        settings.distribution.update_spoiler(spoiler, True)
         spoiler_path = os.path.join(output_dir, '%s_Spoiler.json' % output_filename_base)
         settings.distribution.to_file(spoiler_path, True)
         logger.info("Created spoiler log at: %s" % ('%s_Spoiler.json' % output_filename_base))
@@ -468,6 +466,8 @@ def patch_and_output(settings: Settings, spoiler: Spoiler, rom: Optional[Rom]) -
         logger.info('Success: Rom patched successfully. Some cosmetics could not be applied.')
     else:
         logger.info('Success: Rom patched successfully')
+
+    return patches
 
 
 def from_patch_file(settings: Settings) -> None:
