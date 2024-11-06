@@ -294,7 +294,9 @@ class State:
         # Need to check for the soul for each enemy, and the defeatability function
         for enemy in enemies:
             enemy_obj, shuffled = enemies[enemy]
-            if not self.has_soul(enemy_obj.soul_name, **kwargs):
+            can_kill = self.world.parser.parse_rule(enemy_obj.kill_logic)(self, **kwargs)
+            has_soul = self.has_soul(enemy_obj.soul_name, **kwargs)
+            if not (has_soul and can_kill):
                 return False
 
         return True
