@@ -1310,7 +1310,7 @@ enemy_actor_types: list[Enemy] = {
     Enemy("Shell Blade", id=0x00C5, kill_logic='can_kill_shell_blade', categories=[LOCATION_RESTRICTION.UNDERWATER, LOCATION_RESTRICTION.ABOVE_GROUND]),
     Enemy("Like like", id=0x00DD, soul_name="Like-like", kill_logic='can_kill_likelike', categories=[LOCATION_RESTRICTION.ABOVE_GROUND]),
     Enemy("Spike Enemy", id=0x00EC, kill_logic='can_kill_spike_enemy', categories=[LOCATION_RESTRICTION.ABOVE_GROUND]),
-    Enemy("Anubis Spawner", id=0x00F6, var=0x0003, soul_name="Anubis", categories=[LOCATION_RESTRICTION.FLOATING]),
+    Enemy("Anubis Spawner", id=0x00F6, var=0x0003, soul_name="Anubis", kill_logic='can_kill_anubis', categories=[LOCATION_RESTRICTION.FLOATING]),
         Enemy("Iron Knuckle (Black)", id=0x0113, var=0xFF82, weight=.5, categories=[LOCATION_RESTRICTION.ABOVE_GROUND], soul_name='Iron Knuckle'),
         Enemy("Iron Knuckle (White)", id=0x0113, var=0xFF83, weight=.5, categories=[LOCATION_RESTRICTION.ABOVE_GROUND], soul_name='Iron Knuckle'),
     Enemy("Skull Kid", id=0x0115, var=0xFFFF),
