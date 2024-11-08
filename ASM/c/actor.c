@@ -404,7 +404,7 @@ z64_actor_t* Actor_Spawn_Hook(void* actorCtx, z64_game_t* globalCtx, int16_t act
     }*/
 
     if (continue_spawn) {
-        z64_actor_t* spawned = Actor_Spawn_Continue(actorCtx, globalCtx, entry.id,(float)entry.pos.x, (float)entry.pos.y, (float)entry.pos.z, entry.rot.x, entry.rot.y, entry.rot.z, entry.params);
+        z64_actor_t* spawned = Actor_Spawn_Continue(actorCtx, globalCtx, entry.id,posX, posY, posZ, entry.rot.x, entry.rot.y, entry.rot.z, entry.params);
         if (spawned) {
             if (spawn_actor_with_flag) {
                 Actor_StoreFlag(spawned, globalCtx, *spawn_actor_with_flag);
