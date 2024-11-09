@@ -146,6 +146,9 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
   * [4.0](#40)
 
 # Enemy Shuffle Changelog
+### v135
+  * Fix skull kid spawns
+
 ### v134
   * Remove position rounding on actor spawns - Should fix chu clips
 
