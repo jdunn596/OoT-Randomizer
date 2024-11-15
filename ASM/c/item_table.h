@@ -342,7 +342,8 @@ typedef enum GetItemID {
     /* 0x012F */ GI_SPIRIT_MEDALLION,
 
     // New items in dev-fenhl which are not in main Dev
-    // Some previously used IDs may be skipped, to simplify auto-tracker support
+    // The ID range is shared with Elagatua's Dev branch, avoid overlap to make multiworld and auto-trackers work
+    // Similarly, don't reuse previously used IDs
 
     /* 0x1000 */ GI_EASTER_EGG_PINK = 0x1000,
     /* 0x1001 */ GI_EASTER_EGG_ORANGE,
@@ -379,10 +380,19 @@ typedef enum GetItemID {
     /* 0x1023 */ GI_PROGRESSIVE_NUT_CAPACITY_BIG_CHEST,
     /* 0x1024 */ GI_PROGRESSIVE_STICK_CAPACITY_BIG_CHEST,
 
-    /* 0x1025 */ GI_RANDO_MAX
+    /* 0x1025 */ GI_BOMB_BAG_HINT,
+    /* 0x1026 */ GI_BOW_HINT,
+    /* 0x1027 */ GI_HOOKSHOT_HINT,
+    /* 0x1028 */ GI_MAGIC_HINT,
+    /* 0x1029 */ GI_SILVER_GAUNTLETS_HINT,
+    /* 0x102A */ GI_GORON_BRACELET_HINT,
+    /* 0x102B */ GI_SILVER_SCALE_HINT,
+    /* 0x102C */ GI_WALLET_HINT,
+
+    /* 0x102D */ GI_RANDO_MAX
 } GetItemId;
 
-_Static_assert(GI_RANDO_MAX == 0x1025, "Remember to update the comment and the assert for the value of GI_RANDO_MAX when adding new items");
+_Static_assert(GI_RANDO_MAX == 0x102D, "Remember to update the comment and the assert for the value of GI_RANDO_MAX when adding new items");
 
 typedef enum {
     /*  0 */ BROWN_CHEST,            // big default chest
