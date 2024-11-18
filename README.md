@@ -17,6 +17,7 @@ Differences between `riir` and [`dev-fenhl`](https://github.com/fenhl/OoT-Random
 Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [`Dev-R`](https://github.com/Roman971/OoT-Randomizer):
 
 * New settings and options:
+  * “Pre-completed Dungeons Mode” set to “Specific Rewards” is compatible with “Shuffle Dungeon Rewards” ([#2330](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2330))
   * New “Shuffle Gerudo Fortress Heart Piece” setting to control the behavior of this check with “Shuffle Thieves' Hideout Entrances” ([#2179](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2179))
   * New “Frogs Ocarina Game” option for the “Randomize Ocarina Song Notes” setting ([#2064](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2064))
   * New “Shuffle Ganon's Tower Entrance” setting ([#2063](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2063))
@@ -78,6 +79,7 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
   * The GUI tweaks made by [`Dev-R`](https://github.com/Roman971/OoT-Randomizer) are further adjusted to balance consistency with [main `Dev`](https://github.com/OoTRandomizer/OoT-Randomizer) and ease of use.
   * The Lens of Truth can be in a foolish area if Treasure Chest Game keys are shuffled and all relevant “lensless” tricks are enabled.
 * Bug fixes:
+  * Fix precompleted dungeon rewards not accounting for boss entrance randomizer ([#2330](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2330))
   * An inconsistency with how hints refer to key rings for the Thieves' Hideout and the treasure box shop is fixed ([#2320](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2320))
   * The randomizer no longer generates unbeatable seeds due to counting copies of dungeon rewards or ocarina notes separately ([#2319](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2319))
   * Blue warps setting time of day even on repeated use is now in logic ([#2304](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2304))
@@ -217,6 +219,8 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * The `Frogs Ocarina Game` misc. hint text box has been moved slightly so it no longer requires reloading the area to reread.
 * Fix key rings being hinted as small keys when keys are in their own dungeons.
 * Fix a crash when pressing down on the D-pad on the inventory screen in some settings combinations.
+* Fix a possible void out at the Forest Temple boss door.
+* Fix importing settings from older versions on web.
 
 #### Other Changes
 * Now supports custom music written for the Majora's Mask Randomizer.

@@ -2351,6 +2351,11 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
     # Meg respawns after 30 frames instead of 100 frames after getting hit
     rom.write_byte(0xCDA723, 0x1E)
 
+    # Boss doors side range (1.0 value is 0x46)
+    # This was reduced to 0x32 in 1.1, either to fix the Phantom Ganon door bug or just to match better visually the door textures.
+    # See https://github.com/OoTRandomizer/OoT-Randomizer/pull/2331 for more information.
+    rom.write_byte(0xC57AE2, 0x32)
+
     # actually write the save table to rom
     world.distribution.give_items(world, save_context)
     if world.settings.starting_age == 'adult':
@@ -2923,8 +2928,8 @@ def configure_dungeon_info(rom: Rom, world: World) -> None:
             if location.world.id == world.id and area.is_dungeon:
                 dungeon_rewards[codes.index(area.dungeon_name)] = boss_reward_index(location.item)
 
-    dungeon_is_mq = [1 if world.dungeon_mq.get(c) else 0 for c in codes]
-    dungeon_precompleted = [1 if world.empty_dungeons[c].empty else 0 for c in codes]
+    dungeon_is_mq = [int(world.dungeon_mq.get(c, False)) for c in codes]
+    dungeon_precompleted = [int(world.precompleted_dungeons.get(c, False)) for c in codes]
 
     rom.write_int32(rom.sym('CFG_DUNGEON_INFO_ENABLE'), 2)
     rom.write_int32(rom.sym('CFG_DUNGEON_INFO_MQ_ENABLE'), int(mq_enable))
