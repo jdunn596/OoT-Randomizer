@@ -216,6 +216,7 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * Fix key rings being hinted as small keys when keys are in their own dungeons.
 * Fix a crash when pressing down on the D-pad on the inventory screen in some settings combinations.
 * Fix a possible void out at the Forest Temple boss door.
+* Fix importing settings from older versions on web.
 
 #### Other Changes
 * Now supports custom music written for the Majora's Mask Randomizer.
