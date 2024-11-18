@@ -213,6 +213,7 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * The `Frogs Ocarina Game` misc. hint text box has been moved slightly so it no longer requires reloading the area to reread.
 * Fix key rings being hinted as small keys when keys are in their own dungeons.
 * Fix a crash when pressing down on the D-pad on the inventory screen in some settings combinations.
+* Fix a possible void out at the Forest Temple boss door.
 
 #### Other Changes
 * Now supports custom music written for the Majora's Mask Randomizer.
