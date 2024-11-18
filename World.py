@@ -830,7 +830,7 @@ class World:
             self.push_item(loc, item)
 
     def set_empty_dungeon_rewards(self, empty_rewards: list[str] = []) -> None:
-        empty_dungeon_bosses = list(map(lambda reward: self.find_items(reward)[0].name, empty_rewards))
+        empty_dungeon_bosses = list(map(lambda reward: self.find_items(reward)[0], empty_rewards))
         for boss in empty_dungeon_bosses:
             hint_area = HintArea.at(boss)
             if hint_area.dungeon_name in self.precompleted_dungeons: # filter out side dungeons and overworld
