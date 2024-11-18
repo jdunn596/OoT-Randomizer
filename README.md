@@ -13,6 +13,7 @@ This branch (`dev-fenhl`) is based on [Roman971](https://github.com/Roman971)'s 
 Differences between `dev-fenhl` and [`Dev-R`](https://github.com/Roman971/OoT-Randomizer):
 
 * New settings and options:
+  * “Pre-completed Dungeons Mode” set to “Specific Rewards” is compatible with “Shuffle Dungeon Rewards” ([#2330](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2330))
   * New “Shuffle Gerudo Fortress Heart Piece” setting to control the behavior of this check with “Shuffle Thieves' Hideout Entrances” ([#2179](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2179))
   * New “Frogs Ocarina Game” option for the “Randomize Ocarina Song Notes” setting ([#2064](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2064))
   * New “Shuffle Ganon's Tower Entrance” setting ([#2063](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2063))
@@ -74,6 +75,7 @@ Differences between `dev-fenhl` and [`Dev-R`](https://github.com/Roman971/OoT-Ra
   * The GUI tweaks made by [`Dev-R`](https://github.com/Roman971/OoT-Randomizer) are further adjusted to balance consistency with [main `Dev`](https://github.com/OoTRandomizer/OoT-Randomizer) and ease of use.
   * The Lens of Truth can be in a foolish area if Treasure Chest Game keys are shuffled and all relevant “lensless” tricks are enabled.
 * Bug fixes:
+  * Fix precompleted dungeon rewards not accounting for boss entrance randomizer ([#2330](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2330))
   * An inconsistency with how hints refer to key rings for the Thieves' Hideout and the treasure box shop is fixed ([#2320](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2320))
   * The randomizer no longer generates unbeatable seeds due to counting copies of dungeon rewards or ocarina notes separately ([#2319](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2319))
   * Blue warps setting time of day even on repeated use is now in logic ([#2304](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2304))

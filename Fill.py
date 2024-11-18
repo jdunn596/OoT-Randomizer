@@ -166,8 +166,11 @@ def distribute_items_restrictive(worlds: list[World], fill_locations: Optional[l
 
     # If some dungeons are supposed to be empty, fill them with useless items.
     if any(world.settings.empty_dungeons_mode != 'none' for world in worlds):
-        empty_locations = [location for location in fill_locations
-                           if location.world.empty_dungeons[HintArea.at(location).dungeon_name].empty]
+        empty_locations = [
+            location
+            for location in fill_locations
+            if location.world.precompleted_dungeons.get(HintArea.at(location).dungeon_name, False)
+        ]
         for location in empty_locations:
             fill_locations.remove(location)
 
@@ -289,7 +292,7 @@ def fill_dungeon_unique_item(worlds: list[World], search: Search, fill_locations
         if world.settings.one_item_per_dungeon
         and world.settings.empty_dungeons_mode != 'none'
         for dungeon in world.dungeons
-        if not world.empty_dungeons[dungeon.name].empty
+        if not world.precompleted_dungeons.get(dungeon.name, False)
     ]
 
     double_dungeons = []
