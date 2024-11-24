@@ -17,6 +17,7 @@ Flags_UnsetTempClear = 0x800206C8;
 Flags_GetCollectible = 0x800206E8;
 Flags_SetCollectible = 0x8002071C;
 Actor_SetColorFilter = 0x80027090;
+z64_Gfx_SetupDL_25Opa = 0x8007E298;
 z64_Gfx_SetupDL_42Opa = 0x8007E868;
 Audio_StopCurrentMusic = 0x800C7684;
 sprintf = 0x800CE7b4;
@@ -37,6 +38,7 @@ BgCheck_AnyRaycastDown1 = 0x8002f644;
 WaterBox_GetSurface1 = 0x800347fc;
 Flags_GetTempClear = 0x80020694;
 Actor_UpdateBgCheckInfo = 0x80021e6c;
+gCullBackDList = 0x800f7a68;
 
 /* Overlay symbols */
 
