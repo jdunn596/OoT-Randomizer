@@ -103,7 +103,7 @@ impl From<nonempty_collections::Error> for Error {
     }
 }
 
-#[derive(Debug, Clone /*TODO this requires PyO3's py-clone feature, remove*/)]
+#[derive(Debug, Clone /*TODO this requires PyO3's py-clone feature, remove by using on_press_with (requires patch to iced to remove the unconditional Clone bound) */)]
 enum Message {
     AskSavePatches {
         window_to_close: window::Id,
@@ -125,19 +125,31 @@ enum Message {
     Generate,
     GenerateError(Arc<Error>),
     Init(settings::PresetsDefault),
+    MarkPatchesSaved {
+        window: window::Id,
+    },
     MarkPatchesSavedAndContinueClosing {
         window_to_close: window::Id,
         window_to_check: window::Id,
+    },
+    MarkSpoilerSaved {
+        window: window::Id,
     },
     MarkSpoilerSavedAndContinueClosing {
         window_to_close: window::Id,
         window_to_check: window::Id,
     },
     Nop,
+    SavePatches {
+        window: window::Id,
+    },
     SavePatchesResponse {
         window_to_close: window::Id,
         window_to_check: window::Id,
         response: rfd::MessageDialogResult,
+    },
+    SaveSpoiler {
+        window: window::Id,
     },
     SaveSpoilerResponse {
         window_to_close: window::Id,
@@ -182,6 +194,42 @@ impl Seed {
             return Some(Message::AskSaveSpoiler { window_to_close, window_to_check })
         }
         None
+    }
+
+    async fn patches_save_dialog(&self) -> Result<bool, Error> {
+        let dialog = AsyncFileDialog::default();
+        let dialog = if self.patches.len() == NonZero::<usize>::MIN {
+            dialog.add_filter("Ocarina of Time randomizer patch file", &["zpf"])
+        } else {
+            dialog.add_filter("Ocarina of Time randomizer patch file archive", &["zpfz"])
+        };
+        Ok(if let Some(file) = dialog.save_file().await {
+            if let Ok(patch) = self.patches.iter().into_iter().exactly_one() {
+                file.write(patch).await.at(file.path())?;
+            } else {
+                let mut zip = ZipWriter::new(Cursor::<Vec<_>>::default()); //TODO on non-WASM platforms, write directly to the file for better performance
+                for (world_idx, world_patch) in self.patches.iter().enumerate() {
+                    let world_id = NonZero::new(u8::try_from(world_idx + 1).expect("got more than 255 seeds")).expect("got more than 255 seeds");
+                    zip.start_file(format!("P{world_id}"), zip::write::SimpleFileOptions::default())?;
+                    zip.write_all(world_patch).at_unknown()?;
+                }
+                file.write(&zip.finish()?.into_inner()).await.at(file.path())?;
+            }
+            true
+        } else {
+            false
+        })
+    }
+
+    async fn spoiler_save_dialog(&self) -> Result<bool, Error> {
+        let dialog = AsyncFileDialog::default()
+            .add_filter("JSON document", &["json"]);
+        Ok(if let Some(file) = dialog.save_file().await {
+            file.write(self.spoiler_log.as_bytes()).await.at(file.path())?;
+            true
+        } else {
+            false
+        })
     }
 }
 
@@ -307,40 +355,41 @@ impl Gui {
                     ..window::Settings::default()
                 }).1.map(|_| Message::Nop)
             }
+            Message::MarkPatchesSaved { window } => {
+                for saved in self.seeds.get_mut(&window).expect("missing seed window info").patches_saved.iter_mut() {
+                    *saved = true;
+                }
+            }
             Message::MarkPatchesSavedAndContinueClosing { window_to_close, window_to_check } => {
                 for saved in self.seeds.get_mut(&window_to_check).expect("missing seed window info").patches_saved.iter_mut() {
                     *saved = true;
                 }
                 return cmd(future::ok(Message::CloseRequested(window_to_close)))
             }
+            Message::MarkSpoilerSaved { window } => {
+                self.seeds.get_mut(&window).expect("missing seed window info").spoiler_log_saved = true;
+            }
             Message::MarkSpoilerSavedAndContinueClosing { window_to_close, window_to_check } => {
                 self.seeds.get_mut(&window_to_check).expect("missing seed window info").spoiler_log_saved = true;
                 return cmd(future::ok(Message::CloseRequested(window_to_close)))
             }
             Message::Nop => {}
+            Message::SavePatches { window } => {
+                let seed = self.seeds[&window].clone();
+                return cmd(async move {
+                    Ok(if seed.patches_save_dialog().await? {
+                        Message::MarkPatchesSaved { window }
+                    } else {
+                        Message::Nop
+                    })
+                })
+            }
             Message::SavePatchesResponse { window_to_close, window_to_check, response } => if let rfd::MessageDialogResult::Custom(label) = response {
                 match &*label {
                     "Save" => {
                         let seed = self.seeds[&window_to_check].clone();
                         return cmd(async move {
-                            let dialog = AsyncFileDialog::default();
-                            let dialog = if seed.patches.len() == NonZero::<usize>::MIN {
-                                dialog.add_filter("Ocarina of Time randomizer patch file", &["zpf"])
-                            } else {
-                                dialog.add_filter("Ocarina of Time randomizer patch file archive", &["zpfz"])
-                            };
-                            Ok(if let Some(file) = dialog.save_file().await {
-                                if let Ok(patch) = seed.patches.iter().into_iter().exactly_one() {
-                                    file.write(patch).await.at(file.path())?;
-                                } else {
-                                    let mut zip = ZipWriter::new(Cursor::<Vec<_>>::default()); //TODO on non-WASM platforms, write directly to the file for better performance
-                                    for (world_idx, world_patch) in seed.patches.iter().enumerate() {
-                                        let world_id = NonZero::new(u8::try_from(world_idx + 1).expect("got more than 255 seeds")).expect("got more than 255 seeds");
-                                        zip.start_file(format!("P{world_id}"), zip::write::SimpleFileOptions::default())?;
-                                        zip.write_all(world_patch).at_unknown()?;
-                                    }
-                                    file.write(&zip.finish()?.into_inner()).await.at(file.path())?;
-                                }
+                            Ok(if seed.patches_save_dialog().await? {
                                 Message::MarkPatchesSavedAndContinueClosing { window_to_close, window_to_check }
                             } else {
                                 Message::Nop
@@ -362,15 +411,22 @@ impl Gui {
             } else {
                 unreachable!("got non-custom response from dialog with custom labels")
             },
+            Message::SaveSpoiler { window } => {
+                let seed = self.seeds[&window].clone();
+                return cmd(async move {
+                    Ok(if seed.spoiler_save_dialog().await? {
+                        Message::MarkSpoilerSaved { window }
+                    } else {
+                        Message::Nop
+                    })
+                })
+            }
             Message::SaveSpoilerResponse { window_to_close, window_to_check, response } => if let rfd::MessageDialogResult::Custom(label) = response {
                 match &*label {
                     "Save" => {
                         let seed = self.seeds[&window_to_check].clone();
                         return cmd(async move {
-                            let dialog = AsyncFileDialog::default()
-                                .add_filter("JSON document", &["json"]);
-                            Ok(if let Some(file) = dialog.save_file().await {
-                                file.write(seed.spoiler_log.as_bytes()).await.at(file.path())?;
+                            Ok(if seed.spoiler_save_dialog().await? {
                                 Message::MarkSpoilerSavedAndContinueClosing { window_to_close, window_to_check }
                             } else {
                                 Message::Nop
@@ -405,9 +461,10 @@ impl Gui {
             Column::new()
             .push(Text::new("Seed").size(24)) //TODO show file hash instead
             //TODO buttons to:
-            // * Save patch file
             // * Save rom
-            // * Save spoiler log
+            // * Save wad
+            .push(Button::new("Save patch file").on_press(Message::SavePatches { window }))
+            .push(Button::new("Save spoiler log").on_press(Message::SaveSpoiler { window }))
             .spacing(8)
             .padding(8)
             .into()
