@@ -14,6 +14,7 @@ unused_qualifications = "deny"
 warnings = "deny"
 
 [dependencies]
+dark-light = "1.1.1"
 futures = "0.3"
 iced = { version = "0.13", default-features = false, features = ["auto-detect-theme", "multi-window", "tiny-skia", "tokio"] }
 indexmap = { version = "2.6.0", features = ["serde"] }
@@ -36,3 +37,6 @@ zip = "2.2.0"
 
 [build-dependencies]
 winresource = "0.1.17"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+gio = "0.20.6"

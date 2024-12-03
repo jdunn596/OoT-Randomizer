@@ -17,6 +17,10 @@ use {
         },
         sync::Arc,
     },
+    dark_light::Mode::{
+        Dark,
+        Light,
+    },
     futures::future::{
         self,
         Future,
@@ -26,6 +30,7 @@ use {
     iced::{
         Element,
         Task,
+        Theme,
         widget::{
             Button,
             Column,
@@ -117,6 +122,8 @@ enum Message {
     BaseRomBrowse,
     CloseRequested(window::Id),
     CommandError(Arc<Error>),
+    #[allow(unused)] //TODO
+    CustomizeSettings,
     DismissError,
     Done {
         patches: NEVec<Vec<u8>>,
@@ -162,14 +169,19 @@ enum Message {
 
 #[derive(Default)]
 struct Gui {
-    // main window
+    /// If a given window ID is not in this map, it's assumed to be the main window.
+    windows: HashMap<window::Id, WindowState>,
+    // global/main window state
     error: Option<Arc<Error>>,
     base_rom_path: PathBuf,
     presets: settings::PresetsDefault,
     selected_preset: Option<String>,
     generating: bool,
-    // seed windows
-    seeds: HashMap<window::Id, Seed>,
+}
+
+enum WindowState {
+    Presets,
+    Seed(Seed),
 }
 
 #[derive(Clone)]
@@ -238,6 +250,48 @@ impl Gui {
         Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../ZOOTDEC.z64")).exists()
     }
 
+    fn seed(&self, window: window::Id) -> &Seed {
+        match self.windows.get(&window) {
+            Some(WindowState::Seed(seed)) => seed,
+            Some(_) => panic!("attempted to look up seed for non-seed window"),
+            None => panic!("attempted to look up seed for main or unknown window"),
+        }
+    }
+
+    fn seed_mut(&mut self, window: window::Id) -> &mut Seed {
+        match self.windows.get_mut(&window) {
+            Some(WindowState::Seed(seed)) => seed,
+            Some(_) => panic!("attempted to look up seed for non-seed window"),
+            None => panic!("attempted to look up seed for main or unknown window"),
+        }
+    }
+
+    fn theme(&self, _: window::Id) -> Theme {
+        //TODO automatically update on system theme change (https://github.com/gtk-rs/gtk-rs-core/discussions/1278 for GNOME, https://github.com/frewsxcv/rust-dark-light/pull/26 for other platforms)
+        #[cfg(target_os = "linux")] {
+            let settings = gio::Settings::new("org.gnome.desktop.interface");
+            if settings.settings_schema().map_or(false, |schema| schema.has_key("color-scheme")) {
+                match settings.string("color-scheme").as_str() {
+                    "prefer-light" => return Theme::Light,
+                    "prefer-dark" => return Theme::Dark,
+                    _ => {}
+                }
+            }
+        }
+        match dark_light::detect() {
+            Dark => Theme::Dark,
+            Light | dark_light::Mode::Default => Theme::Light,
+        }
+    }
+
+    fn title(&self, window: window::Id) -> String {
+        match self.windows.get(&window) {
+            None => format!("OoT Randomizer"),
+            Some(WindowState::Presets) => format!("Presets"),
+            Some(WindowState::Seed(_)) => format!("Seed"),
+        }
+    }
+
     fn update(&mut self, msg: Message) -> Task<Message> {
         match msg {
             Message::AskSavePatches { window_to_close, window_to_check, unsaved_worlds } => return cmd(AsyncMessageDialog::default()
@@ -268,33 +322,50 @@ impl Gui {
                     Message::Nop
                 })
             }),
-            Message::CloseRequested(window) => if let hash_map::Entry::Occupied(entry) = self.seeds.entry(window) {
-                if let Some(msg) = entry.get().before_close_message(window, window) {
-                    return cmd(future::ok(msg))
+            Message::CloseRequested(window) => if let hash_map::Entry::Occupied(entry) = self.windows.entry(window) {
+                match entry.get() {
+                    WindowState::Presets => { entry.remove(); }
+                    WindowState::Seed(seed) => {
+                        if let Some(msg) = seed.before_close_message(window, window) {
+                            return cmd(future::ok(msg))
+                        }
+                        entry.remove();
+                    }
                 }
-                entry.remove();
                 return window::close(window)
             } else {
                 // main window
-                for (&seed_window, seed) in &self.seeds {
-                    if let Some(msg) = seed.before_close_message(window, seed_window) {
-                        return cmd(future::ok(msg))
+                for (&seed_window, window_state) in &self.windows {
+                    if let WindowState::Seed(seed) = window_state {
+                        if let Some(msg) = seed.before_close_message(window, seed_window) {
+                            return cmd(future::ok(msg))
+                        }
                     }
                 }
                 return iced::exit()
             },
             Message::CommandError(e) => self.error = Some(e),
+            Message::CustomizeSettings => if let Some((window, _)) = self.windows.iter().find(|(_, window_state)| matches!(window_state, WindowState::Presets)) {
+                return window::gain_focus(*window)
+            } else {
+                let (presets_window_id, window_open_task) = window::open(window::Settings {
+                    exit_on_close_request: false,
+                    ..window::Settings::default()
+                });
+                self.windows.insert(presets_window_id, WindowState::Presets);
+                return window_open_task.map(|_| Message::Nop)
+            },
             Message::DismissError => self.error = None,
             Message::Done { patches, spoiler_log } => {
                 let (seed_window_id, window_open_task) = window::open(window::Settings {
                     exit_on_close_request: false,
                     ..window::Settings::default()
                 });
-                self.seeds.insert(seed_window_id, Seed {
+                self.windows.insert(seed_window_id, WindowState::Seed(Seed {
                     patches_saved: patches.iter().map(|_| false).collect(),
                     spoiler_log_saved: false,
                     patches, spoiler_log,
-                });
+                }));
                 self.generating = false;
                 return window_open_task.map(|_| Message::Nop)
             }
@@ -356,26 +427,26 @@ impl Gui {
                 }).1.map(|_| Message::Nop)
             }
             Message::MarkPatchesSaved { window } => {
-                for saved in self.seeds.get_mut(&window).expect("missing seed window info").patches_saved.iter_mut() {
+                for saved in self.seed_mut(window).patches_saved.iter_mut() {
                     *saved = true;
                 }
             }
             Message::MarkPatchesSavedAndContinueClosing { window_to_close, window_to_check } => {
-                for saved in self.seeds.get_mut(&window_to_check).expect("missing seed window info").patches_saved.iter_mut() {
+                for saved in self.seed_mut(window_to_check).patches_saved.iter_mut() {
                     *saved = true;
                 }
                 return cmd(future::ok(Message::CloseRequested(window_to_close)))
             }
             Message::MarkSpoilerSaved { window } => {
-                self.seeds.get_mut(&window).expect("missing seed window info").spoiler_log_saved = true;
+                self.seed_mut(window).spoiler_log_saved = true;
             }
             Message::MarkSpoilerSavedAndContinueClosing { window_to_close, window_to_check } => {
-                self.seeds.get_mut(&window_to_check).expect("missing seed window info").spoiler_log_saved = true;
+                self.seed_mut(window_to_check).spoiler_log_saved = true;
                 return cmd(future::ok(Message::CloseRequested(window_to_close)))
             }
             Message::Nop => {}
             Message::SavePatches { window } => {
-                let seed = self.seeds[&window].clone();
+                let seed = self.seed(window).clone();
                 return cmd(async move {
                     Ok(if seed.patches_save_dialog().await? {
                         Message::MarkPatchesSaved { window }
@@ -387,7 +458,7 @@ impl Gui {
             Message::SavePatchesResponse { window_to_close, window_to_check, response } => if let rfd::MessageDialogResult::Custom(label) = response {
                 match &*label {
                     "Save" => {
-                        let seed = self.seeds[&window_to_check].clone();
+                        let seed = self.seed(window_to_check).clone();
                         return cmd(async move {
                             Ok(if seed.patches_save_dialog().await? {
                                 Message::MarkPatchesSavedAndContinueClosing { window_to_close, window_to_check }
@@ -397,7 +468,7 @@ impl Gui {
                         })
                     }
                     "Delete" => {
-                        self.seeds.remove(&window_to_check);
+                        self.windows.remove(&window_to_check);
                         return if window_to_close == window_to_check {
                             window::close(window_to_check)
                         } else {
@@ -412,7 +483,7 @@ impl Gui {
                 unreachable!("got non-custom response from dialog with custom labels")
             },
             Message::SaveSpoiler { window } => {
-                let seed = self.seeds[&window].clone();
+                let seed = self.seed(window).clone();
                 return cmd(async move {
                     Ok(if seed.spoiler_save_dialog().await? {
                         Message::MarkSpoilerSaved { window }
@@ -424,7 +495,7 @@ impl Gui {
             Message::SaveSpoilerResponse { window_to_close, window_to_check, response } => if let rfd::MessageDialogResult::Custom(label) = response {
                 match &*label {
                     "Save" => {
-                        let seed = self.seeds[&window_to_check].clone();
+                        let seed = self.seed(window_to_check).clone();
                         return cmd(async move {
                             Ok(if seed.spoiler_save_dialog().await? {
                                 Message::MarkSpoilerSavedAndContinueClosing { window_to_close, window_to_check }
@@ -434,7 +505,7 @@ impl Gui {
                         })
                     }
                     "Delete" => {
-                        self.seeds.remove(&window_to_check);
+                        self.windows.remove(&window_to_check);
                         return if window_to_close == window_to_check {
                             window::close(window_to_check)
                         } else {
@@ -457,81 +528,84 @@ impl Gui {
     fn view(&self, window: window::Id) -> Element<'_, Message> {
         // see https://gist.github.com/fenhl/394e09e8ea5ac5e552c8c61d016992a6
 
-        if let Some(_ /*seed*/) = self.seeds.get(&window) {
-            Column::new()
-            .push(Text::new("Seed").size(24)) //TODO show file hash instead
-            //TODO buttons to:
-            // * Save rom
-            // * Save wad
-            .push(Button::new("Save patch file").on_press(Message::SavePatches { window }))
-            .push(Button::new("Save spoiler log").on_press(Message::SaveSpoiler { window }))
-            .spacing(8)
-            .padding(8)
-            .into()
-        } else {
-            // main window
-            if let Some(ref e) = self.error {
-                Column::new()
-                .push(Text::new("Error").size(24))
-                .push(Text::new(e.to_string()))
-                .push(Button::new("Dismiss").on_press(Message::DismissError))
-                .spacing(8)
-                .padding(8)
-                .into()
-            } else {
-                Column::new()
-                //TODO “Generate from” (dropdown, random seed/set seed/patch file, hide irrelevant GUI elements)
-                //TODO “Seed” (text field, only if “Generate from set seed”)
-                .push(Row::new()
-                    .push("Base rom:")
-                    .push(TextInput::new(if self.has_cached_base_rom() { "Using cached rom" } else { "Required" }, &self.base_rom_path.to_string_lossy())
-                        .on_input(|s| Message::SetBaseRomPath(PathBuf::from(s)))
-                        .on_paste(|s| Message::SetBaseRomPath(PathBuf::from(s)))
+        match self.windows.get(&window) {
+            None => {
+                // main window
+                if let Some(ref e) = self.error {
+                    Column::new()
+                    .push(Text::new("Error").size(24))
+                    .push(Text::new(e.to_string()))
+                    .push(Button::new("Dismiss").on_press(Message::DismissError))
+                    .spacing(8)
+                    .padding(8)
+                    .into()
+                } else {
+                    Column::new()
+                    //TODO “Generate from” (dropdown, random seed/set seed/patch file, hide irrelevant GUI elements)
+                    //TODO “Seed” (text field, only if “Generate from set seed”)
+                    .push(Row::new()
+                        .push("Base rom:")
+                        .push(TextInput::new(if self.has_cached_base_rom() { "Using cached rom" } else { "Required" }, &self.base_rom_path.to_string_lossy())
+                            .on_input(|s| Message::SetBaseRomPath(PathBuf::from(s)))
+                            .on_paste(|s| Message::SetBaseRomPath(PathBuf::from(s)))
+                        )
+                        .push(Button::new("Browse…").on_press(Message::BaseRomBrowse))
+                        .align_y(iced::Alignment::Center)
+                        .spacing(8)
                     )
-                    .push(Button::new("Browse…").on_press(Message::BaseRomBrowse))
-                    .align_y(iced::Alignment::Center)
+                    .push(Row::new()
+                        .push("Settings:")
+                        .push(PickList::<&str, _, _, _, _>::new(iter::once(DEFAULT_PRESET).chain(self.presets.iter().map(|(name, _)| &**name)).collect_vec(), Some(self.selected_preset.as_deref().unwrap_or(DEFAULT_PRESET)), |preset| Message::SetPreset(preset.to_owned())))
+                        //.push(Button::new("Customize").on_press(Message::CustomizeSettings)) //TODO
+                        .align_y(iced::Alignment::Center)
+                        .spacing(8)
+                    )
+                    //TODO “Cosmetics” (dropdown with “Customize” button)
+                    //TODO “Output type” (dropdown with options depending on world count)
+                    .push({
+                        let disable_reason = if !self.has_cached_base_rom() && self.base_rom_path.as_os_str().is_empty() {
+                            Some("Please load a base rom")
+                        } else if self.generating {
+                            Some("Generating seed…")
+                        } else {
+                            None
+                        };
+                        let mut btn = Button::new(Text::new("Generate!"));
+                        if disable_reason.is_none() { btn = btn.on_press(Message::Generate) }
+                        let mut row = Row::new().push(btn);
+                        if let Some(disable_reason) = disable_reason {
+                            row = row.push(disable_reason);
+                        }
+                        row.align_y(iced::Alignment::Center).spacing(8)
+                    }) //TODO keep button enabled but style as disabled if prerequisites to generate seed not met (e.g. generate from patch file but no patch file) so an error can be shown on click or next to it
                     .spacing(8)
-                )
-                .push(Row::new()
-                    .push("Settings:")
-                    .push(PickList::<&str, _, _, _, _>::new(iter::once(DEFAULT_PRESET).chain(self.presets.iter().map(|(name, _)| &**name)).collect_vec(), Some(self.selected_preset.as_deref().unwrap_or(DEFAULT_PRESET)), |preset| Message::SetPreset(preset.to_owned())))
-                    //TODO “Customize” button
-                    .align_y(iced::Alignment::Center)
-                    .spacing(8)
-                )
-                //TODO “Cosmetics” (dropdown with “Customize” button)
-                //TODO “Output type” (dropdown with options depending on world count)
-                .push({
-                    let disable_reason = if !self.has_cached_base_rom() && self.base_rom_path.as_os_str().is_empty() {
-                        Some("Please load a base rom")
-                    } else if self.generating {
-                        Some("Generating seed…")
-                    } else {
-                        None
-                    };
-                    let mut btn = Button::new(Text::new("Generate!"));
-                    if disable_reason.is_none() { btn = btn.on_press(Message::Generate) }
-                    let mut row = Row::new().push(btn);
-                    if let Some(disable_reason) = disable_reason {
-                        row = row.push(disable_reason);
-                    }
-                    row.align_y(iced::Alignment::Center).spacing(8)
-                }) //TODO keep button enabled but style as disabled if prerequisites to generate seed not met (e.g. generate from patch file but no patch file) so an error can be shown on click or next to it
+                    .padding(8)
+                    .into()
+                }
+            }
+            Some(WindowState::Presets) => unimplemented!(), //TODO
+            Some(WindowState::Seed(_)) => Column::new()
+                .push(Text::new("Seed").size(24)) //TODO show file hash instead
+                //TODO buttons to:
+                // * Save rom
+                // * Save wad
+                .push(Button::new("Save patch file").on_press(Message::SavePatches { window }))
+                .push(Button::new("Save spoiler log").on_press(Message::SaveSpoiler { window }))
                 .spacing(8)
                 .padding(8)
-                .into()
-            }
+                .into(),
         }
     }
 }
 
 fn main() -> Result<(), Error> {
-    iced::daemon("OoT Randomizer", Gui::update, Gui::view)
+    iced::daemon(Gui::title, Gui::update, Gui::view)
         .subscription(|_| iced::event::listen_with(|event, _, window| if let iced::Event::Window(window::Event::CloseRequested) = event {
             Some(Message::CloseRequested(window))
         } else {
             None
         }))
+        .theme(Gui::theme)
         .run_with(|| (Gui::default(), cmd(async move {
             let () = spawn_blocking(move || Python::with_gil(|py| {
                 let py_version = py.version_info();
