@@ -1,9 +1,9 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use {
     std::{
-        collections::hash_map::{
-            self,
-            HashMap,
-        },
+        borrow::Cow,
+        collections::HashMap,
         fmt,
         io::{
             Cursor,
@@ -21,14 +21,19 @@ use {
         Dark,
         Light,
     },
-    futures::future::{
-        self,
-        Future,
-        FutureExt as _,
-        TryFutureExt as _,
+    futures::{
+        future::{
+            self,
+            Future,
+            FutureExt as _,
+            TryFutureExt as _,
+        },
+        stream::TryStreamExt as _,
     },
     iced::{
         Element,
+        Length,
+        Size,
         Task,
         Theme,
         widget::{
@@ -36,6 +41,8 @@ use {
             Column,
             PickList,
             Row,
+            Scrollable,
+            Space,
             Text,
             TextInput,
         },
@@ -57,6 +64,7 @@ use {
     },
     serde_json::json,
     serde_json_inner as _, // `preserve_order` feature required to correctly display presets
+    smart_default::SmartDefault,
     tokio::task::spawn_blocking,
     wheel::{
         fs,
@@ -68,6 +76,8 @@ use {
 mod settings;
 
 const DEFAULT_PRESET: &str = "Default / Beginner";
+const CUSTOM_PRESETS_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/Presets");
+const CUSTOM_PRESET_SUFFIX: &str = ".custom.json";
 
 fn natjoin<T: fmt::Display>(elts: impl IntoNonEmptyIterator<Item = T>) -> String {
     let (first, rest) = elts.into_nonempty_iter().first();
@@ -81,6 +91,10 @@ fn natjoin<T: fmt::Display>(elts: impl IntoNonEmptyIterator<Item = T>) -> String
             format!("{first}, {}, and {last}", rest.into_iter().format(", "))
         }
     }
+}
+
+fn custom_preset_path(name: &str) -> PathBuf {
+    Path::new(CUSTOM_PRESETS_PATH).join(format!("{}{CUSTOM_PRESET_SUFFIX}", name.replace('/', "_")))
 }
 
 fn cmd(future: impl Future<Output = Result<Message, Error>> + Send + 'static) -> Task<Message> {
@@ -110,6 +124,7 @@ impl From<nonempty_collections::Error> for Error {
 
 #[derive(Debug, Clone /*TODO this requires PyO3's py-clone feature, remove by using on_press_with (requires patch to iced to remove the unconditional Clone bound) */)]
 enum Message {
+    AskDeletePreset(String),
     AskSavePatches {
         window_to_close: window::Id,
         window_to_check: window::Id,
@@ -122,16 +137,22 @@ enum Message {
     BaseRomBrowse,
     CloseRequested(window::Id),
     CommandError(Arc<Error>),
-    #[allow(unused)] //TODO
+    CopyPreset(String),
     CustomizeSettings,
+    DeletePreset(String),
     DismissError,
     Done {
         patches: NEVec<Vec<u8>>,
         spoiler_log: String,
     },
+    EditPreset(String),
     Generate,
     GenerateError(Arc<Error>),
-    Init(settings::PresetsDefault),
+    Init {
+        default_presets: settings::PresetsDefault,
+        custom_presets: HashMap<String, settings::Preset>,
+        settings_mapping: settings::Mapping,
+    },
     MarkPatchesSaved {
         window: window::Id,
     },
@@ -165,22 +186,28 @@ enum Message {
     },
     SetBaseRomPath(PathBuf),
     SetPreset(String),
+    #[allow(unused)] //TODO
+    SetPresetAndClosePresetsWindow(String),
 }
 
-#[derive(Default)]
+#[derive(SmartDefault)]
 struct Gui {
-    /// If a given window ID is not in this map, it's assumed to be the main window.
     windows: HashMap<window::Id, WindowState>,
     // global/main window state
     error: Option<Arc<Error>>,
     base_rom_path: PathBuf,
-    presets: settings::PresetsDefault,
-    selected_preset: Option<String>,
+    default_presets: settings::PresetsDefault,
+    custom_presets: HashMap<String, settings::Preset>,
+    settings_mapping: settings::Mapping,
+    #[default(DEFAULT_PRESET.to_owned())]
+    selected_preset: String,
     generating: bool,
 }
 
 enum WindowState {
+    Main,
     Presets,
+    Preset(String),
     Seed(Seed),
 }
 
@@ -250,11 +277,25 @@ impl Gui {
         Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../ZOOTDEC.z64")).exists()
     }
 
+    fn presets(&self) -> impl Iterator<Item = (&str, bool, Cow<'_, settings::Preset>)> {
+        iter::once((DEFAULT_PRESET, false, Cow::Owned(HashMap::default())))
+            .chain(self.default_presets.iter().map(|(name, settings)| (&**name, false, Cow::Borrowed(settings))))
+            .chain(self.custom_presets.iter().map(|(name, settings)| (&**name, true, Cow::Borrowed(settings))))
+    }
+
+    fn preset(&self, name: &str) -> Cow<'_, settings::Preset> {
+        self.presets().find(|(iter_name, _, _)| *iter_name == name).expect("requested preset does not exist").2
+    }
+
+    fn selected_preset(&self) -> Cow<'_, settings::Preset> {
+        self.preset(&self.selected_preset)
+    }
+
     fn seed(&self, window: window::Id) -> &Seed {
         match self.windows.get(&window) {
             Some(WindowState::Seed(seed)) => seed,
             Some(_) => panic!("attempted to look up seed for non-seed window"),
-            None => panic!("attempted to look up seed for main or unknown window"),
+            None => panic!("attempted to look up seed for unknown window"),
         }
     }
 
@@ -262,7 +303,7 @@ impl Gui {
         match self.windows.get_mut(&window) {
             Some(WindowState::Seed(seed)) => seed,
             Some(_) => panic!("attempted to look up seed for non-seed window"),
-            None => panic!("attempted to look up seed for main or unknown window"),
+            None => panic!("attempted to look up seed for unknown window"),
         }
     }
 
@@ -286,14 +327,32 @@ impl Gui {
 
     fn title(&self, window: window::Id) -> String {
         match self.windows.get(&window) {
-            None => format!("OoT Randomizer"),
+            None | Some(WindowState::Main) => format!("OoT Randomizer"),
             Some(WindowState::Presets) => format!("Presets"),
+            Some(WindowState::Preset(name)) => name.clone(),
             Some(WindowState::Seed(_)) => format!("Seed"),
         }
     }
 
     fn update(&mut self, msg: Message) -> Task<Message> {
         match msg {
+            Message::AskDeletePreset(name) => return cmd(AsyncMessageDialog::default()
+                .set_level(rfd::MessageLevel::Warning)
+                .set_title("Delete Preset")
+                .set_description(format!("Are you sure you want to permanently delete the preset “{name}”?"))
+                .set_buttons(rfd::MessageButtons::OkCancelCustom(format!("Delete"), format!("Cancel")))
+                //TODO set_parent (iced::window::run_with_handle)
+                .show()
+                .map(move |response| Ok(if let rfd::MessageDialogResult::Custom(label) = response {
+                    match &*label {
+                        "Delete" => Message::DeletePreset(name),
+                        "Cancel" => Message::Nop,
+                        _ => unreachable!("got {label} from Delete/Cancel dialog"),
+                    }
+                } else {
+                    unreachable!("got non-custom response from dialog with custom labels")
+                }))
+            ),
             Message::AskSavePatches { window_to_close, window_to_check, unsaved_worlds } => return cmd(AsyncMessageDialog::default()
                 .set_level(rfd::MessageLevel::Warning)
                 .set_title("Unsaved Seed")
@@ -322,39 +381,74 @@ impl Gui {
                     Message::Nop
                 })
             }),
-            Message::CloseRequested(window) => if let hash_map::Entry::Occupied(entry) = self.windows.entry(window) {
-                match entry.get() {
-                    WindowState::Presets => { entry.remove(); }
-                    WindowState::Seed(seed) => {
-                        if let Some(msg) = seed.before_close_message(window, window) {
-                            return cmd(future::ok(msg))
+            Message::CloseRequested(window) => {
+                match &self.windows[&window] {
+                    WindowState::Main => {
+                        for (&seed_window, window_state) in &self.windows {
+                            if let WindowState::Seed(seed) = window_state {
+                                if let Some(msg) = seed.before_close_message(window, seed_window) {
+                                    return cmd(future::ok(msg))
+                                }
+                            }
                         }
-                        entry.remove();
+                        return iced::exit()
                     }
+                    WindowState::Presets | WindowState::Preset(_) => {}
+                    WindowState::Seed(seed) => if let Some(msg) = seed.before_close_message(window, window) {
+                        return cmd(future::ok(msg))
+                    },
                 }
+                self.windows.remove(&window);
                 return window::close(window)
-            } else {
-                // main window
-                for (&seed_window, window_state) in &self.windows {
-                    if let WindowState::Seed(seed) = window_state {
-                        if let Some(msg) = seed.before_close_message(window, seed_window) {
-                            return cmd(future::ok(msg))
-                        }
-                    }
+            }
+            Message::CommandError(e) => {
+                self.error = Some(e);
+                if !self.windows.values().any(|window_state| matches!(window_state, WindowState::Main)) {
+                    let (main_window_id, window_open_task) = window::open(window::Settings {
+                        size: Size { width: 550.0, height: 512.0 },
+                        exit_on_close_request: false,
+                        ..window::Settings::default()
+                    });
+                    self.windows.insert(main_window_id, WindowState::Main);
+                    return window_open_task.map(|_| Message::Nop)
                 }
-                return iced::exit()
-            },
-            Message::CommandError(e) => self.error = Some(e),
+            }
+            Message::CopyPreset(name) => {
+                let copy_name = format!("Copy of {name}");
+                let value = self.preset(&name).into_owned();
+                self.custom_presets.insert(copy_name.clone(), value.clone());
+                return cmd(async move {
+                    fs::write_json(custom_preset_path(&copy_name), value).await?;
+                    Ok(Message::Nop)
+                })
+            }
             Message::CustomizeSettings => if let Some((window, _)) = self.windows.iter().find(|(_, window_state)| matches!(window_state, WindowState::Presets)) {
                 return window::gain_focus(*window)
             } else {
                 let (presets_window_id, window_open_task) = window::open(window::Settings {
+                    size: Size { width: 550.0, height: 768.0, },
                     exit_on_close_request: false,
                     ..window::Settings::default()
                 });
                 self.windows.insert(presets_window_id, WindowState::Presets);
                 return window_open_task.map(|_| Message::Nop)
             },
+            Message::DeletePreset(name) => {
+                self.custom_presets.remove(&name);
+                if self.selected_preset == name {
+                    self.selected_preset = DEFAULT_PRESET.to_owned();
+                }
+                let mut tasks = Vec::with_capacity(2);
+                if let Some((&window, _)) = self.windows.iter().find(|(_, window_state)| if let WindowState::Preset(iter_name) = window_state { *iter_name == name } else { false }) {
+                    self.windows.remove(&window);
+                    tasks.push(window::close(window));
+                }
+                tasks.push(cmd(async move {
+                    fs::remove_file(custom_preset_path(&name)).await?;
+                    Ok(Message::Nop)
+                }));
+                return Task::batch(tasks)
+            }
             Message::DismissError => self.error = None,
             Message::Done { patches, spoiler_log } => {
                 let (seed_window_id, window_open_task) = window::open(window::Settings {
@@ -369,14 +463,19 @@ impl Gui {
                 self.generating = false;
                 return window_open_task.map(|_| Message::Nop)
             }
+            Message::EditPreset(name) => {
+                let (preset_window_id, window_open_task) = window::open(window::Settings {
+                    exit_on_close_request: false,
+                    ..window::Settings::default()
+                });
+                self.windows.insert(preset_window_id, WindowState::Preset(name));
+                return window_open_task.map(|_| Message::Nop)
+            }
             Message::Generate => {
                 self.generating = true;
                 //TODO if goal hints are used and there are more than 5 worlds, ask for confirmation due to long generation times
                 //TODO when generating a multiworld rom/wad, ask for the player number. The text field is initially blank
-                let mut settings_base = HashMap::new();
-                if let Some(selected_preset) = &self.selected_preset {
-                    settings_base.extend(self.presets[selected_preset].clone());
-                }
+                let mut settings_base = self.selected_preset().into_owned();
                 let base_rom_path = self.base_rom_path.clone();
                 return cmd(async move {
                     if !base_rom_path.as_os_str().is_empty() {
@@ -419,12 +518,17 @@ impl Gui {
                 self.error = Some(e);
                 self.generating = false;
             }
-            Message::Init(new_presets) => {
-                self.presets = new_presets;
-                return window::open(window::Settings {
+            Message::Init { default_presets, custom_presets, settings_mapping } => {
+                self.default_presets = default_presets;
+                self.custom_presets = custom_presets;
+                self.settings_mapping = settings_mapping;
+                let (main_window_id, window_open_task) = window::open(window::Settings {
+                    size: Size { width: 550.0, height: 512.0 },
                     exit_on_close_request: false,
                     ..window::Settings::default()
-                }).1.map(|_| Message::Nop)
+                });
+                self.windows.insert(main_window_id, WindowState::Main);
+                return window_open_task.map(|_| Message::Nop)
             }
             Message::MarkPatchesSaved { window } => {
                 for saved in self.seed_mut(window).patches_saved.iter_mut() {
@@ -520,7 +624,14 @@ impl Gui {
                 unreachable!("got non-custom response from dialog with custom labels")
             },
             Message::SetBaseRomPath(new_path) => self.base_rom_path = new_path,
-            Message::SetPreset(new_preset) => self.selected_preset = if new_preset == DEFAULT_PRESET { None } else { Some(new_preset) },
+            Message::SetPreset(new_preset) => self.selected_preset = new_preset,
+            Message::SetPresetAndClosePresetsWindow(new_preset) => {
+                self.selected_preset = new_preset;
+                if let Some((&window, _)) = self.windows.iter().find(|(_, window_state)| matches!(window_state, WindowState::Presets)) {
+                    self.windows.remove(&window);
+                    return window::close(window)
+                }
+            }
         }
         Task::none()
     }
@@ -529,8 +640,8 @@ impl Gui {
         // see https://gist.github.com/fenhl/394e09e8ea5ac5e552c8c61d016992a6
 
         match self.windows.get(&window) {
-            None => {
-                // main window
+            None => Column::new().into(),
+            Some(WindowState::Main) => {
                 if let Some(ref e) = self.error {
                     Column::new()
                     .push(Text::new("Error").size(24))
@@ -555,8 +666,8 @@ impl Gui {
                     )
                     .push(Row::new()
                         .push("Settings:")
-                        .push(PickList::<&str, _, _, _, _>::new(iter::once(DEFAULT_PRESET).chain(self.presets.iter().map(|(name, _)| &**name)).collect_vec(), Some(self.selected_preset.as_deref().unwrap_or(DEFAULT_PRESET)), |preset| Message::SetPreset(preset.to_owned())))
-                        //.push(Button::new("Customize").on_press(Message::CustomizeSettings)) //TODO
+                        .push(PickList::<&str, _, _, _, _>::new(self.presets().map(|(name, _, _)| name).collect_vec(), Some(&*self.selected_preset), |preset| Message::SetPreset(preset.to_owned())).width(Length::Fill))
+                        .push(Button::new("Customize").on_press(Message::CustomizeSettings))
                         .align_y(iced::Alignment::Center)
                         .spacing(8)
                     )
@@ -583,7 +694,37 @@ impl Gui {
                     .into()
                 }
             }
-            Some(WindowState::Presets) => unimplemented!(), //TODO
+            Some(WindowState::Presets) => Scrollable::new(
+                Row::new()
+                    .push(Column::from_vec(self.presets().map(|(name, is_custom, _)| Row::new()
+                        //.push(Button::new("Select").on_press(Message::SetPresetAndClosePresetsWindow(name.to_owned())))
+                        .push(Button::new("Copy").on_press(Message::CopyPreset(name.to_owned())))
+                        .push(Button::new("Edit").on_press_maybe(is_custom.then(|| Message::EditPreset(name.to_owned()))))
+                        //TODO rename button? (and/or allow renaming the preset when editing it)
+                        .push(Button::new("Delete").on_press_maybe(is_custom.then(|| Message::AskDeletePreset(name.to_owned()))))
+                        .push(name)
+                        .align_y(iced::Alignment::Center)
+                        .spacing(8)
+                        .into()
+                    ).collect()).spacing(8).padding(8).width(Length::Fill))
+                    .push(Space::with_width(Length::Shrink)) // to avoid overlap with the scrollbar
+                    .spacing(16)
+            ).height(Length::Fill).into(),
+            Some(WindowState::Preset(_)) => Scrollable::new(
+                Row::new()
+                    .push(Column::from_vec(self.settings_mapping.tabs.iter()
+                        .filter(|tab| !tab.exclude_from_web && !tab.exclude_from_electron)
+                        .flat_map(|tab| tab.sections.iter()
+                            .filter(|section| !section.exclude_from_web && !section.exclude_from_electron)
+                            .flat_map(|section| section.settings.iter()
+                                .map(|setting_name| Text::new(setting_name).into())
+                            )
+                        )
+                        .collect()
+                    ).spacing(8).padding(8).width(Length::Fill))
+                    .push(Space::with_width(Length::Shrink)) // to avoid overlap with the scrollbar
+                    .spacing(16)
+            ).height(Length::Fill).into(),
             Some(WindowState::Seed(_)) => Column::new()
                 .push(Text::new("Seed").size(24)) //TODO show file hash instead
                 //TODO buttons to:
@@ -616,7 +757,36 @@ fn main() -> Result<(), Error> {
                 sys.getattr("path")?.call_method1("append", (concat!(env!("CARGO_MANIFEST_DIR"), "/../.."),))?;
                 Ok::<_, Error>(())
             })).await??;
-            Ok(Message::Init(fs::read_json::<settings::PresetsDefault>(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/presets_default.json")).await?))
+            let default_presets = fs::read_json(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/presets_default.json")).await?;
+            let custom_presets = fs::read_dir(CUSTOM_PRESETS_PATH)
+                .err_into::<Error>()
+                .try_filter_map(|entry| async move {
+                    let file_name = entry.file_name().into_string().map_err(|_| Error::Utf8)?;
+                    Ok(if let Some(preset_name) = file_name.strip_suffix(CUSTOM_PRESET_SUFFIX) {
+                        Some((preset_name.replace('_', "/"), fs::read_json(entry.path()).await?))
+                    } else {
+                        None
+                    })
+                })
+                .try_collect().await?;
+            let settings_mapping = fs::read_json::<settings::Mapping>(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/settings_mapping.json")).await?;
+            for tab in &settings_mapping.tabs { //DEBUG
+                if tab.exclude_from_web {
+                    eprintln!("skipping exclude_from_web tab {}", tab.name);
+                }
+                if tab.exclude_from_electron {
+                    eprintln!("skipping exclude_from_electron tab {}", tab.name);
+                }
+                for section in &tab.sections {
+                    if section.exclude_from_web {
+                        eprintln!("skipping exclude_from_web section {}", section.name);
+                    }
+                    if section.exclude_from_electron {
+                        eprintln!("skipping exclude_from_electron section {}", section.name);
+                    }
+                }
+            }
+            Ok(Message::Init { default_presets, custom_presets, settings_mapping })
         })))?;
     Ok(())
 }
