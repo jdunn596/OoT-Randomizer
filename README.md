@@ -76,8 +76,6 @@ Differences between `dev-fenhl` and [`Dev-R`](https://github.com/Roman971/OoT-Ra
   * The Lens of Truth can be in a foolish area if Treasure Chest Game keys are shuffled and all relevant “lensless” tricks are enabled.
 * Bug fixes:
   * Fix precompleted dungeon rewards not accounting for boss entrance randomizer ([#2330](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2330))
-  * An inconsistency with how hints refer to key rings for the Thieves' Hideout and the treasure box shop is fixed ([#2320](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2320))
-  * The randomizer no longer generates unbeatable seeds due to counting copies of dungeon rewards or ocarina notes separately ([#2319](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2319))
   * Blue warps setting time of day even on repeated use is now in logic ([#2304](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2304))
   * The randomizer no longer silently ignores the `Decompress` program failing ([#2229](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2229))
   * A trade item obtained from a skipped location is no longer lost upon obtaining a different item from the same trade quest ([#2217](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2217))
@@ -207,10 +205,9 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * New hidden `plandomized_locations` setting to allow presets to place specific items at specific locations.
 * New setting to speed up the boat ride in the Shadow Temple.
 * New `Require Lens of Truth for Treasure Chest Game` setting.
-* The cutscene that plays when Morpha is defeated has been shortened from around 30 seconds to around 5 seconds.
+* New option `Market Big Poes` for the `Misc. Hints` setting.
 
 #### Bug fixes
-
 * Ocarina buttons required to play the Song of Time are now part of the `path of time` goal.
 * The `Frogs Ocarina Game` misc. hint text box has been moved slightly so it no longer requires reloading the area to reread.
 * Fix key rings being hinted as small keys when keys are in their own dungeons.
@@ -218,13 +215,18 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * Fix a possible void out at the Forest Temple boss door.
 * Fix importing settings from older versions on web.
 
+#### New Speedups
+* The first text box from each carpenter in the Thieves' Hideout is skipped.
+* The cutscene that plays when Morpha is defeated has been shortened from around 30 seconds to around 5 seconds.
+* The cutscene introducing the arena where Ganon is fought is shortened by 5 seconds and the camera angle after it is improved.
+
 #### Other Changes
 * Now supports custom music written for the Majora's Mask Randomizer.
 * New Magic Meter item model to allow magic drops to be shuffled in the future.
-* The first text box from each carpenter in the Thieves' Hideout is skipped.
 * Seeds rolled on ootrandomizer.com display their ID in the top left corner of the file select screen.
 * The `Other` tab of the generator has been rearranged for better grouping of settings, and the `One Major Item per Dungeon` setting has been moved there since it was causing frequent failures with `Randomize Main Rule Settings`.
 * Biggoron's text after turning in the Eyedrops has been changed to avoid potential confusion.
+* Clarified the hint text for `HF Inside Fence Grotto`.
 
 ### 8.2
 
