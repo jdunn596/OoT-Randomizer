@@ -52,6 +52,7 @@ class World:
         self.randomized_list: list[str] = []
         self.boulders: dict[str, BOULDER_TYPE]
         self.boulders_by_id: dict[tuple[int,int,int,int], BOULDER_TYPE]
+        self.enemies_by_scene = None
         self.cached_bigocto_location: Optional[Location] = None
 
         self.parser: Rule_AST_Transformer = Rule_AST_Transformer(self)

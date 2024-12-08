@@ -31,6 +31,9 @@ Megaton_Hammer: int = ItemInfo.solver_ids['Megaton_Hammer']
 Progressive_Strength_Upgrade: int = ItemInfo.solver_ids['Progressive_Strength_Upgrade']
 Bomb_Bag: int = ItemInfo.solver_ids['Bomb_Bag']
 
+can_kill_cache = {}
+can_kill_drop_cache = {}
+
 class State:
     def __init__(self, parent: World) -> None:
         self.solv_items: list[int] = [0] * len(ItemInfo.solver_ids)
@@ -255,8 +258,12 @@ class State:
 
         # TODO Build an ID -> Defeatibility check mapping
         # Check defeatibility
-        can_kill = self.world.parser.parse_rule(enemy_obj.drop_logic)(self, **kwargs)
-
+        if enemy_obj.name in can_kill_drop_cache:
+            can_kill_rule = can_kill_drop_cache[enemy_obj.name]
+        else:
+            can_kill_rule = self.world.parser.parse_rule(enemy_obj.drop_logic)
+            can_kill_drop_cache[enemy_obj.name] = can_kill_rule
+        can_kill = can_kill_rule(self, **kwargs)
         return has_soul and can_kill
 
     # Logic helper for determining if an enemy at a particular spot can be killed. Used when logic for one spot depends on killing a specific enemy
@@ -268,8 +275,12 @@ class State:
 
         # TODO Build an ID -> Defeatibility check mapping
         # Check defeatibility
-        can_kill = self.world.parser.parse_rule(enemy_obj.kill_logic)(self, **kwargs)
-
+        if enemy_obj.name in can_kill_cache:
+            can_kill_rule = can_kill_cache[enemy_obj.name]
+        else:
+            can_kill_rule = self.world.parser.parse_rule(enemy_obj.kill_logic)
+            can_kill_cache[enemy_obj.name] = can_kill_rule
+        can_kill = can_kill_rule(self, **kwargs)
         return has_soul and can_kill
 
     def can_kill_named(self, location_name:str, **kwargs):
