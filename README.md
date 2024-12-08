@@ -21,7 +21,6 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
   * “Pre-completed Dungeons Mode” set to “Specific Rewards” is compatible with “Shuffle Dungeon Rewards” ([#2330](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2330))
   * New “Shuffle Gerudo Fortress Heart Piece” setting to control the behavior of this check with “Shuffle Thieves' Hideout Entrances” ([#2179](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2179))
   * New “Frogs Ocarina Game” option for the “Randomize Ocarina Song Notes” setting ([#2064](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2064))
-  * New “Shuffle Ganon's Tower Entrance” setting ([#2063](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2063))
   * New “Special Deal Prices”, “Minimum Special Deal Price”, and “Maximum Special Deal Price” settings replacing “Shopsanity Prices” ([#2037](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2037))
   * New plando-only “Chest, Pot, Crate, & Beehive Appearance Does Not Match Contents” setting which makes each chest etc. randomly choose any appearance except the correct one ([#1950](https://github.com/OoTRandomizer/OoT-Randomizer/pull/1950))
   * New “Vanilla Locations” option for the “Shuffle Songs” setting ([#1882](https://github.com/OoTRandomizer/OoT-Randomizer/pull/1882))
@@ -211,6 +210,7 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * New setting to speed up the boat ride in the Shadow Temple.
 * New `Require Lens of Truth for Treasure Chest Game` setting.
 * New option `Market Big Poes` for the `Misc. Hints` setting.
+* New setting `Shuffle Ganon's Tower Entrance` to allow shuffling the boss entrance to Ganon himself.
 
 #### Bug fixes
 * Ocarina buttons required to play the Song of Time are now part of the `path of time` goal.
@@ -219,6 +219,8 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * Fix a crash when pressing down on the D-pad on the inventory screen in some settings combinations.
 * Fix a possible void out at the Forest Temple boss door.
 * Fix importing settings from older versions on web.
+* Fix a Mac-specific issue when loading track .meta files.
+* Fix an error in the easy bite fishing hack.
 
 #### New Speedups
 * The first text box from each carpenter in the Thieves' Hideout is skipped.
@@ -232,6 +234,9 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * The `Other` tab of the generator has been rearranged for better grouping of settings, and the `One Major Item per Dungeon` setting has been moved there since it was causing frequent failures with `Randomize Main Rule Settings`.
 * Biggoron's text after turning in the Eyedrops has been changed to avoid potential confusion.
 * Clarified the hint text for `HF Inside Fence Grotto`.
+* Farore's Wind now displays which dungeon it will warp Link to.
+* Reversed the order of the hints in the `Spirit Temple Adult Lower` dual hint.
+* Add adult and child trade items to the auto-tracker context.
 
 ### 8.2
 
