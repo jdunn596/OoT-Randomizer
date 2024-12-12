@@ -1860,41 +1860,6 @@ class SettingInfos:
         },
     )
 
-    shuffle_gerudo_fortress_heart_piece = Combobox(
-        gui_text       = 'Shuffle Gerudo Fortress Heart Piece',
-        default        = 'remove',
-        choices        = {
-            'remove':  'Remove',
-            'vanilla': 'Vanilla',
-            'shuffle': 'Shuffle',
-        },
-        gui_tooltip    = '''\
-            There is an extra heart piece on the balcony above the jail in
-            Gerudo's Fortress if accessed as child. Normally, this is not
-            reachable without glitches, so it's not shuffled and not
-            considered in logic. With the Thieves' Hideout entrances
-            shuffled, it becomes reachable, so use this setting to decide
-            how to handle that.
-
-            'Remove':
-            The heart piece is completely removed from the game. There is
-            no freestanding item to collect above the jail.
-
-            'Vanilla':
-            The heart piece exists as an unshuffled heart piece. It is
-            considered in logic for the purpose of heart win conditions.
-
-            'Shuffle':
-            There is a shuffled item above the jail and the extra heart
-            piece is shuffled into the item pool. Both are considered in
-            logic.
-        ''',
-        shared         = True,
-        gui_params     = {
-            "hide_when_disabled": True,
-        },
-    )
-
     shuffle_grotto_entrances = Checkbutton(
         gui_text       = 'Shuffle Grotto Entrances',
         gui_tooltip    = '''\
