@@ -14,7 +14,6 @@ Differences between `dev-fenhl` and [`Dev-R`](https://github.com/Roman971/OoT-Ra
 
 * New settings and options:
   * “Pre-completed Dungeons Mode” set to “Specific Rewards” is compatible with “Shuffle Dungeon Rewards” ([#2330](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2330))
-  * New “Shuffle Gerudo Fortress Heart Piece” setting to control the behavior of this check with “Shuffle Thieves' Hideout Entrances” ([#2179](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2179))
   * New “Frogs Ocarina Game” option for the “Randomize Ocarina Song Notes” setting ([#2064](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2064))
   * New “Special Deal Prices”, “Minimum Special Deal Price”, and “Maximum Special Deal Price” settings replacing “Shopsanity Prices” ([#2037](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2037))
   * New plando-only “Chest, Pot, Crate, & Beehive Appearance Does Not Match Contents” setting which makes each chest etc. randomly choose any appearance except the correct one ([#1950](https://github.com/OoTRandomizer/OoT-Randomizer/pull/1950))
@@ -77,7 +76,6 @@ Differences between `dev-fenhl` and [`Dev-R`](https://github.com/Roman971/OoT-Ra
   * Fix precompleted dungeon rewards not accounting for boss entrance randomizer ([#2330](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2330))
   * Blue warps setting time of day even on repeated use is now in logic ([#2304](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2304))
   * A trade item obtained from a skipped location is no longer lost upon obtaining a different item from the same trade quest ([#2217](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2217))
-  * The heart piece in Gerudo Fortress now behaves correctly when already at 20 hearts, and is considered in glitched logic (part of [#2179](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2179))
 
 Differences between [`Dev-R`](https://github.com/Roman971/OoT-Randomizer) and [`Dev`](https://github.com/OoTRandomizer/OoT-Randomizer):
 
@@ -205,6 +203,7 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * New `Require Lens of Truth for Treasure Chest Game` setting.
 * New option `Market Big Poes` for the `Misc. Hints` setting.
 * New setting `Shuffle Ganon's Tower Entrance` to allow shuffling the boss entrance to Ganon himself.
+* New setting to control the behavior of the child-only heart piece in Gerudo Fortress when Thieves' Hideout entrances are shuffled.
 
 #### Bug fixes
 * Ocarina buttons required to play the Song of Time are now part of the `path of time` goal.
