@@ -186,8 +186,6 @@ enum Message {
     },
     SetBaseRomPath(PathBuf),
     SetPreset(String),
-    #[allow(unused)] //TODO
-    SetPresetAndClosePresetsWindow(String),
 }
 
 #[derive(SmartDefault)]
@@ -199,14 +197,14 @@ struct Gui {
     default_presets: settings::PresetsDefault,
     custom_presets: HashMap<String, settings::Preset>,
     settings_mapping: settings::Mapping,
-    #[default(DEFAULT_PRESET.to_owned())]
-    selected_preset: String,
+    #[default(Some(DEFAULT_PRESET.to_owned()))]
+    /// `None` means we're customizing presets.
+    selected_preset: Option<String>,
     generating: bool,
 }
 
 enum WindowState {
     Main,
-    Presets,
     Preset(String),
     Seed(Seed),
 }
@@ -288,7 +286,7 @@ impl Gui {
     }
 
     fn selected_preset(&self) -> Cow<'_, settings::Preset> {
-        self.preset(&self.selected_preset)
+        self.preset(self.selected_preset.as_deref().unwrap())
     }
 
     fn seed(&self, window: window::Id) -> &Seed {
@@ -328,7 +326,6 @@ impl Gui {
     fn title(&self, window: window::Id) -> String {
         match self.windows.get(&window) {
             None | Some(WindowState::Main) => format!("OoT Randomizer"),
-            Some(WindowState::Presets) => format!("Presets"),
             Some(WindowState::Preset(name)) => name.clone(),
             Some(WindowState::Seed(_)) => format!("Seed"),
         }
@@ -393,7 +390,7 @@ impl Gui {
                         }
                         return iced::exit()
                     }
-                    WindowState::Presets | WindowState::Preset(_) => {}
+                    WindowState::Preset(_) => {}
                     WindowState::Seed(seed) => if let Some(msg) = seed.before_close_message(window, window) {
                         return cmd(future::ok(msg))
                     },
@@ -422,21 +419,11 @@ impl Gui {
                     Ok(Message::Nop)
                 })
             }
-            Message::CustomizeSettings => if let Some((window, _)) = self.windows.iter().find(|(_, window_state)| matches!(window_state, WindowState::Presets)) {
-                return window::gain_focus(*window)
-            } else {
-                let (presets_window_id, window_open_task) = window::open(window::Settings {
-                    size: Size { width: 550.0, height: 768.0, },
-                    exit_on_close_request: false,
-                    ..window::Settings::default()
-                });
-                self.windows.insert(presets_window_id, WindowState::Presets);
-                return window_open_task.map(|_| Message::Nop)
-            },
+            Message::CustomizeSettings => self.selected_preset = None,
             Message::DeletePreset(name) => {
                 self.custom_presets.remove(&name);
-                if self.selected_preset == name {
-                    self.selected_preset = DEFAULT_PRESET.to_owned();
+                if self.selected_preset.as_ref().is_some_and(|selected_preset| *selected_preset == name) {
+                    self.selected_preset = Some(DEFAULT_PRESET.to_owned());
                 }
                 let mut tasks = Vec::with_capacity(2);
                 if let Some((&window, _)) = self.windows.iter().find(|(_, window_state)| if let WindowState::Preset(iter_name) = window_state { *iter_name == name } else { false }) {
@@ -523,7 +510,7 @@ impl Gui {
                 self.custom_presets = custom_presets;
                 self.settings_mapping = settings_mapping;
                 let (main_window_id, window_open_task) = window::open(window::Settings {
-                    size: Size { width: 550.0, height: 512.0 },
+                    size: Size { width: 600.0, height: 512.0 },
                     exit_on_close_request: false,
                     ..window::Settings::default()
                 });
@@ -624,14 +611,7 @@ impl Gui {
                 unreachable!("got non-custom response from dialog with custom labels")
             },
             Message::SetBaseRomPath(new_path) => self.base_rom_path = new_path,
-            Message::SetPreset(new_preset) => self.selected_preset = new_preset,
-            Message::SetPresetAndClosePresetsWindow(new_preset) => {
-                self.selected_preset = new_preset;
-                if let Some((&window, _)) = self.windows.iter().find(|(_, window_state)| matches!(window_state, WindowState::Presets)) {
-                    self.windows.remove(&window);
-                    return window::close(window)
-                }
-            }
+            Message::SetPreset(new_preset) => self.selected_preset = Some(new_preset),
         }
         Task::none()
     }
@@ -650,7 +630,7 @@ impl Gui {
                     .spacing(8)
                     .padding(8)
                     .into()
-                } else {
+                } else if let Some(selected_preset) = self.selected_preset.as_deref() {
                     Column::new()
                     //TODO “Generate from” (dropdown, random seed/set seed/patch file, hide irrelevant GUI elements)
                     //TODO “Seed” (text field, only if “Generate from set seed”)
@@ -666,7 +646,7 @@ impl Gui {
                     )
                     .push(Row::new()
                         .push("Settings:")
-                        .push(PickList::<&str, _, _, _, _>::new(self.presets().map(|(name, _, _)| name).collect_vec(), Some(&*self.selected_preset), |preset| Message::SetPreset(preset.to_owned())).width(Length::Fill))
+                        .push(PickList::<&str, _, _, _, _>::new(self.presets().map(|(name, _, _)| name).collect_vec(), Some(selected_preset), |preset| Message::SetPreset(preset.to_owned())).width(Length::Fill))
                         .push(Button::new("Customize").on_press(Message::CustomizeSettings))
                         .align_y(iced::Alignment::Center)
                         .spacing(8)
@@ -692,24 +672,25 @@ impl Gui {
                     .spacing(8)
                     .padding(8)
                     .into()
+                } else {
+                    Scrollable::new(
+                        Row::new()
+                            .push(Column::from_vec(self.presets().map(|(name, is_custom, _)| Row::new()
+                                .push(Button::new("Select").on_press(Message::SetPreset(name.to_owned())))
+                                .push(Button::new("Copy").on_press(Message::CopyPreset(name.to_owned())))
+                                .push(Button::new("Edit").on_press_maybe(is_custom.then(|| Message::EditPreset(name.to_owned()))))
+                                //TODO rename button? (and/or allow renaming the preset when editing it)
+                                .push(Button::new("Delete").on_press_maybe(is_custom.then(|| Message::AskDeletePreset(name.to_owned()))))
+                                .push(name)
+                                .align_y(iced::Alignment::Center)
+                                .spacing(8)
+                                .into()
+                            ).collect()).spacing(8).padding(8).width(Length::Fill))
+                            .push(Space::with_width(Length::Shrink)) // to avoid overlap with the scrollbar
+                            .spacing(16)
+                    ).height(Length::Fill).into()
                 }
             }
-            Some(WindowState::Presets) => Scrollable::new(
-                Row::new()
-                    .push(Column::from_vec(self.presets().map(|(name, is_custom, _)| Row::new()
-                        //.push(Button::new("Select").on_press(Message::SetPresetAndClosePresetsWindow(name.to_owned())))
-                        .push(Button::new("Copy").on_press(Message::CopyPreset(name.to_owned())))
-                        .push(Button::new("Edit").on_press_maybe(is_custom.then(|| Message::EditPreset(name.to_owned()))))
-                        //TODO rename button? (and/or allow renaming the preset when editing it)
-                        .push(Button::new("Delete").on_press_maybe(is_custom.then(|| Message::AskDeletePreset(name.to_owned()))))
-                        .push(name)
-                        .align_y(iced::Alignment::Center)
-                        .spacing(8)
-                        .into()
-                    ).collect()).spacing(8).padding(8).width(Length::Fill))
-                    .push(Space::with_width(Length::Shrink)) // to avoid overlap with the scrollbar
-                    .spacing(16)
-            ).height(Length::Fill).into(),
             Some(WindowState::Preset(_)) => Scrollable::new(
                 Row::new()
                     .push(Column::from_vec(self.settings_mapping.tabs.iter()
