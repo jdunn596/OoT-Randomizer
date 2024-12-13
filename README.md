@@ -80,7 +80,6 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
 * Bug fixes:
   * Fix precompleted dungeon rewards not accounting for boss entrance randomizer ([#2330](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2330))
   * Blue warps setting time of day even on repeated use is now in logic ([#2304](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2304))
-  * A trade item obtained from a skipped location is no longer lost upon obtaining a different item from the same trade quest ([#2217](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2217))
 
 Differences between [`Dev-R`](https://github.com/Roman971/OoT-Randomizer) and [`Dev`](https://github.com/OoTRandomizer/OoT-Randomizer):
 
@@ -220,6 +219,7 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * Fix a Mac-specific issue when loading track .meta files.
 * Fix an error in the easy bite fishing hack.
 * The randomizer no longer ignores errors when decompressing the base rom or compressing the randomized rom.
+* Trade quest items from skipped locations are no longer lost when another trade item is found.
 
 #### New Speedups
 * The first text box from each carpenter in the Thieves' Hideout is skipped.
