@@ -2145,7 +2145,10 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
                 if world.entrance_rando_reward_hints:
                     vanilla_reward = world.get_location(dungeon.vanilla_boss_name).vanilla_item
                     vanilla_reward_location = world.hinted_dungeon_reward_locations[vanilla_reward]
-                    area = HintArea.at(vanilla_reward_location)
+                    if vanilla_reward_location is None:
+                        area = HintArea.ROOT
+                    else:
+                        area = HintArea.at(vanilla_reward_location)
                     area = GossipText(area.text(world.settings.clearer_hints, preposition=True, use_2nd_person=True), [area.color], prefix='', capitalize=False)
                     compass_message = f"\x13\x75\x08You found the \x05\x41Compass\x05\x40\x01for {dungeon_name}\x05\x40!\x01The {vanilla_reward} can be found\x01{area}!\x09"
                 else:
@@ -2921,10 +2924,13 @@ def configure_dungeon_info(rom: Rom, world: World) -> None:
     if world.dungeon_rewards_hinted:
         for reward in REWARD_COLORS:
             location = world.hinted_dungeon_reward_locations[reward]
-            area = HintArea.at(location)
+            if location is None:
+                area = HintArea.ROOT
+            else:
+                area = HintArea.at(location)
             dungeon_reward_areas += area.short_name.encode('ascii').ljust(0x16) + b'\0'
-            dungeon_reward_worlds.append(location.world.id + 1)
-            if location.world.id == world.id and area.is_dungeon:
+            dungeon_reward_worlds.append((world.id if location is None else location.world.id) + 1)
+            if location is not None and location.world.id == world.id and area.is_dungeon:
                 dungeon_rewards[codes.index(area.dungeon_name)] = boss_reward_index(location.item)
 
     dungeon_is_mq = [int(world.dungeon_mq.get(c, False)) for c in codes]
