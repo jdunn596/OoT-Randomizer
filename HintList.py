@@ -232,6 +232,7 @@ conditional_always: dict[str, Callable[[World], bool]] = {
     'Kak 30 Gold Skulltula Reward': lambda world: tokens_required_by_settings(world) < 30 and '30_skulltulas' not in world.settings.misc_hints,
     'Kak 40 Gold Skulltula Reward': lambda world: tokens_required_by_settings(world) < 40 and '40_skulltulas' not in world.settings.misc_hints,
     'Kak 50 Gold Skulltula Reward': lambda world: tokens_required_by_settings(world) < 50 and '50_skulltulas' not in world.settings.misc_hints,
+    'Kak 100 Gold Skulltula Reward': lambda world: tokens_required_by_settings(world) < 100 and '100_skulltulas' not in world.settings.misc_hints,
     'ZR Frogs Ocarina Game':        lambda world: 'frogs2' not in world.settings.misc_hints,
     'LH Loach Fishing':             lambda world: world.settings.shuffle_loach_reward == 'vanilla',
 }
@@ -586,6 +587,7 @@ hintTable: dict[str, tuple[list[str] | str, Optional[str], str | list[str]]] = {
     'Deku Theater Mask of Truth':                                  ("showing a #truthful eye to the crowd# rewards", "showing the #Mask of Truth in the Deku Theater# rewards", ['overworld', 'sometimes']),
     'HF Ocarina of Time Item':                                     ("the #treasure thrown by Princess Zelda# is", None, ['overworld', 'sometimes']),
     'DMT Biggoron':                                                ("#Biggoron# crafts", "showing the #Claim Check to Biggoron# rewards", ['overworld', 'sometimes']),
+    'Kak 100 Gold Skulltula Reward':                               (["#100 bug badges# rewards", "#100 spider souls# yields", "#100 auriferous arachnids# lead to"], "slaying #100 Gold Skulltulas# reveals", ['overworld', 'sometimes']),
     'Kak 50 Gold Skulltula Reward':                                (["#50 bug badges# rewards", "#50 spider souls# yields", "#50 auriferous arachnids# lead to"], "slaying #50 Gold Skulltulas# reveals", ['overworld', 'sometimes']),
     'Kak 40 Gold Skulltula Reward':                                (["#40 bug badges# rewards", "#40 spider souls# yields", "#40 auriferous arachnids# lead to"], "slaying #40 Gold Skulltulas# reveals", ['overworld', 'sometimes']),
     'Kak 30 Gold Skulltula Reward':                                (["#30 bug badges# rewards", "#30 spider souls# yields", "#30 auriferous arachnids# lead to"], "slaying #30 Gold Skulltulas# reveals", ['overworld', 'sometimes']),
@@ -1950,6 +1952,13 @@ misc_location_hint_table: dict[str, dict[str, Any]] = {
         'hint_location': '50 Skulltulas Reward Hint',
         'item_location': 'Kak 50 Gold Skulltula Reward',
         'location_text': "Yeaaarrgh! I'm cursed!! Please save me by destroying \x05\x4150 Spiders of the Curse\x05\x40 and I will give you \x05\x42{item}\x05\x40.",
+        'location_fallback': "Yeaaarrgh! I'm cursed!!",
+    },
+    '100_skulltulas': {
+        'id': 0x9009,
+        'hint_location': '100 Skulltulas Reward Hint',
+        'item_location': 'Kak 100 Gold Skulltula Reward',
+        'location_text': "Yeaaarrgh! I'm cursed!! Please save me by destroying \x05\x41100 Spiders of the Curse\x05\x40 and I will give you \x05\x42{item}\x05\x40.",
         'location_fallback': "Yeaaarrgh! I'm cursed!!",
     },
     'frogs2': {

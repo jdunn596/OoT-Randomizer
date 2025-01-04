@@ -14,6 +14,7 @@ Differences between `dev-fenhl` and [`Dev-R`](https://github.com/Roman971/OoT-Ra
 
 * New settings and options:
   * “Pre-completed Dungeons Mode” set to “Specific Rewards” is compatible with “Shuffle Dungeon Rewards” ([#2330](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2330))
+  * New “Shuffle 100 Skulltula Reward” setting ([#2325](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2325))
   * New “Frogs Ocarina Game” option for the “Randomize Ocarina Song Notes” setting ([#2064](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2064))
   * New “Special Deal Prices”, “Minimum Special Deal Price”, and “Maximum Special Deal Price” settings replacing “Shopsanity Prices” ([#2037](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2037))
   * New plando-only “Chest, Pot, Crate, & Beehive Appearance Does Not Match Contents” setting which makes each chest etc. randomly choose any appearance except the correct one ([#1950](https://github.com/OoTRandomizer/OoT-Randomizer/pull/1950))
@@ -52,6 +53,7 @@ Differences between `dev-fenhl` and [`Dev-R`](https://github.com/Roman971/OoT-Ra
   * “Fenhl's Casual” is my preferred flavor of playing OoTR, with everything shuffled, full entrance randomizer, chaos hints, warp song note shuffle, half damage, no Master Quest, and no tricks enabled. The rainbow bridge requires all dungeon rewards and Ganon's boss key requires all 100 gold skulltula tokens.
   * “Fenhl's Casual (TOoTR compat)” is Fenhl's Casual but with the following changes for compatibility with [TOoTR](https://tootr.mracsys.com/):
     * Hint distribution is “Fenhl's Casual (TOoTR compat)” instead of “Chaos!!! (dev-fenhl)” ([TOoTR#59](https://github.com/mracsys/tootr/issues/59) and lack of support for Triforce Blitz hints)
+    * “Shuffle 100 Skulltula Reward” is off
   * “Vanilla” generates a seed that's as close to the vanilla game as possible with current randomizer features. Unlike the vanilla seed available on <https://ootrandomizer.com/>, this preset uses glitchless logic to produce a useful spoiler log playthrough.
   * “Fast Vanilla” is “Vanilla” but with speed-ups like fast bunny hood, fast chest cutscenes, or “Skip Some Minigame Phases” enabled.
   * “Vanilla (Master Quest)” and “Fast Vanilla (Master Quest)” are “Vanilla” and “Fast Vanilla” but with all dungeons from Master Quest.
