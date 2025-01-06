@@ -70,7 +70,6 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
   * “SGL 2023 Tournament” is a game mode that was used for [a tournament at SpeedGaming Live 2023](https://midos.house/event/sgl/2023live) as well as [an online tournament](https://midos.house/event/sgl/2023onl), taken from [Elagatua's `feature/sgl-2023` branch](https://github.com/Elagatua/OoT-Randomizer/tree/feature/sgl-2023). Note that the tournament itself was played on that branch, not this one. See [the official document](https://docs.google.com/document/d/1EACqBl8ZOreD6xT5jQ2HrdLOnpBpKyjS3FUYK8XFeqg/edit) for details.
   * “SDG Bingo Tournament 3” is a variant of “Bingo” used for an ongoing tournament. Note that the tournament itself is being played on version 8.0 of the randomizer, not this branch. See [the official document](https://docs.google.com/document/d/1fpDPSBGH9YQeC9W3P1SMDE7FhoikVgbFTJapqKnMmL4/edit) for details.
 * Other changes:
-  * The magic meter model is changed to a scroll with a magic jar on it ([#2340](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2340))
   * On Wii Virtual Console, additional information is displayed while the game is loading and when it crashes ([#2153](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2153))
   * Plandos can specify different settings for each world ([#2055](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2055))
   * The text box no longer shows the player's own gold skulltula token count when finding a token for another player (part of [#2055](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2055))
@@ -224,6 +223,7 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * The randomizer no longer ignores errors when decompressing the base rom or compressing the randomized rom.
 * Trade quest items from skipped locations are no longer lost when another trade item is found.
 * Fix a crash when dungeon rewards are directly selected as starting items.
+* Fix an error with pre-completed dungeon rewards in multiworld.
 
 #### New Speedups
 * The first text box from each carpenter in the Thieves' Hideout is skipped.
@@ -240,6 +240,7 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * Farore's Wind now displays which dungeon it will warp Link to.
 * Reversed the order of the hints in the `Spirit Temple Adult Lower` dual hint.
 * Add adult and child trade items to the auto-tracker context.
+* Improve Debug menu with new options and menus.
 
 ### 8.2
 
