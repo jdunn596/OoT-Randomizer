@@ -24,7 +24,7 @@ fn decompress_rom(input_file: PathBuf, output_file: PathBuf) -> PyResult<()> {
 }
 
 pub(crate) fn module(py: Python<'_>) -> PyResult<Bound<'_, PyModule>> {
-    let m = PyModule::new_bound(py, "rom")?;
+    let m = PyModule::new(py, "rom")?;
     m.add_function(wrap_pyfunction!(decompress_rom, m.clone())?)?;
     Ok(m)
 }

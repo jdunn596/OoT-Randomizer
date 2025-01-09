@@ -6,7 +6,7 @@ macro_rules! py_mod {
 
         #[pymodule]
         fn rs(py: Python<'_>, m: Bound<'_, PyModule>) -> PyResult<()> {
-            let sys_modules = py.import_bound("sys")?.getattr("modules")?;
+            let sys_modules = py.import("sys")?.getattr("modules")?;
             $(
                 let $name = $name::module(py)?;
                 m.add_submodule(&$name)?;

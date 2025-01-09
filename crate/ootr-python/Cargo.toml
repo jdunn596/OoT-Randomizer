@@ -21,9 +21,9 @@ crate-type = ["cdylib"]
 anyhow = "1"
 decompress = { git = "https://github.com/fenhl/OoT_Decompressor", branch = "riir" }
 lazy-regex = "3"
-pyo3 = { version = "0.22", features = ["anyhow", "auto-initialize", "extension-module"] }
+pyo3 = { version = "0.23", features = ["anyhow", "auto-initialize", "extension-module"] }
 semver = "1"
 wheel = { git = "https://github.com/fenhl/wheel", branch = "main", features = ["pyo3"] }
 
 [build-dependencies]
-pyo3-build-config = "0.22"
+pyo3-build-config = "0.23"

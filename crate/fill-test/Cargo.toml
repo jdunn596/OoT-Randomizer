@@ -15,5 +15,5 @@ warnings = "deny"
 
 [dependencies]
 collect-mac = "0.1"
-itertools = "0.13"
+itertools = "0.14"
 rand = "0.8"

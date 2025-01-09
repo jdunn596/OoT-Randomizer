@@ -23,7 +23,7 @@ enum LogLevel {
 
 impl LogLevel {
     fn try_into_py<'p>(&self, py: Python<'p>) -> PyResult<Bound<'p, PyAny>> {
-        let logging = py.import_bound("logging")?;
+        let logging = py.import("logging")?;
         match self {
             Self::Error => logging.getattr("ERROR"),
             Self::Warning => logging.getattr("WARNING"),
@@ -80,15 +80,15 @@ impl<'a, 'py> From<pyo3::DowncastError<'a, 'py>> for Error {
 #[wheel::main]
 fn main(Args { log_level, settings_string, convert_settings, settings, settings_preset, seed, no_log, output_settings, diff_rom }: Args) -> Result<i32, Error> {
     match Python::with_gil(|py| {
-        let sys = py.import_bound("sys")?;
+        let sys = py.import("sys")?;
         sys.getattr("path")?.call_method1("append", (env!("CARGO_MANIFEST_DIR"),))?;
-        let json = py.import_bound("json")?;
-        let settings_mod = py.import_bound("Settings")?;
-        let utils = py.import_bound("Utils")?;
+        let json = py.import("json")?;
+        let settings_mod = py.import("Settings")?;
+        let utils = py.import("Utils")?;
         utils.call_method0("check_python_version")?;
-        let settings_base = PyDict::new_bound(py);
+        let settings_base = PyDict::new(py);
         if let Some(preset_name) = settings_preset {
-            if let Some(preset) = settings_mod.call_method0("get_preset_files")?.iter()?.filter_map(|filename| filename.map_err(Error::from).and_then(|filename| {
+            if let Some(preset) = settings_mod.call_method0("get_preset_files")?.try_iter()?.filter_map(|filename| filename.map_err(Error::from).and_then(|filename| {
                 let presets = json.call_method1("loads", (fs::read_to_string(filename.extract::<&str>()?)?,))?;
                 let presets = presets.downcast::<PyDict>()?;
                 presets.get_item(&preset_name).map_err(Error::from) //TODO deal with preset aliases
@@ -128,7 +128,7 @@ fn main(Args { log_level, settings_string, convert_settings, settings, settings_
             }
             return Ok(0)
         }
-        py.import_bound("OoTRandomizer")?.call_method1("start", (settings, log_level.try_into_py(py)?, no_log, diff_rom))?;
+        py.import("OoTRandomizer")?.call_method1("start", (settings, log_level.try_into_py(py)?, no_log, diff_rom))?;
         Ok(0)
     }) {
         Err(Error::Python(e)) => {

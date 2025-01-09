@@ -35,20 +35,20 @@ impl SearchCache {
             child_queue: self.child_queue.iter().map(|elt| elt.clone_ref(py)).collect(),
             adult_queue: self.adult_queue.iter().map(|elt| elt.clone_ref(py)).collect(),
             visited_locations: {
-                let visited_locations = PySet::empty_bound(py)?;
+                let visited_locations = PySet::empty(py)?;
                 for elt in self.visited_locations.bind(py).iter() {
                     visited_locations.add(elt)?;
                 }
                 visited_locations.unbind()
             },
-            child_regions: PyDictMethods::iter(self.child_regions.bind(py)).into_py_dict_bound(py).unbind(),
-            adult_regions: PyDictMethods::iter(self.adult_regions.bind(py)).into_py_dict_bound(py).unbind(),
+            child_regions: PyDictMethods::iter(self.child_regions.bind(py)).into_py_dict(py)?.unbind(),
+            adult_regions: PyDictMethods::iter(self.adult_regions.bind(py)).into_py_dict(py)?.unbind(),
         })
     }
 }
 
 pub(crate) fn module(py: Python<'_>) -> PyResult<Bound<'_, PyModule>> {
-    let m = PyModule::new_bound(py, "search")?;
+    let m = PyModule::new(py, "search")?;
     m.add_class::<SearchCache>()?;
     Ok(m)
 }

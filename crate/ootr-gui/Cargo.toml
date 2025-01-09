@@ -18,9 +18,9 @@ dark-light = "1.1.1"
 futures = "0.3"
 iced = { version = "0.13", default-features = false, features = ["auto-detect-theme", "multi-window", "tiny-skia", "tokio"] }
 indexmap = { version = "2.6.0", features = ["serde"] }
-itertools = "0.13.0"
+itertools = "0.14"
 nonempty-collections = "0.2.9"
-pyo3 = { version = "0.22", features = [
+pyo3 = { version = "0.23", features = [
     "auto-initialize",
     "py-clone", #TODO remove
 ] }
@@ -32,7 +32,7 @@ serde_json_inner = { package = "serde_json", version = "1.0.132", features = [
 ] }
 serde_with = "3.11.0"
 smart-default = "0.7.1"
-thiserror = "1"
+thiserror = "2"
 tokio = { version = "1", features = ["rt-multi-thread"] }
 wheel = { git = "https://github.com/fenhl/wheel", branch = "main", features = ["serde", "serde_json", "serde_json_path_to_error"] }
 zip = "2.2.0"
