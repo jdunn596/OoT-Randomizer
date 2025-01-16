@@ -1,27 +1,23 @@
-#!/usr/bin/env python3
+from __future__ import annotations
 import sys
-if sys.version_info < (3, 8):
-    print("OoT Randomizer requires Python version 3.8 or newer and you are using %s" % '.'.join([str(i) for i in sys.version_info[0:3]]))
-    sys.exit(1)
 
 import datetime
 import logging
 import os
 import time
+from typing import TYPE_CHECKING
+
+from Main import main, from_patch_file, cosmetic_patch, diff_roms
+from Utils import check_version, VersionError, local_path
+
+if TYPE_CHECKING:
+    from Settings import Settings
 
 
-def start() -> None:
-    from Main import main, from_patch_file, cosmetic_patch, diff_roms
-    from Settings import get_settings_from_command_line_args
-    from Utils import check_version, VersionError, local_path
-    settings, gui, args_loglevel, no_log_file, diff_rom = get_settings_from_command_line_args()
-
+def start(settings: Settings, loglevel: int, no_log_file: bool, diff_rom: bool) -> None:
     # set up logger
-    loglevel = {'error': logging.ERROR, 'info': logging.INFO, 'warning': logging.WARNING, 'debug': logging.DEBUG}[args_loglevel]
     logging.basicConfig(format='%(message)s', level=loglevel)
-
     logger = logging.getLogger('')
-
     if not no_log_file:
         ts = time.time()
         st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H-%M-%S')
@@ -32,17 +28,8 @@ def start() -> None:
         log_file.setFormatter(logging.Formatter('[%(asctime)s] %(message)s', datefmt='%H:%M:%S'))
         logger.addHandler(log_file)
 
-    if not settings.check_version:
-        try:
-            check_version(settings.checked_version)
-        except VersionError as e:
-            logger.warning(str(e))
-
     try:
-        if gui:
-            from Gui import gui_main
-            gui_main()
-        elif diff_rom:
+        if diff_rom:
             diff_roms(settings, diff_rom)
         elif settings.cosmetics_only:
             cosmetic_patch(settings)
@@ -58,7 +45,3 @@ def start() -> None:
     except Exception as ex:
         logger.exception(ex)
         sys.exit(1)
-
-
-if __name__ == '__main__':
-    start()

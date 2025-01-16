@@ -13,7 +13,8 @@ Differences between `riir` and [`dev-fenhl`](https://github.com/fenhl/OoT-Random
 * Additional setup required. For now, it is recommended to run the randomizer via the `test-rs.py` script.
 * Performance improvements.
 * Decompressing the base rom works on all platforms.
-* New experimental GUI, not yet fully featured. Try with `cargo run --package=ootr-gui`.
+* New experimental GUI, not yet fully featured. Try with `cargo run --release --package=ootr-gui`.
+* New CLI with improved command-line option handling. Run with `cargo run --release --package=ootr-cli`.
 
 Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [`Dev-R`](https://github.com/Roman971/OoT-Randomizer):
 

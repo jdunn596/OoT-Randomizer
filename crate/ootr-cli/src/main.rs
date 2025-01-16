@@ -80,12 +80,14 @@ impl<'a, 'py> From<pyo3::DowncastError<'a, 'py>> for Error {
 #[wheel::main]
 fn main(Args { log_level, settings_string, convert_settings, settings, settings_preset, seed, no_log, output_settings, diff_rom }: Args) -> Result<i32, Error> {
     match Python::with_gil(|py| {
+        let py_version = py.version_info();
+        if py_version < (3, 8) {
+            panic!("Randomizer requires at least Python 3.8 and you are using {}.{}.{}", py_version.major, py_version.minor, py_version.patch);
+        }
         let sys = py.import("sys")?;
-        sys.getattr("path")?.call_method1("append", (env!("CARGO_MANIFEST_DIR"),))?;
+        sys.getattr("path")?.call_method1("append", (concat!(env!("CARGO_MANIFEST_DIR"), "/../.."),))?;
         let json = py.import("json")?;
         let settings_mod = py.import("Settings")?;
-        let utils = py.import("Utils")?;
-        utils.call_method0("check_python_version")?;
         let settings_base = PyDict::new(py);
         if let Some(preset_name) = settings_preset {
             if let Some(preset) = settings_mod.call_method0("get_preset_files")?.try_iter()?.filter_map(|filename| filename.map_err(Error::from).and_then(|filename| {
@@ -101,15 +103,9 @@ fn main(Args { log_level, settings_string, convert_settings, settings, settings_
         }
         if settings.as_ref().is_some_and(|settings| settings == Path::new("-")) {
             settings_base.call_method1("update", (json.call_method1("loads", (sys.getattr("stdin")?.call_method0("read")?,))?,))?;
-        } else if settings.is_some() || settings_base.is_empty() { // avoid implicitly using settings.sav with presets
-            let settings_path = utils.call_method1("local_path", (settings.as_deref().unwrap_or(Path::new("settings.sav")),))?;
-            let settings_path = settings_path.extract::<&str>()?;
-            if let Err(e) = fs::read_to_string(settings_path).map_err(Error::from).and_then(|settings| {
-                settings_base.call_method1("update", (json.call_method1("loads", (settings,))?,))?;
-                Ok(())
-            }) {
-                if settings.is_some() { return Err(e) }
-            }
+        } else if let Some(settings_path) = settings {
+            let settings = fs::read_to_string(settings_path)?;
+            settings_base.call_method1("update", (json.call_method1("loads", (settings,))?,))?;
         }
         let settings = settings_mod.call_method1("Settings", (settings_base,))?;
         settings.setattr("output_settings", output_settings)?;
