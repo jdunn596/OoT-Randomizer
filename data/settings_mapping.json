@@ -182,7 +182,8 @@
             "triforce_goal_per_world",
             "free_bombchu_drops",
             "plandomized_locations",
-            "shuffle_boulders"
+            "shuffle_boulders",
+            "golden_boulders"
           ]
         },
         {

@@ -62,3 +62,23 @@ dh  0x01B6
 ; Replaces:
 ;   jal     0x80022BD4
     jal     EnIshi_OfferGetItem_Hook
+
+
+; Gold Boulders
+; EnIshi variable map
+; Bit 0: type (0 = small liftable, 1 = large liftable
+; Bit 4: bugs (1 = spawn bugs when lifted)
+; Bit 5: snap (1 = try to snap to the floor)
+; Bit 6 - 7: switch flag (lowest 2 bits)
+; Bit 8 - 11: collectible drop params
+; Bit 12 - 15: switch flag (upper 4 bits)
+; The bits 1-3 of the actor spawn variable are unused for silver boulders so we can use that to determine if it's a gold boulder. Setting bits 0-4 to 0x3 will indicate gold boulder. This way, existing checks looking at just bit 0 will still work for small boulders and we only need to hack the draw function to check all 4 bits
+; Will use bit 1
+; Set the color of EnIshi depending on if it's silver or gold
+; Hack in EnIshi_DrawLarge when it sets the prim color
+.org 0x80ab439c
+; Replaces:
+;   sw      t2, 0x04(v1)
+;   sw      t1, 0x00(v1)
+    jal     EnIshi_SetPrimColor
+    sw      t1, 0x00(v1)

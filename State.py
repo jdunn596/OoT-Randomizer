@@ -266,6 +266,8 @@ class State:
         elif boulder_type == BOULDER_TYPE.SILVER:
             # Check for adult+str2
             return age == 'adult' and self.has(Progressive_Strength_Upgrade, 2)
+        elif boulder_type == BOULDER_TYPE.GOLD:
+            return age == 'adult' and self.has(Progressive_Strength_Upgrade, 3)
         elif boulder_type == BOULDER_TYPE.BROWN:
             # Check for adult+hammer or explosives
             return self.can_blast_or_smash(self, age=age)

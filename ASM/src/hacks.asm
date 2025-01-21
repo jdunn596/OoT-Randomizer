@@ -4343,3 +4343,4 @@ DemoEffect_DrawJewel_AfterHook:
 .include("hacks/ovl_obj_hamishi.asm")
 .include("hacks/code.asm")
 .include("hacks/object_fixes.asm")
+.include("hacks/ovl_player.asm")

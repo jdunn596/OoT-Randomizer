@@ -142,7 +142,8 @@ RANDO_CONTEXT:
 .include "minimap.asm"
 .include "collider_override.asm"
 .include "objects.asm"
-
+.include "player.asm"
+.include "en_ishi.asm"
 
 .align 0x10
 .importobj "../build/bundle.o"

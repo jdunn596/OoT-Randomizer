@@ -1999,6 +1999,23 @@ class SettingInfos:
         gui_params     = {
             'randomize_key': 'randomize_settings',
         },
+        disable        = {
+            False: {'settings': ['golden_boulders']}
+        }
+    )
+
+    golden_boulders = Checkbutton(
+        gui_text       = 'Add Golden Boulders',
+        gui_tooltip    = '''\
+            Some of the silver boulders will be
+            converted into gold boulders which
+            require Gold Gauntlets in order to lift
+        ''',
+        shared         = True,
+        gui_params     = {
+            'randomize_key': 'randomize_settings',
+            "hide_when_disabled": True,
+        },
     )
 
     shuffle_song_items = Combobox(
