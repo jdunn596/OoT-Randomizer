@@ -68,29 +68,6 @@ chestgame_remove_chest_rng:
     jr      ra
     nop
 
-chestgame_open_chests_separately:
-    lb      t0, SHUFFLE_CHEST_GAME
-    beqz    t0, @@return        ; skip if the chest game isn't randomized
-    nop
-    lw      ra, 0x14(sp)        ; set original return addresss
-    jr ra                       ; jump out of function (skip it)
-    nop
-
-@@return:
-    jr      ra
-    or      a3, a1, $zero       ; displaced code
-
-chestgame_delayed_chest_open:
-    lb      t1, SHUFFLE_CHEST_GAME
-    beqz    t3, @@return        ; skip if the chest game isn't randomized
-    nop
-    or      t9, $zero, $zero    ; set t9 to 0 so conditional always fails
-    lw      a0, 0x004C($sp)     ; displaced code
-
-@@return:
-    jr      ra
-    lw      a0, 0x004C($sp)     ; displaced code
-
 ; Show a key in the unopened chest regardless of chest
 ; contents if the tcg_requires_lens setting is enabled
 chestgame_force_game_loss_left:

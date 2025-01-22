@@ -220,6 +220,7 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * Fix a crash when dungeon rewards are directly selected as starting items.
 * Fix an error with pre-completed dungeon rewards in multiworld.
 * Scarecrow's song is now in logic without ocarina buttons if `Free Scarecrow's Song` is on.
+* Fix a crash that could occur when doing certain sequences of actions in the treasure box shop with shuffled keys.
 
 #### New Speedups
 * The first text box from each carpenter in the Thieves' Hideout is skipped.
