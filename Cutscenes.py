@@ -260,6 +260,10 @@ def patch_cutscenes(rom: Rom, songs_as_items: bool, settings: Settings) -> None:
     # Last part is 250 frames.
     rom.write_int32(0xC94594, 0x00000000)
 
+    # Speed scene after Forest Temple
+    # Blue warp brings us to right before Deku Sprout cutscene number 3.
+    delete_cutscene(rom, 0x207B9D0)
+
     # Speed learning Prelude of Light
     if songs_as_items:
         delete_cutscene(rom, 0x0252FD20)

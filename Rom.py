@@ -17,7 +17,7 @@ DMADATA_START: int = 0x7430  # NTSC 1.0/1.1: 0x7430, NTSC 1.2: 0x7960, Debug: 0x
 OVERLAY_TABLE_START: int = 0xB5E490 # NTSC 1.0
 OVERLAY_TABLE_OFFSET: int = 0
 OVERLAY_TABLE_ENTRY_SIZE: int = 0x20
-PAUSE_PLAYER_OVERLAY_TABLE_START: int = 0xB743E0 
+PAUSE_PLAYER_OVERLAY_TABLE_START: int = 0xB743E0
 PAUSE_PLAYER_OVERLAY_TABLE_ENTRY_SIZE: int = 0x1C
 PAUSE_PLAYER_OVERLAY_TABLE_OFFSET: int = 4
 
@@ -39,7 +39,7 @@ class Rom(BigStream):
             self.symbols: dict[str, int] = {name: {'address': int(sym['address'], 16), 'length': sym['length']} for name, sym in symbols.items()}
 
         with open(data_path('generated/patch_symbols.json'), 'r') as stream:
-            self.patch_symbols = json.load(stream)
+            self.patch_symbols: dict[str, int] = json.load(stream)
 
         if file is None:
             return
@@ -65,7 +65,7 @@ class Rom(BigStream):
         # Add file to maximum size
         self.buffer.extend(bytearray([0x00] * (0x4000000 - len(self.buffer))))
         self.original = self.copy()
-        self.overlay_table = OverlayTable.read_overlay_table(self, OVERLAY_TABLE_START, OVERLAY_TABLE_OFFSET, OVERLAY_TABLE_ENTRY_SIZE, NUM_OVERLAY_ENTRIES) + OverlayTable.read_overlay_table(self, PAUSE_PLAYER_OVERLAY_TABLE_START, PAUSE_PLAYER_OVERLAY_TABLE_OFFSET, PAUSE_PLAYER_OVERLAY_TABLE_ENTRY_SIZE, NUM_PAUSE_PLAYER_OVERLAY_ENTRIES)
+        self.overlay_table: list[OverlayEntry] = OverlayTable.read_overlay_table(self, OVERLAY_TABLE_START, OVERLAY_TABLE_OFFSET, OVERLAY_TABLE_ENTRY_SIZE, NUM_OVERLAY_ENTRIES) + OverlayTable.read_overlay_table(self, PAUSE_PLAYER_OVERLAY_TABLE_START, PAUSE_PLAYER_OVERLAY_TABLE_OFFSET, PAUSE_PLAYER_OVERLAY_TABLE_ENTRY_SIZE, NUM_PAUSE_PLAYER_OVERLAY_ENTRIES)
         # Add version number to header.
         self.write_version_bytes()
 
@@ -405,11 +405,11 @@ class DMAIterator:
                 raise Exception(f"Not enough free space in ROM to fit a file of size {size}. Largest region of free space available: {free_space[-1][0]}.")
 
 class OverlayEntry:
-    def __init__(self, vrom_start, vrom_end, vram_start, vram_end) -> None:
-        self.vrom_start = vrom_start
-        self.vrom_end = vrom_end
-        self.vram_start = vram_start
-        self.vram_end = vram_end
+    def __init__(self, vrom_start: int, vrom_end: int, vram_start: int, vram_end: int) -> None:
+        self.vrom_start: int = vrom_start
+        self.vrom_end: int = vrom_end
+        self.vram_start: int = vram_start
+        self.vram_end: int = vram_end
 
 class OverlayTable:
     def read_overlay_table(rom: Rom, ovl_table_start: int, offset: int, entry_size: int, num_entries: int) -> None:
@@ -427,6 +427,6 @@ class OverlayTable:
     def VRAM_2_VROM(overlay_entries: list[OverlayEntry], vram_address: int) -> int:
         # Loop through overlay table and find the entry containing the address
         for overlay_entry in overlay_entries:
-            if (overlay_entry.vram_start <= vram_address) and (overlay_entry.vram_end > vram_address):
+            if overlay_entry.vram_start <= vram_address and overlay_entry.vram_end > vram_address:
                 return vram_address - overlay_entry.vram_start + overlay_entry.vrom_start
         raise Exception("Overlay address not found in table")

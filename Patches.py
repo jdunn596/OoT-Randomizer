@@ -2407,6 +2407,16 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
         rom.revert_patch("NNN_PATCH_2")
         rom.revert_patch("NNN_PATCH_3")
 
+    # Unpatch TCG Hacks
+    if world.settings.shuffle_tcgkeys == 'vanilla':
+        rom.revert_patch("TCG_SHUFFLE_PATCH_1")
+        rom.revert_patch("TCG_SHUFFLE_PATCH_2")
+        rom.revert_patch("TCG_SHUFFLE_PATCH_3")
+        rom.revert_patch("TCG_SHUFFLE_PATCH_4")
+        rom.revert_patch("TCG_SHUFFLE_PATCH_5")
+        rom.revert_patch("TCG_SHUFFLE_PATCH_6")
+        rom.revert_patch("TCG_SHUFFLE_PATCH_7")
+
     # Write numeric seed truncated to 32 bits for rng seeding
     # Overwritten with new seed every time a new rng value is generated
     rom.write_int32(rom.sym('RNG_SEED_INT'), spoiler.settings.numeric_seed & 0xFFFFFFFF)

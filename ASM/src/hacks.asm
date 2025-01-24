@@ -3839,16 +3839,10 @@ DemoEffect_DrawJewel_AfterHook:
     sh      t8, 0x0204(s0)
 
 ; Replaces: sw     t3, 0x0014($sp)
-            sw     t2, 0x0010($sp)
+;           sw     t2, 0x0010($sp)
 .orga 0xE94774
     jal     chestgame_initial_message
     sw      t3, 0x0014($sp)
-
-; Allow TCG chests to open separately
-; Skips this entire function func_80AC3A2C:
-.orga 0xE43874
-    jal     chestgame_open_chests_separately
-    or      a2, a0, $zero
 
 ; Skip instruction to reset TCG chest flags
 ; Replaces: sw     $zero, 0x1D38(t8)
@@ -3872,14 +3866,6 @@ DemoEffect_DrawJewel_AfterHook:
 ; Change GetItemID that TCG Salesman gives while title card is up
 .orga 0xE94C14
     addiu   a2, $zero, 0x0071   ; replaces 0x0042 (generic key) with 0x0071 (chest game key)
-
-; Skip instructions to open unopened chests in previous rooms.
-; Replaces: lh     t9, 0x0158(s0)
-;           lw     a0, 0x004C($sp)
-
-.orga 0xE437A8
-    jal     chestgame_delayed_chest_open
-    nop
 
 ; Show a key in the unopened chest regardless of chest
 ; contents if the tcg_requires_lens setting is enabled.
@@ -4414,3 +4400,4 @@ DemoEffect_DrawJewel_AfterHook:
 .include("hacks/code.asm")
 .include("hacks/object_fixes.asm")
 .include "hacks/ovl_player.asm"
+.include "hacks/ovl_en_changer.asm"
