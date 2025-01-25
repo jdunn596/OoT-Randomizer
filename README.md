@@ -19,6 +19,7 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
 ## Index
 
 * [RealRob's Changelog](#realrob-changelog)
+  * [v125](#v125)
   * [v124](#v124)
   * [v123](#v123)
   * [v122](#v122)
@@ -149,6 +150,9 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
   * [4.0](#40)
 
 ## RealRob Changelog
+### v125
+  * Fix logic issue in MQ Deku Tree
+
 ### v124
   * Increase size of markers on enemy minimap tracker
   * Rename Like-like to Like Like across the code
