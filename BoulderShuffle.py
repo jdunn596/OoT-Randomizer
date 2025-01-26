@@ -73,7 +73,7 @@ def shuffle_boulders(worlds: list[World]):
                 print("Retrying...")
 
 
-def _shuffle_boulders(world) -> tuple[dict[str, dict[tuple[int,int,int,int], dict[str, any]]], dict[tuple[int,int,int,int], tuple[str,BOULDER_TYPE]]]:
+def _shuffle_boulders(world: World) -> tuple[dict[str, dict[tuple[int,int,int,int], dict[str, any]]], dict[tuple[int,int,int,int], tuple[str,BOULDER_TYPE]]]:
     boulders = world.boulders
 
     shuffled_boulders_by_id = {}
@@ -108,9 +108,16 @@ def _shuffle_boulders(world) -> tuple[dict[str, dict[tuple[int,int,int,int], dic
                     boulder_keys.remove(priority_boulder_id)
                     shuffled_boulders[priority_boulder_id] = priority_type
 
+    # Gold Boulders
+    if world.settings.golden_boulders:
+        silver_boulders = [(index, t) for index, t in enumerate(target_types) if t == BOULDER_TYPE.SILVER]
+        random.shuffle(silver_boulders)
+        for i in range(0, int(len(silver_boulders) / 2)):
+            target_types[silver_boulders[i][0]] = BOULDER_TYPE.GOLD
+
     for boulder_id in boulder_keys:
         shuffled_boulders [boulder_id] = target_types.pop(0)
-        #shuffled_boulders[boulder_key] = BOULDER_TYPE.BROWN
+        # shuffled_boulders[boulder_id] = BOULDER_TYPE.GOLD
         
     for boulder_id in shuffled_boulders:
         boulder = world.boulder_list[boulder_id]

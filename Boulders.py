@@ -10,13 +10,15 @@ class BOULDER_TYPE(IntEnum):
     BRONZE = 1
     SILVER = 2
     RED_ICE = 3
-    HEAVY_BLOCK = 4
+    GOLD = 4
+    HEAVY_BLOCK = 5
 
 boulder_rules = {
     'BOULDER_TYPE_BROWN': int(BOULDER_TYPE.BROWN),
     'BOULDER_TYPE_BRONZE': int(BOULDER_TYPE.BRONZE),
     'BOULDER_TYPE_SILVER': int(BOULDER_TYPE.SILVER),
     'BOULDER_TYPE_RED_ICE': int(BOULDER_TYPE.RED_ICE),
+    'BOULDER_TYPE_GOLD': int(BOULDER_TYPE.GOLD),
     'BOULDER_TYPE_HEAVY_BLOCK': int(BOULDER_TYPE.HEAVY_BLOCK)
 }
 
@@ -353,6 +355,11 @@ def convert_silver_boulder(actor):
     var = ((switch & 0x3C) << 0xA) | ((switch & 3) << 6)
     var = var | 0x01
     return  (0x014E, var)
+def convert_gold_boulder(actor):
+    switch = actor['switch']
+    var = ((switch & 0x3C) << 0xA) | ((switch & 3) << 6)
+    var = var | 0x03
+    return  (0x014E, var)
 def convert_red_ice(actor):
     return (0x00EF, actor['switch'])
 def convert_heavyblock(actor):
@@ -363,6 +370,7 @@ convert = {
     BOULDER_TYPE.BRONZE: convert_bronze_boulder,
     BOULDER_TYPE.SILVER: convert_silver_boulder,
     BOULDER_TYPE.RED_ICE: convert_red_ice,
+    BOULDER_TYPE.GOLD: convert_gold_boulder,
     BOULDER_TYPE.HEAVY_BLOCK: convert_heavyblock
 }
 

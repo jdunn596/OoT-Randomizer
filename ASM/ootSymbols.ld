@@ -26,6 +26,7 @@ z64_Flags_GetSwitch = 0x8002049C;
 z64_Flags_SetTempClear = 0x800206AC;
 OnePointCutscene_Init = 0x8006b6fc;
 Player_InCsMode = 0x8007943c;
+EffectSsKakera_Spawn = 0x8001d998;
 z64_Gfx_SetupDL_42Opa = 0x8007E868;
 Audio_StopCurrentMusic = 0x800C7684;
 sprintf = 0x800CE7b4;

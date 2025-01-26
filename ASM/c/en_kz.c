@@ -7,7 +7,8 @@ typedef enum BOULDER_TYPE {
     BOULDER_TYPE_BRONZE = 1,
     BOULDER_TYPE_SILVER = 2,
     BOULDER_TYPE_RED_ICE = 3,
-    BOULDER_TYPE_HEAVY_BLOCK = 4,
+    BOULDER_TYPE_GOLD = 4,
+    BOULDER_TYPE_HEAVY_BLOCK = 5,
 };
 
 uint8_t KZ_BOULDER_TYPE;
@@ -38,6 +39,10 @@ z64_actor_t* EnKz_SpawnRedIce_Hook(z64_actor_ctxt_t* actorCtx, z64_actor_t* pare
                 break;
             case BOULDER_TYPE_SILVER:
                 spawned = Actor_SpawnAsChild(actorCtx, parent, globalCtx, ACTOR_EN_ISHI, posX, posY, posZ, rotX, rotY, rotZ, 0xF0C1);
+                spawned->parent = NULL;
+                break;
+            case BOULDER_TYPE_GOLD:
+                spawned = Actor_SpawnAsChild(actorCtx, parent, globalCtx, ACTOR_EN_ISHI, posX, posY, posZ, rotX, rotY, rotZ, 0xF0C3);
                 spawned->parent = NULL;
                 break;
             case BOULDER_TYPE_RED_ICE:
