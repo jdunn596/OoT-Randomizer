@@ -1,7 +1,14 @@
 /* Addresses should be listed in order */
 z64_EquippedItemOutlineTex = 0x2000E00;
+z64_Flags_GetClear = 0x80020640;
+z64_Flags_SetSwitch = 0x800204D0;
+z64_Flags_GetSwitch = 0x8002049C;
+z64_Flags_SetTempClear = 0x800206AC;
+OnePointCutscene_Init = 0x8006b6fc;
+Player_InCsMode = 0x8007943c;
 z64_Gfx_SetupDL_42Opa = 0x8007E868;
 Audio_StopCurrentMusic = 0x800C7684;
+
 sprintf = 0x800CE7b4;
 Fault_AddHungupAndCrashImpl = 0x800AF564;
 z64_ItemIcons = 0x800F8D2C;
@@ -21,3 +28,6 @@ z64_sEquipAnimTimer = 0x8039EAB4;
 z64_sEquipMoveTimer = 0x8039EAB8;
 gActorOverlayTable = 0x800E8530;
 Message_CloseTextbox = 0x800d6218;
+
+OVL_BgMoriBigst_SetupFall = 0x809273d4;
+OVL_BgMoriBigst_SetupDone = 0x809276c0;

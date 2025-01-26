@@ -85,6 +85,8 @@
 #define ITEM_ICON_HEIGHT 32
 #define ITEM_ICON_SIZE (ITEM_ICON_WIDTH * ITEM_ICON_HEIGHT * 4) // The size in bytes of an item icon
 
+#define GET_PLAYER(play) ((z64_link_t*)(play)->actor_list[ACTORCAT_PLAYER].first)
+
 typedef struct {
   /* index of z64_col_type in scene file */
   uint16_t    type;
@@ -1959,10 +1961,6 @@ typedef enum {
 #define z64_Message_GetState_addr               0x800DD464
 #define z64_SetCollectibleFlags_addr            0x8002071C
 #define z64_GetCollectibleFlags_addr            0x800206E8
-#define z64_Flags_GetClear_addr                 0x80020640
-#define z64_Flags_SetSwitch_addr                0x800204D0
-#define z64_Flags_GetSwitch_addr                0x8002049C
-#define z64_Flags_SetTempClear_addr             0x800206AC
 #define z64_Audio_PlaySoundGeneral_addr         0x800C806C
 #define z64_PlaySFXID_addr                      0x800646F0
 #define z64_Audio_PlayFanFare_addr              0x800C69A0
@@ -2069,10 +2067,6 @@ typedef uint8_t(*z64_Message_GetStateFunc)(uint8_t*);
 typedef void(*z64_Flags_SetCollectibleFunc)(z64_game_t* game, uint32_t flag);
 typedef int32_t (*z64_Flags_GetCollectibleFunc)(z64_game_t* game, uint32_t flag);
 typedef void(*z64_Audio_PlaySoundGeneralFunc)(uint16_t sfxId, void* pos, uint8_t token, float* freqScale, float* a4, uint8_t* reverbAdd);
-typedef int32_t (*z64_Flags_GetClearFunc)(z64_game_t* game, int32_t flag);
-typedef void(*z64_Flags_SetTempClearFunc)(z64_game_t *game, uint32_t flag);
-typedef void (*z64_Flags_SetSwitchFunc)(z64_game_t* game, int32_t flag);
-typedef int32_t (*z64_Flags_GetSwitchFunc)(z64_game_t* game, int32_t flag);
 typedef void(*z64_PlaySFXIDFunc)(int16_t sfxId);
 typedef void(*z64_Audio_PlayFanFareFunc)(uint16_t);
 typedef void (*z64_DrawActors_proc)       (z64_game_t* game, void* actor_ctxt);
@@ -2163,10 +2157,6 @@ typedef void(*z64_Play_SetupRespawnPoint_proc)(z64_game_t *game, int32_t respawn
 #define z64_MessageGetState         ((z64_Message_GetStateFunc)z64_Message_GetState_addr)
 #define z64_SetCollectibleFlags     ((z64_Flags_SetCollectibleFunc)z64_SetCollectibleFlags_addr)
 #define z64_Flags_GetCollectible    ((z64_Flags_GetCollectibleFunc)z64_GetCollectibleFlags_addr)
-#define z64_Flags_GetClear          ((z64_Flags_GetClearFunc)z64_Flags_GetClear_addr)
-#define z64_Flags_SetSwitch         ((z64_Flags_SetSwitchFunc)z64_Flags_SetSwitch_addr)
-#define z64_Flags_GetSwitch         ((z64_Flags_GetSwitchFunc)z64_Flags_GetSwitch_addr)
-#define z64_Flags_SetTempClear      ((z64_Flags_SetTempClearFunc)z64_Flags_SetTempClear_addr)
 #define z64_Audio_PlaySoundGeneral  ((z64_Audio_PlaySoundGeneralFunc)z64_Audio_PlaySoundGeneral_addr)
 #define z64_Audio_PlayFanFare       ((z64_Audio_PlayFanFareFunc)z64_Audio_PlayFanFare_addr)
 #define z64_PlaySFXID               ((z64_PlaySFXIDFunc)z64_PlaySFXID_addr)
@@ -2498,5 +2488,9 @@ extern void Fault_AddHungupAndCrashImpl(const char* msg1, const char* msg2);
 extern int32_t sprintf(char* dst, char* fmt, ...);
 extern z64_actor_t* z64_ActorFind(void* actorCtx, int32_t actorId, int32_t actorCategory);
 extern int32_t DmaMgr_RequestSync(void* ram, uint32_t* vrom, unsigned long size);
+extern int32_t z64_Flags_GetClear(z64_game_t* globalCtx, int32_t flag);
+extern void z64_Flags_SetSwitch(z64_game_t* globalCtx, int32_t flag);
+extern int32_t z64_Flags_GetSwitch(z64_game_t* globalCtx, int32_t flag);
+extern void z64_Flags_SetTempClear(z64_game_t* globalCtx, int32_t flag);
 
 #endif

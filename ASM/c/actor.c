@@ -16,6 +16,7 @@
 #include "item_table.h"
 #include "enemy_spawn_shuffle.h"
 #include "minimap.h"
+#include "bg_mori_bigst.h"
 
 extern uint8_t POTCRATE_TEXTURES_MATCH_CONTENTS;
 extern uint16_t CURR_ACTOR_SPAWN_INDEX;
@@ -383,4 +384,22 @@ z64_actor_t * Actor_SpawnAsChild_Hook(void* actorCtx, z64_actor_t* parent, z64_g
     actor_spawn_as_child_flag = 0;
     actor_spawn_as_child_parent = NULL;
     return spawned;
+}
+
+// Replaces the Actor_Kill function
+// Jumped to from the original
+void Actor_Kill_New(z64_actor_t* this) {
+    this->draw_proc = NULL;
+    this->main_proc = NULL;
+    this->flags &= ~(1 << 0);
+
+    // Hack for forest platform. Check if the actor has a parent BgMoriBigst
+    if(this->parent && this->parent->actor_id == 0x0086) { // BgMoriBigst
+        if(((BgMoriBigst*)(this->parent))->child1 == this) {
+            ((BgMoriBigst*)(this->parent))->child1 = NULL;
+        }
+        if(((BgMoriBigst*)(this->parent))->child2 == this) {
+            ((BgMoriBigst*)(this->parent))->child2 = NULL;
+        }
+    }
 }
