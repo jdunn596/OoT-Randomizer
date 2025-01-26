@@ -82,3 +82,12 @@ dh  0x01B6
 ;   sw      t1, 0x00(v1)
     jal     EnIshi_SetPrimColor
     sw      t1, 0x00(v1)
+
+; Hack in EnIshi_SpawnFragmentsLarge to pick the correct color index when calling EffectSsKakera_Spawn
+; We updated EffectSsKakera_Spawn to use a new color table so we could add the gold color
+.org 0x80ab34e0
+; Replaces:
+;   sw      r0, 0x34(sp)
+;   sw      s6, 0x3c(sp)
+    jal     EnIshi_SetKakeraColorIndex
+    sw      s6, 0x3c(sp)

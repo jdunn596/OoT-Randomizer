@@ -4344,3 +4344,4 @@ DemoEffect_DrawJewel_AfterHook:
 .include("hacks/code.asm")
 .include("hacks/object_fixes.asm")
 .include("hacks/ovl_player.asm")
+.include("hacks/ovl_effect_ss_kakera.asm")
