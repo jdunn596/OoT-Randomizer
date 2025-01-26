@@ -110,6 +110,11 @@ Room_Change_Continue:
 .org 0x800af360
 ; Replaces:
 ;   jal     0x800ae6bc
+    nop
+.org 0x800af64c
+; Replaces:
+;   jal     0x800ae6bc
+    nop
 
 ; New Actor_Kill function
 ; Jump from the start of the original function
