@@ -366,7 +366,7 @@ SYMBOL TABLE:
 00003e38 g     F .text	000012b8 draw_dpad_and_menu_utilities
 00011a8c g     F .text	000001dc draw_gi_shrink_keys
 00000000         *UND*	00000000 CFG_DISPLAY_DPAD
-00000bf8 g     F .text	000000cc Actor_SpawnAsChildWithSubflag
+00000c74 g     F .text	000000cc Actor_SpawnAsChildWithSubflag
 000154dc g     F .text	0000003c before_skybox_init
 00007d1c g     F .text	0000000c dungeon_info_is_drawn
 000193e0 g     F .text	000000f8 BgSpot18Basket_RupeeDropHook
@@ -672,7 +672,7 @@ SYMBOL TABLE:
 00017584 g     F .text	00000028 load_object
 0001b40c g     F .text	00000074 Save_Write_Hook
 000141c4 g     F .text	00000070 ocarina_upgrade
-00000cc4 g     F .text	0000007c Actor_SpawnAsChild_Hook
+00000bf8 g     F .text	0000007c Actor_SpawnAsChild_Hook
 00027b25 g     O .data	00000001 CFG_ENEMY_SPAWN_SHUFFLE
 000102bc g     F .text	00000160 draw_gi_small_rupees
 00013cf4 g     F .text	00000054 resolve_upgrades

@@ -1239,8 +1239,8 @@
 80407AE8 Player_SpawnEntry_Hack,000000B8
 80407BA0 Actor_Spawn_Clear_Check_Hack,000001D8
 80407D78 Actor_Spawn_Hook,00000150
-80407EC8 Actor_SpawnAsChildWithSubflag,000000CC
-80407F94 Actor_SpawnAsChild_Hook,0000007C
+80407EC8 Actor_SpawnAsChild_Hook,0000007C
+80407F44 Actor_SpawnAsChildWithSubflag,000000CC
 80408010 Actor_Kill_New,00000054
 80408064 agony_inside_radius_setup,00000008
 8040806C agony_outside_radius_setup,0000002C
