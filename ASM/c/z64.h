@@ -118,6 +118,8 @@ typedef struct Arena {
     /* 0x22 */ uint8_t flag;
 } Arena; // size = 0x24
 
+#define GET_PLAYER(play) ((z64_link_t*)(play)->actor_list[ACTORCAT_PLAYER].first)
+
 typedef struct {
   /* index of z64_col_type in scene file */
   uint16_t    type;
@@ -2138,10 +2140,6 @@ typedef enum {
 #define z64_ActorKill_addr                      0x80020EB4
 #define z64_SetCollectibleFlags_addr            0x8002071C
 #define z64_GetCollectibleFlags_addr            0x800206E8
-#define z64_Flags_GetClear_addr                 0x80020640
-#define z64_Flags_SetSwitch_addr                0x800204D0
-#define z64_Flags_GetSwitch_addr                0x8002049C
-#define z64_Flags_SetTempClear_addr             0x800206AC
 #define z64_Audio_PlaySoundGeneral_addr         0x800C806C
 #define z64_PlaySFXID_addr                      0x800646F0
 #define z64_Audio_PlayFanFare_addr              0x800C69A0
@@ -2200,9 +2198,6 @@ typedef enum {
 #define SsSram_ReadWrite_addr                   0x80091474
 #define z64_memcopy_addr                        0x80057030
 #define z64_bzero_addr                          0x80002E80
-#define z64_Item_DropCollectible_addr           0x80013678
-#define z64_Item_DropCollectible2_addr          0x800138B0
-#define z64_Item_DropCollectibleRandom_addr     0x80013A84
 #define z64_Gfx_DrawDListOpa_addr               0x80028048
 #define z64_Math_SinS_addr                      0x800636C4
 #define z64_RandSeed_addr                       0x800CDCC0
@@ -2243,10 +2238,6 @@ typedef void(*z64_ActorKillFunc)(z64_actor_t*);
 typedef void(*z64_Flags_SetCollectibleFunc)(z64_game_t* game, uint32_t flag);
 typedef int32_t (*z64_Flags_GetCollectibleFunc)(z64_game_t* game, uint32_t flag);
 typedef void(*z64_Audio_PlaySoundGeneralFunc)(uint16_t sfxId, void* pos, uint8_t token, float* freqScale, float* a4, uint8_t* reverbAdd);
-typedef int32_t (*z64_Flags_GetClearFunc)(z64_game_t* game, int32_t flag);
-typedef void(*z64_Flags_SetTempClearFunc)(z64_game_t *game, uint32_t flag);
-typedef void (*z64_Flags_SetSwitchFunc)(z64_game_t* game, int32_t flag);
-typedef int32_t (*z64_Flags_GetSwitchFunc)(z64_game_t* game, int32_t flag);
 typedef void(*z64_PlaySFXIDFunc)(int16_t sfxId);
 typedef void(*z64_Audio_PlayFanFareFunc)(uint16_t);
 typedef void (*z64_DrawActors_proc)       (z64_game_t* game, void* actor_ctxt);
@@ -2328,10 +2319,6 @@ typedef void(*z64_Play_SetupRespawnPoint_proc)(z64_game_t *game, int32_t respawn
 #define z64_ActorKill               ((z64_ActorKillFunc)    z64_ActorKill_addr)
 #define z64_SetCollectibleFlags     ((z64_Flags_SetCollectibleFunc)z64_SetCollectibleFlags_addr)
 #define z64_Flags_GetCollectible    ((z64_Flags_GetCollectibleFunc)z64_GetCollectibleFlags_addr)
-#define z64_Flags_GetClear          ((z64_Flags_GetClearFunc)z64_Flags_GetClear_addr)
-#define z64_Flags_SetSwitch         ((z64_Flags_SetSwitchFunc)z64_Flags_SetSwitch_addr)
-#define z64_Flags_GetSwitch         ((z64_Flags_GetSwitchFunc)z64_Flags_GetSwitch_addr)
-#define z64_Flags_SetTempClear      ((z64_Flags_SetTempClearFunc)z64_Flags_SetTempClear_addr)
 #define z64_Audio_PlaySoundGeneral  ((z64_Audio_PlaySoundGeneralFunc)z64_Audio_PlaySoundGeneral_addr)
 #define z64_Audio_PlayFanFare       ((z64_Audio_PlayFanFareFunc)z64_Audio_PlayFanFare_addr)
 #define z64_PlaySFXID               ((z64_PlaySFXIDFunc)z64_PlaySFXID_addr)
@@ -2370,9 +2357,6 @@ typedef void(*z64_Play_SetupRespawnPoint_proc)(z64_game_t *game, int32_t respawn
 #define SsSram_ReadWrite ((SsSram_ReadWrite_proc)SsSram_ReadWrite_addr)
 #define z64_memcopy ((z64_memcopy_proc)z64_memcopy_addr)
 #define z64_bzero ((z64_bzero_proc)z64_bzero_addr)
-#define z64_Item_DropCollectible ((z64_Item_DropCollectible_proc)z64_Item_DropCollectible_addr)
-#define z64_Item_DropCollectible2 ((z64_Item_DropCollectible_proc)z64_Item_DropCollectible2_addr)
-#define z64_Item_DropCollectibleRandom ((z64_Item_DropCollectibleRandom_proc)z64_Item_DropCollectibleRandom_addr)
 #define z64_Gfx_DrawDListOpa ((z64_Gfx_DrawDListOpa_proc)z64_Gfx_DrawDListOpa_addr)
 #define z64_Math_SinS ((z64_Math_SinS_proc)z64_Math_SinS_addr)
 #define z64_Rand_ZeroOne ((z64_Rand_ZeroOne_proc)z64_Rand_ZeroOne_addr)
@@ -2679,5 +2663,9 @@ extern void z64_UnloadRoom(z64_game_t *game, void *p_ctxt_room_index);
 extern z64_actor_t * Actor_SpawnAsChild(void* actorCtx, z64_actor_t* parent, z64_game_t* globalCtx, int16_t actorId, float posX, float posY, float posZ, int16_t rotX, int16_t rotY, int16_t rotZ, int16_t params);
 
 extern uintptr_t z64_segments[16];
+extern int32_t z64_Flags_GetClear(z64_game_t* globalCtx, int32_t flag);
+extern void z64_Flags_SetSwitch(z64_game_t* globalCtx, int32_t flag);
+extern int32_t z64_Flags_GetSwitch(z64_game_t* globalCtx, int32_t flag);
+extern void z64_Flags_SetTempClear(z64_game_t* globalCtx, int32_t flag);
 
 #endif

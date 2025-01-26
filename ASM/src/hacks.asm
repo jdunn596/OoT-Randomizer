@@ -830,12 +830,6 @@ or a1, r0, v0 ;parent is stored in v0
 ;   or a1, r0, r0
 or a1, r0, s0 ;parent is stored in v0
 
-; Hack anubis (en_anubice) to pass its parent into Item_DropCollectibleRandom
-.orga 0xD79D6C
-;replaces
-;   or a1, s0, r0
-lw a1, 0x118(s0)
-
 ; Hack skull kids (en_skj) to spawn an overridden collectible
 .orga 0xDF1928
 ;replaces
@@ -4401,3 +4395,6 @@ DemoEffect_DrawJewel_AfterHook:
 .include("hacks/object_fixes.asm")
 .include "hacks/ovl_player.asm"
 .include "hacks/ovl_en_changer.asm"
+.include "hacks/ovl_bg_mori_bigst.asm"
+.include "hacks/ovl_en_anubice_tag.asm"
+.include "hacks/ovl_en_karebaba.asm"

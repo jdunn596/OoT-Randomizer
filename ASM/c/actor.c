@@ -17,6 +17,7 @@
 #include "item_table.h"
 #include "enemy_spawn_shuffle.h"
 #include "minimap.h"
+#include "bg_mori_bigst.h"
 
 extern uint8_t POTCRATE_TEXTURES_MATCH_CONTENTS;
 extern uint16_t CURR_ACTOR_SPAWN_INDEX;
@@ -389,6 +390,15 @@ z64_actor_t* Actor_Spawn_Hook(void* actorCtx, z64_game_t* globalCtx, int16_t act
     return NULL;
 }
 
+z64_actor_t * Actor_SpawnAsChildWithSubflag(void* actorCtx, z64_actor_t* parent, z64_game_t* globalCtx, int16_t actorId, float posX, float posY, float posZ, int16_t rotX, int16_t rotY, int16_t rotZ, int16_t params, uint8_t subflag) {
+    xflag_t flag = { 0 };
+    Actor_BuildFlag(parent, &flag, Actor_GetAdditionalData(parent)->actor_id, subflag);
+    spawn_actor_with_flag = &flag;
+    z64_actor_t* spawned = Actor_SpawnAsChild(actorCtx, parent, globalCtx, actorId, posX, posY, posZ, rotX, rotY, rotZ, params);
+    spawn_actor_with_flag = NULL;
+    return spawned;
+}
+
 z64_actor_t * Actor_SpawnAsChild_Hook(void* actorCtx, z64_actor_t* parent, z64_game_t* globalCtx, int16_t actorId, float posX, float posY, float posZ, int16_t rotX, int16_t rotY, int16_t rotZ, int16_t params) {
     actor_spawn_as_child_flag = 1;
     actor_spawn_as_child_parent = parent;
@@ -404,4 +414,21 @@ void Actor_Update_Hook(z64_actor_t* actor, z64_game_t* globalCtx, ActorFunc upda
     curr_updating_actor = actor;
     updateFunc(actor, globalCtx);
     curr_updating_actor = NULL;
+}
+// Replaces the Actor_Kill function
+// Jumped to from the original
+void Actor_Kill_New(z64_actor_t* this) {
+    this->update = NULL;
+    this->draw = NULL;
+    this->flags &= ~(1 << 0);
+
+    // Hack for forest platform. Check if the actor has a parent BgMoriBigst
+    if(this->parent && this->parent->actor_id == 0x0086) { // BgMoriBigst
+        if(((BgMoriBigst*)(this->parent))->child1 == this) {
+            ((BgMoriBigst*)(this->parent))->child1 = NULL;
+        }
+        if(((BgMoriBigst*)(this->parent))->child2 == this) {
+            ((BgMoriBigst*)(this->parent))->child2 = NULL;
+        }
+    }
 }

@@ -17,6 +17,15 @@ Flags_UnsetTempClear = 0x800206C8;
 Flags_GetCollectible = 0x800206E8;
 Flags_SetCollectible = 0x8002071C;
 Actor_SetColorFilter = 0x80027090;
+z64_Item_DropCollectible = 0x80013678;
+z64_Item_DropCollectible2 = 0x800138B0;
+z64_Item_DropCollectibleRandom = 0x80013A84;
+z64_Flags_GetClear = 0x80020640;
+z64_Flags_SetSwitch = 0x800204D0;
+z64_Flags_GetSwitch = 0x8002049C;
+z64_Flags_SetTempClear = 0x800206AC;
+OnePointCutscene_Init = 0x8006b6fc;
+Player_InCsMode = 0x8007943c;
 z64_Gfx_SetupDL_42Opa = 0x8007E868;
 Audio_StopCurrentMusic = 0x800C7684;
 sprintf = 0x800CE7b4;
@@ -53,3 +62,8 @@ __osFree = 0x800CE2B4;
 __osMalloc = 0x800CE060;
 z64_LoadRoom_addr = 0x80080A3C;
 z64_UnloadRoom = 0x80080C98;
+
+OVL_BgMoriBigst_SetupFall = 0x809273d4;
+OVL_BgMoriBigst_SetupDone = 0x809276c0;
+
+OVL_EnKarebaba_SetupDeadItemDrop = 0x809ba560;
