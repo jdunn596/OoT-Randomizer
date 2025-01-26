@@ -150,6 +150,10 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
   * [4.0](#40)
 
 ## RealRob Changelog
+### v126
+  * Fix anubis not displaying on minimap tracker
+  * Add Child KF Deku Babas and Deku Tree/MQ Deku Tree deku babas
+
 ### v125
   * Fix logic issue in MQ Deku Tree
 
