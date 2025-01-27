@@ -19,6 +19,9 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
 ## Index
 
 * [RealRob's Changelog](#realrob-changelog)
+  * [v128](#v128)
+  * [v127](#v127)
+  * [v126](#v126)
   * [v125](#v125)
   * [v124](#v124)
   * [v123](#v123)
@@ -150,6 +153,9 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
   * [4.0](#40)
 
 ## RealRob Changelog
+### v128
+  * Fix generation w/ MQ
+
 ### v127
   * Add golden boulder option to boulder shuffle
 

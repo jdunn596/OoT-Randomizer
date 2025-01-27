@@ -59,7 +59,7 @@
                 (boulder_type('ICE_COMPASS_SKULLTULA_BOULDER') == BOULDER_TYPE_BRONZE and Megaton_Hammer) or
                 (boulder_type('ICE_COMPASS_SKULLTULA_BOULDER') == BOULDER_TYPE_RED_ICE and (blue_fire_arrows and can_use(Blue_Fire_Arrows)) or (Blue_Fire and (can_play(Song_of_Time) or logic_ice_mq_red_ice_gs))) or
                 (boulder_type('ICE_COMPASS_SKULLTULA_BOULDER') == BOULDER_TYPE_SILVER and can_play(Song_of_Time) and can_use(Silver_Gauntlets)) or
-                (boulder_type('ICE_COMPASS_SKULLTULA_BOULDER') == BOULDER_TYPE_GOLD and can_play(Song_of_Time) and can_use(Gold_Gauntlets))"
+                (boulder_type('ICE_COMPASS_SKULLTULA_BOULDER') == BOULDER_TYPE_GOLD and can_play(Song_of_Time) and can_use(Golden_Gauntlets))"
         }
     },
     {
