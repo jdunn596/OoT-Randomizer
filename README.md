@@ -19,6 +19,7 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
 ## Index
 
 * [RealRob's Changelog](#realrob-changelog)
+  * [v129](#v129)
   * [v128](#v128)
   * [v127](#v127)
   * [v126](#v126)
@@ -153,6 +154,9 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
   * [4.0](#40)
 
 ## RealRob Changelog
+### v129
+  * Fix generation error w/ no adult trade items shuffled
+
 ### v128
   * Fix generation w/ MQ
 
