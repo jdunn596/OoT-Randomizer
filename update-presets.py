@@ -97,6 +97,27 @@ def get_preset(presets, name):
     else:
         return None
 
+def print_rust_json_setting(name, value, indent):
+    if isinstance(value, list):
+        if value:
+            print(' ' * indent + f'format!("{name}") => json!([')
+            for elt in value:
+                for line in (json.dumps(elt, indent=4) + ',').splitlines():
+                    print(' ' * (indent + 4) + line)
+            print(' ' * indent + ']),')
+        else:
+            print(' ' * indent + f'format!("{name}") => json!([]),')
+    elif isinstance(value, dict):
+        if value:
+            print(' ' * indent + f'format!("{name}") => json!({{')
+            for key, elt in value.items():
+                print_rust_json_setting(key, elt, indent + 4)
+            print('}),')
+        else:
+            print(' ' * indent + f'format!("{name}") => json!({{}}),')
+    else:
+        print(' ' * indent + f'format!("{name}") => json!({json.dumps(value)}),')
+
 if __name__ == '__main__':
     arguments = docopt.docopt(__doc__)
     new_presets = {}
@@ -108,12 +129,12 @@ if __name__ == '__main__':
             preset = json.loads(subprocess.run([sys.executable, 'OoTRandomizer.py', '--convert_settings', '--settings_string', arguments['<preset>']], stdout=subprocess.PIPE, encoding='utf-8', check=True).stdout)
         non_default = {name: value for name, value in preset.items() if value != SETTINGS_DICT[name].default}
         if arguments['--rust']:
-            print('collect![')
+            print('    collect![')
             for name, value in non_default.items():
                 if name == 'aliases':
                     continue
-                print('\n    '.join(f'    format!("{name}") => json!({json.dumps(value, indent=4)}),'.splitlines())) #TODO trailing commas in arrays/objects
-            print(']')
+                print_rust_json_setting(name, value, 8)
+            print('    ]')
         else:
             print(json.dumps(non_default, indent=4))
     elif arguments['diff']:
