@@ -19,6 +19,7 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
 ## Index
 
 * [RealRob's Changelog](#realrob-changelog)
+  * [v130](#v130)
   * [v129](#v129)
   * [v128](#v128)
   * [v127](#v127)
@@ -154,6 +155,9 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
   * [4.0](#40)
 
 ## RealRob Changelog
+### v130
+  * Fix GC Maze Gossip Stone in wrong region... again
+
 ### v129
   * Fix generation error w/ no adult trade items shuffled
 
