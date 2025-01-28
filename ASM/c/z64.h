@@ -2253,7 +2253,7 @@ typedef void (*z64_Io_proc)               (uint32_t dev_addr, void* dram_addr,
                                            uint32_t size, int32_t direction);
 typedef void (*z64_SceneConfig_proc)      (z64_game_t* game);
 typedef void (*z64_DisplayTextbox_proc)   (z64_game_t* game, uint16_t text_id,
-                                           int unknown_);
+                                           z64_actor_t* unknown_);
 typedef void (*z64_GiveItem_proc)         (z64_game_t* game, uint8_t item);
 
 typedef void(*z64_LinkDamage_proc)        (z64_game_t* ctxt, z64_link_t* link,
