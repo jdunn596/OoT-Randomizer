@@ -360,7 +360,7 @@
         "shuffle_beans": true,
         "shuffle_expensive_merchants": true,
         "shuffle_frog_song_rupees": true,
-        "shuffle_100_skulltula_rupee": false,
+        "shuffle_100_skulltula_rupee": true,
         "shuffle_loach_reward": "easy",
         "shuffle_individual_ocarina_notes": true,
         "shuffle_base_item_pool": true,
