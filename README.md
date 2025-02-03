@@ -227,6 +227,7 @@ issue. You should always Hard Reset to avoid this issue entirely.
 * Scarecrow's song is now in logic without ocarina buttons if `Free Scarecrow's Song` is on.
 * Fix a crash that could occur when doing certain sequences of actions in the treasure box shop with shuffled keys.
 * Fix the items in the “Haunted Wasteland Checks” Dual hint being listed reverse.
+* Fix a crash that could occur on Wii VC when entering the Skull Kid room in Lost Woods as adult.
 
 #### New Speedups
 * The first text box from each carpenter in the Thieves' Hideout is skipped.

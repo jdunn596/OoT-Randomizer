@@ -1370,7 +1370,7 @@ class SettingInfos:
         disabled_default = False,
         shared         = True,
         disable        = {
-            True : {'settings' : ['open_forest']}
+            True : {'settings' : ['open_forest', 'starting_age']}
         },
     )
 
