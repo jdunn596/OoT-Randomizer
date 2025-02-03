@@ -2609,16 +2609,6 @@ skip_bombchu_bowling_prize_switch:
 ;==================================================================================================
 ; Trade Quest Shuffle Flag Hooks
 ;==================================================================================================
-; Control if Fado (blonde Kokiri girl) can spawn in Lost Woods
-.orga 0xE538C4
-    or      t3, $zero, $ra
-    jal     check_fado_spawn_flags
-.orga 0xE538D4
-    or      $ra, $zero, t3
-; Fix Fado's text id when trading in the odd potion out of order
-.orga 0xE535E4
-    sh      t2, 0x010E(s0)
-
 ; Control if Grog can spawn in Lost Woods
 .orga 0xE20BC8
     jal     check_grog_spawn_flags
@@ -4229,6 +4219,7 @@ DemoEffect_DrawJewel_AfterHook:
 .include "hacks/ovl_bg_haka_tubo.asm"
 .include "hacks/ovl_bg_spot18_basket.asm"
 .include "hacks/ovl_en_dns.asm"
+.include "hacks/ovl_en_ko.asm"
 .include "hacks/ovl_en_kz.asm"
 .include "hacks/ovl_obj_mure3.asm"
 .include "hacks/z_parameter.asm"
