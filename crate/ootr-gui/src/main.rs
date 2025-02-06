@@ -186,6 +186,10 @@ enum Message {
     },
     SetBaseRomPath(PathBuf),
     SetPreset(String),
+    SetSettingsTab {
+        window: window::Id,
+        tab_name: String,
+    },
 }
 
 #[derive(SmartDefault)]
@@ -205,7 +209,10 @@ struct Gui {
 
 enum WindowState {
     Main,
-    Preset(String),
+    Preset {
+        preset_name: String,
+        active_tab: String,
+    },
     Seed(Seed),
 }
 
@@ -334,7 +341,7 @@ impl Gui {
     fn title(&self, window: window::Id) -> String {
         match self.windows.get(&window) {
             None | Some(WindowState::Main) => format!("OoT Randomizer"),
-            Some(WindowState::Preset(name)) => name.clone(),
+            Some(WindowState::Preset { preset_name, .. }) => preset_name.clone(),
             Some(WindowState::Seed(_)) => format!("Seed"),
         }
     }
@@ -398,7 +405,7 @@ impl Gui {
                         }
                         return iced::exit()
                     }
-                    WindowState::Preset(_) => {}
+                    WindowState::Preset { .. } => {}
                     WindowState::Seed(seed) => if let Some(msg) = seed.before_close_message(window, window) {
                         return cmd(future::ok(msg))
                     },
@@ -434,7 +441,7 @@ impl Gui {
                     self.selected_preset = Some(DEFAULT_PRESET.to_owned());
                 }
                 let mut tasks = Vec::with_capacity(2);
-                if let Some((&window, _)) = self.windows.iter().find(|(_, window_state)| if let WindowState::Preset(iter_name) = window_state { *iter_name == name } else { false }) {
+                if let Some((&window, _)) = self.windows.iter().find(|(_, window_state)| if let WindowState::Preset { preset_name, .. } = window_state { *preset_name == name } else { false }) {
                     self.windows.remove(&window);
                     tasks.push(window::close(window));
                 }
@@ -458,12 +465,12 @@ impl Gui {
                 self.generating = false;
                 return window_open_task.map(|_| Message::Nop)
             }
-            Message::EditPreset(name) => {
+            Message::EditPreset(preset_name) => {
                 let (preset_window_id, window_open_task) = window::open(window::Settings {
                     exit_on_close_request: false,
                     ..window::Settings::default()
                 });
-                self.windows.insert(preset_window_id, WindowState::Preset(name));
+                self.windows.insert(preset_window_id, WindowState::Preset { active_tab: format!("main_tab"), preset_name });
                 return window_open_task.map(|_| Message::Nop)
             }
             Message::Generate => {
@@ -620,6 +627,11 @@ impl Gui {
             },
             Message::SetBaseRomPath(new_path) => self.base_rom_path = new_path,
             Message::SetPreset(new_preset) => self.selected_preset = Some(new_preset),
+            Message::SetSettingsTab { window, tab_name } => if let Some(window) = self.windows.get_mut(&window) {
+                if let WindowState::Preset { active_tab, .. } = window {
+                    *active_tab = tab_name;
+                }
+            },
         }
         Task::none()
     }
@@ -699,21 +711,45 @@ impl Gui {
                     ).height(Length::Fill).into()
                 }
             }
-            Some(WindowState::Preset(_)) => Scrollable::new(
-                Row::new()
-                    .push(Column::from_vec(self.settings_mapping.tabs.iter()
-                        .filter(|tab| !tab.exclude_from_web && !tab.exclude_from_electron)
-                        .flat_map(|tab| tab.sections.iter()
-                            .filter(|section| !section.exclude_from_web && !section.exclude_from_electron)
-                            .flat_map(|section| section.settings.iter()
-                                .map(|setting_name| Text::new(setting_name).into())
-                            )
-                        )
-                        .collect()
-                    ).spacing(8).padding(8).width(Length::Fill))
-                    .push(Space::with_width(Length::Shrink)) // to avoid overlap with the scrollbar
-                    .spacing(16)
-            ).height(Length::Fill).into(),
+            Some(WindowState::Preset { preset_name: _, active_tab }) => Column::new()
+                .push({
+                    let mut button_row = Row::new();
+                    for tab in &self.settings_mapping.tabs {
+                        //TODO reintroduce relevant settings:
+                        // world_count, language, pal_rom → main view?
+                        // player_num → seed window/ask when generating relevant output type
+                        // generate_from_file, patch_file → main view? file argument/drop handler? both?
+                        // cosmetics, sfx → separate preset list in main view
+                        // any others?
+                        if tab.name == "general_tab" || tab.exclude_from_web || tab.exclude_from_electron || tab.app_type.iter().any(|app_type| app_type != "generator") { continue }
+                        button_row = button_row.push(Button::new(Text::new(&tab.text).size(24))
+                            .on_press_maybe((tab.name != *active_tab).then(|| Message::SetSettingsTab { window, tab_name: tab.name.clone() }))
+                        );
+                    }
+                    button_row.spacing(8).padding(8)
+                })
+                .push(Scrollable::new(
+                    Row::new()
+                        .push({
+                            let mut col = Column::new();
+                            for tab in &self.settings_mapping.tabs {
+                                if tab.name == *active_tab {
+                                    for section in &tab.sections {
+                                        if !section.text.is_empty() {
+                                            col = col.push(Text::new(&section.text).size(18));
+                                        }
+                                        for setting_name in &section.settings {
+                                            col = col.push(Text::new(setting_name)); //TODO control depending on setting details
+                                        }
+                                    }
+                                }
+                            }
+                            col.spacing(8).padding(8).width(Length::Fill)
+                        })
+                        .push(Space::with_width(Length::Shrink)) // to avoid overlap with the scrollbar
+                        .spacing(16)
+                ).height(Length::Fill))
+                .into(),
             Some(WindowState::Seed(_)) => Column::new()
                 .push(Text::new("Seed").size(24)) //TODO show file hash instead
                 //TODO buttons to:
@@ -759,22 +795,6 @@ fn main() -> Result<(), Error> {
                 })
                 .try_collect().await?;
             let settings_mapping = fs::read_json::<settings::Mapping>(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/settings_mapping.json")).await?;
-            for tab in &settings_mapping.tabs { //DEBUG
-                if tab.exclude_from_web {
-                    eprintln!("skipping exclude_from_web tab {}", tab.name);
-                }
-                if tab.exclude_from_electron {
-                    eprintln!("skipping exclude_from_electron tab {}", tab.name);
-                }
-                for section in &tab.sections {
-                    if section.exclude_from_web {
-                        eprintln!("skipping exclude_from_web section {}", section.name);
-                    }
-                    if section.exclude_from_electron {
-                        eprintln!("skipping exclude_from_electron section {}", section.name);
-                    }
-                }
-            }
             Ok(Message::Init { default_presets, custom_presets, settings_mapping })
         })))?;
     Ok(())
