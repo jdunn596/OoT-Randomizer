@@ -14,7 +14,7 @@ unused_qualifications = "deny"
 warnings = "deny"
 
 [dependencies]
-dark-light = "1.1.1"
+dark-light = "2"
 futures = "0.3"
 iced = { version = "0.13", default-features = false, features = ["auto-detect-theme", "multi-window", "tiny-skia", "tokio"] }
 indexmap = { version = "2.6.0", features = ["serde"] }
