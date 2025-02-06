@@ -471,14 +471,16 @@ impl Gui {
                 self.generating = false;
                 return window_open_task.map(|_| Message::Nop)
             }
-            Message::EditPreset(preset_name) => {
+            Message::EditPreset(preset_name) => if let Some((window, _)) = self.windows.iter().find(|(_, window_state)| if let WindowState::Preset { preset_name: iter_preset_name, .. } = window_state { *iter_preset_name == preset_name } else { false }) {
+                return window::gain_focus(*window)
+            } else {
                 let (preset_window_id, window_open_task) = window::open(window::Settings {
                     exit_on_close_request: false,
                     ..window::Settings::default()
                 });
                 self.windows.insert(preset_window_id, WindowState::Preset { active_tab: format!("main_tab"), preset_name });
                 return window_open_task.map(|_| Message::Nop)
-            }
+            },
             Message::EditPresetSetting { window, setting_name, new_value } => if let Some(window) = self.windows.get_mut(&window) {
                 if let WindowState::Preset { preset_name, .. } = window {
                     if let Some(preset) = self.custom_presets.get_mut(preset_name) {
