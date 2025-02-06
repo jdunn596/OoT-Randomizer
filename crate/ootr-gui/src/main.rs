@@ -38,6 +38,7 @@ use {
         Theme,
         widget::{
             Button,
+            Checkbox,
             Column,
             PickList,
             Row,
@@ -146,6 +147,11 @@ enum Message {
         spoiler_log: String,
     },
     EditPreset(String),
+    EditPresetSetting {
+        window: window::Id,
+        setting_name: String,
+        new_value: settings::Value,
+    },
     Generate,
     GenerateError(Arc<Error>),
     Init {
@@ -473,6 +479,19 @@ impl Gui {
                 self.windows.insert(preset_window_id, WindowState::Preset { active_tab: format!("main_tab"), preset_name });
                 return window_open_task.map(|_| Message::Nop)
             }
+            Message::EditPresetSetting { window, setting_name, new_value } => if let Some(window) = self.windows.get_mut(&window) {
+                if let WindowState::Preset { preset_name, .. } = window {
+                    if let Some(preset) = self.custom_presets.get_mut(preset_name) {
+                        preset.insert(setting_name, new_value);
+                        let path = custom_preset_path(preset_name);
+                        let preset = preset.clone();
+                        return cmd(async move {
+                            fs::write_json(path, preset).await?;
+                            Ok(Message::Nop)
+                        })
+                    }
+                }
+            },
             Message::Generate => {
                 self.generating = true;
                 //TODO if goal hints are used and there are more than 5 worlds, ask for confirmation due to long generation times
@@ -711,12 +730,13 @@ impl Gui {
                     ).height(Length::Fill).into()
                 }
             }
-            Some(WindowState::Preset { preset_name: _, active_tab }) => Column::new()
+            Some(WindowState::Preset { preset_name, active_tab }) => Column::new()
                 .push({
                     let mut button_row = Row::new();
                     for tab in &self.settings_mapping.tabs {
                         //TODO reintroduce relevant settings:
-                        // world_count, language, pal_rom → main view?
+                        // pal_rom → main view, only displayed when relevant for selected language
+                        // world_count, language → main view? Main Rules tab?
                         // player_num → seed window/ask when generating relevant output type
                         // generate_from_file, patch_file → main view? file argument/drop handler? both?
                         // cosmetics, sfx → separate preset list in main view
@@ -732,6 +752,7 @@ impl Gui {
                     Row::new()
                         .push({
                             let mut col = Column::new();
+                            let preset = self.preset(preset_name);
                             for tab in &self.settings_mapping.tabs {
                                 if tab.name == *active_tab {
                                     for section in &tab.sections {
@@ -739,7 +760,26 @@ impl Gui {
                                             col = col.push(Text::new(&section.text).size(18));
                                         }
                                         for setting_name in &section.settings {
-                                            col = col.push(Text::new(setting_name)); //TODO control depending on setting details
+                                            match Python::with_gil(|py| {
+                                                let setting_info = py.import("SettingsList")?.getattr("SettingInfos")?.getattr("setting_infos")?.get_item(setting_name)?;
+                                                PyResult::Ok((
+                                                    setting_info.getattr("gui_text")?.extract::<String>()?,
+                                                    setting_info.getattr("gui_type")?.extract::<String>()?,
+                                                    setting_info.getattr("default")?.extract::<settings::Value>()?,
+                                                ))
+                                            }) {
+                                                Ok((gui_text, gui_type, default)) => {
+                                                    match &*gui_type {
+                                                        "Checkbutton" => col = col.push(Checkbox::new(gui_text, preset.get(setting_name).unwrap_or(&default).as_bool().unwrap_or_default())
+                                                            .on_toggle(move |new_value| Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) })
+                                                        ),
+                                                        _ => col = col.push(Text::new(format!("unknown gui_type for setting {setting_name}: {gui_type}")).color(iced::Color::from_rgb8(255, 0, 0))),
+                                                    }
+                                                }
+                                                Err(e) => {
+                                                    col = col.push(Text::new(format!("error displaying setting {setting_name}: {e}")).color(iced::Color::from_rgb8(255, 0, 0)));
+                                                }
+                                            }
                                         }
                                     }
                                 }

@@ -1,8 +1,18 @@
 use {
-    std::collections::HashMap,
+    std::{
+        collections::HashMap,
+        ops::{
+            Deref,
+            DerefMut,
+        },
+    },
     indexmap::IndexMap,
     pyo3::{
         IntoPyObjectExt as _,
+        exceptions::{
+            PyTypeError,
+            PyValueError,
+        },
         prelude::*,
         types::{
             PyDict,
@@ -25,6 +35,48 @@ pub(crate) type PresetsDefault = IndexMap<String, Preset>;
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(transparent)]
 pub(crate) struct Value(pub(crate) serde_json::Value);
+
+impl Deref for Value {
+    type Target = serde_json::Value;
+
+    fn deref(&self) -> &Self::Target { &self.0 }
+}
+
+impl DerefMut for Value {
+    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0 }
+}
+
+impl<'py> FromPyObject<'py> for Value {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        Ok(Self(if ob.is_none() {
+            serde_json::Value::Null
+        } else if let Ok(b) = ob.extract() {
+            serde_json::Value::Bool(b)
+        } else if let Ok(i) = ob.extract() {
+            serde_json::Value::Number(serde_json::Number::from_i128(i).ok_or_else(|| PyValueError::new_err("integer out of range for serde_json::Number"))?)
+        } else if let Ok(f) = ob.extract() {
+            serde_json::Value::Number(serde_json::Number::from_f64(f).ok_or_else(|| PyValueError::new_err("float out of range for serde_json::Number"))?)
+        } else if let Ok(s) = ob.extract() {
+            serde_json::Value::String(s)
+        } else if let Ok(a) = ob.downcast::<PyList>() {
+            let mut buf = Vec::with_capacity(a.len());
+            for elt in a.iter() {
+                let Value(elt) = elt.extract()?;
+                buf.push(elt);
+            }
+            serde_json::Value::Array(buf)
+        } else if let Ok(o) = ob.downcast::<PyDict>() {
+            let mut buf = serde_json::Map::with_capacity(o.len());
+            for (k, v) in o.iter() {
+                let Value(v) = v.extract()?;
+                buf.insert(k.extract()?, v);
+            }
+            serde_json::Value::Object(buf)
+        } else {
+            return Err(PyTypeError::new_err("unknown type in JSON value"))
+        }))
+    }
+}
 
 impl<'py> IntoPyObject<'py> for Value {
     type Target = PyAny;
