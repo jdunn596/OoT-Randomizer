@@ -1,5 +1,6 @@
 use {
     std::{
+        borrow::Borrow,
         collections::HashMap,
         fmt,
         ops::{
@@ -65,6 +66,12 @@ impl Deref for Value {
 
 impl DerefMut for Value {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0 }
+}
+
+impl Borrow<serde_json::Value> for Value {
+    fn borrow(&self) -> &serde_json::Value {
+        &self.0
+    }
 }
 
 impl<'py> FromPyObject<'py> for Value {

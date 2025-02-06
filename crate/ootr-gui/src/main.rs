@@ -77,7 +77,7 @@ use {
 
 mod settings;
 
-const MAIN_WINDOW_SIZE: Size = Size { width: 600.0, height: 512.0 };
+const MAIN_WINDOW_SIZE: Size = Size { width: 675.0, height: 512.0 };
 const DEFAULT_PRESET: &str = "Default / Beginner";
 const CUSTOM_PRESETS_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/Presets");
 const CUSTOM_PRESET_SUFFIX: &str = ".custom.json";
@@ -477,7 +477,7 @@ impl Gui {
                 return window::gain_focus(*window)
             } else {
                 let (preset_window_id, window_open_task) = window::open(window::Settings {
-                    size: Size { width: 650.0, height: 768.0 },
+                    size: Size { width: 750.0, height: 768.0 },
                     exit_on_close_request: false,
                     ..window::Settings::default()
                 });
@@ -789,7 +789,46 @@ impl Gui {
                                                             .align_y(iced::Alignment::Center)
                                                             .spacing(8)
                                                         ),
-                                                        _ => col = col.push(Text::new(format!("unknown gui_type for setting {setting_name}: {gui_type}")).color(iced::Color::from_rgb8(255, 0, 0))),
+                                                        "MultipleSelect" => {
+                                                            let choices_clone = choices.clone();
+                                                            let new_value = preset.get(setting_name).unwrap_or(&default).clone();
+                                                            col = col.push(Row::new()
+                                                                .push(Text::new(format!("{gui_text}:")))
+                                                                .push(PickList::new(
+                                                                    choices.iter().filter_map(|(value, display)| Some(settings::DisplayValue { value: value.as_str()?.to_owned(), display: format!("{} {display}", if preset.get(setting_name).unwrap_or(&default).as_array().is_some_and(|choices| choices.contains(value)) { '✓' } else { ' ' }) })).collect_vec(),
+                                                                    None::<settings::DisplayValue>,
+                                                                    move |settings::DisplayValue { value, .. }| {
+                                                                        let mut new_value = new_value.clone();
+                                                                        if let Some(new_value) = new_value.as_array_mut() {
+                                                                            if new_value.contains(&settings::Value(json!(value))) {
+                                                                                new_value.retain(|iter_value| iter_value.as_str().is_none_or(|iter_value| iter_value != value));
+                                                                            } else {
+                                                                                if let Err(idx) = new_value.binary_search_by_key(&choices_clone.iter().position(|(iter_value, _)| *iter_value == settings::Value(json!(value))), |value| choices_clone.iter().position(|(iter_value, _)| *iter_value == settings::Value(json!(value)))) {
+                                                                                    new_value.insert(idx, json!(value));
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                        Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value }
+                                                                    },
+                                                                ).placeholder(if let settings::Value(serde_json::Value::Array(value)) = preset.get(setting_name).unwrap_or(&default) {
+                                                                    if choices.keys().map(|settings::Value(value)| value).eq(value) {
+                                                                        format!("All")
+                                                                    } else {
+                                                                        match &**value {
+                                                                            [] => format!("None"),
+                                                                            [value] => choices.get(value).map(|value| &**value).unwrap_or("Unknown").to_owned(),
+                                                                            [v1, v2] => format!("{}, {}", choices.get(v1).as_deref().map(|value| &**value).unwrap_or("Unknown"), choices.get(v2).as_deref().map(|value| &**value).unwrap_or("Unknown")),
+                                                                            [_, _, _, ..] => format!("{} Selected", value.len()),
+                                                                        }
+                                                                    }
+                                                                } else {
+                                                                    format!("Error")
+                                                                }).width(Length::Fill))
+                                                                .align_y(iced::Alignment::Center)
+                                                                .spacing(8)
+                                                            );
+                                                        }
+                                                        _ => col = col.push(Text::new(format!("unknown gui_type {gui_type} for setting {setting_name}")).color(iced::Color::from_rgb8(255, 0, 0))),
                                                     }
                                                 }
                                                 Err(e) => {
@@ -828,6 +867,7 @@ fn main() -> Result<(), Error> {
             None
         }))
         .theme(Gui::theme)
+        .default_font(iced::Font::with_name("DejaVu Sans"))
         .run_with(|| (Gui::default(), cmd(async move {
             let () = spawn_blocking(move || Python::with_gil(|py| {
                 let py_version = py.version_info();
