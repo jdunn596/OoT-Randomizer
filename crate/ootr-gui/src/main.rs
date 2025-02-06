@@ -437,7 +437,7 @@ impl Gui {
                 self.custom_presets.insert(copy_name.clone(), value.clone());
                 return cmd(async move {
                     fs::write_json(custom_preset_path(&copy_name), value).await?;
-                    Ok(Message::Nop)
+                    Ok(Message::EditPreset(copy_name))
                 })
             }
             Message::CustomizeSettings => self.selected_preset = None,
