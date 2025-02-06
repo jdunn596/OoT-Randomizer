@@ -22,6 +22,7 @@ itertools = "0.14"
 nonempty-collections = "0.2.9"
 pyo3 = { version = "0.23", features = [
     "auto-initialize",
+    "indexmap",
     "py-clone", #TODO remove
 ] }
 rfd = { version = "0.15", features = ["common-controls-v6"] }

@@ -49,6 +49,7 @@ use {
         },
         window,
     },
+    indexmap::IndexMap,
     itertools::Itertools as _,
     nonempty_collections::{
         IntoNonEmptyIterator,
@@ -76,6 +77,7 @@ use {
 
 mod settings;
 
+const MAIN_WINDOW_SIZE: Size = Size { width: 600.0, height: 512.0 };
 const DEFAULT_PRESET: &str = "Default / Beginner";
 const CUSTOM_PRESETS_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/Presets");
 const CUSTOM_PRESET_SUFFIX: &str = ".custom.json";
@@ -423,7 +425,7 @@ impl Gui {
                 self.error = Some(e);
                 if !self.windows.values().any(|window_state| matches!(window_state, WindowState::Main)) {
                     let (main_window_id, window_open_task) = window::open(window::Settings {
-                        size: Size { width: 550.0, height: 512.0 },
+                        size: MAIN_WINDOW_SIZE,
                         exit_on_close_request: false,
                         ..window::Settings::default()
                     });
@@ -475,6 +477,7 @@ impl Gui {
                 return window::gain_focus(*window)
             } else {
                 let (preset_window_id, window_open_task) = window::open(window::Settings {
+                    size: Size { width: 650.0, height: 768.0 },
                     exit_on_close_request: false,
                     ..window::Settings::default()
                 });
@@ -546,7 +549,7 @@ impl Gui {
                 self.custom_presets = custom_presets;
                 self.settings_mapping = settings_mapping;
                 let (main_window_id, window_open_task) = window::open(window::Settings {
-                    size: Size { width: 600.0, height: 512.0 },
+                    size: MAIN_WINDOW_SIZE,
                     exit_on_close_request: false,
                     ..window::Settings::default()
                 });
@@ -748,7 +751,7 @@ impl Gui {
                             .on_press_maybe((tab.name != *active_tab).then(|| Message::SetSettingsTab { window, tab_name: tab.name.clone() }))
                         );
                     }
-                    button_row.spacing(8).padding(8)
+                    button_row.align_y(iced::Alignment::Center).spacing(8).padding(8)
                 })
                 .push(Scrollable::new(
                     Row::new()
@@ -768,12 +771,23 @@ impl Gui {
                                                     setting_info.getattr("gui_text")?.extract::<String>()?,
                                                     setting_info.getattr("gui_type")?.extract::<String>()?,
                                                     setting_info.getattr("default")?.extract::<settings::Value>()?,
+                                                    setting_info.getattr("choices")?.extract::<IndexMap<settings::Value, String>>()?,
                                                 ))
                                             }) {
-                                                Ok((gui_text, gui_type, default)) => {
+                                                Ok((gui_text, gui_type, default, choices)) => {
                                                     match &*gui_type {
                                                         "Checkbutton" => col = col.push(Checkbox::new(gui_text, preset.get(setting_name).unwrap_or(&default).as_bool().unwrap_or_default())
                                                             .on_toggle(move |new_value| Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) })
+                                                        ),
+                                                        "Combobox" => col = col.push(Row::new()
+                                                            .push(Text::new(format!("{gui_text}:")))
+                                                            .push(PickList::new(
+                                                                choices.iter().filter_map(|(value, display)| Some(settings::DisplayValue { value: value.as_str()?.to_owned(), display: display.clone() })).collect_vec(),
+                                                                preset.get(setting_name).unwrap_or(&default).as_str().and_then(|value| Some(settings::DisplayValue { value: value.to_owned(), display: choices.get(&settings::Value(json!(value)))?.to_owned() })),
+                                                                move |settings::DisplayValue { value, .. }| Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(value)) },
+                                                            ).width(Length::Fill))
+                                                            .align_y(iced::Alignment::Center)
+                                                            .spacing(8)
                                                         ),
                                                         _ => col = col.push(Text::new(format!("unknown gui_type for setting {setting_name}: {gui_type}")).color(iced::Color::from_rgb8(255, 0, 0))),
                                                     }

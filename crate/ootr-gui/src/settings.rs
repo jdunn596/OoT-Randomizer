@@ -1,6 +1,7 @@
 use {
     std::{
         collections::HashMap,
+        fmt,
         ops::{
             Deref,
             DerefMut,
@@ -32,7 +33,27 @@ use {
 pub(crate) type Preset = HashMap<String, Value>;
 pub(crate) type PresetsDefault = IndexMap<String, Preset>;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Clone)]
+pub(crate) struct DisplayValue {
+    pub(crate) value: String,
+    pub(crate) display: String,
+}
+
+impl PartialEq for DisplayValue {
+    fn eq(&self, other: &Self) -> bool {
+        self.value == other.value
+    }
+}
+
+impl Eq for DisplayValue {}
+
+impl fmt::Display for DisplayValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.display.fmt(f)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(transparent)]
 pub(crate) struct Value(pub(crate) serde_json::Value);
 
