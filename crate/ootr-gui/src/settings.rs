@@ -101,7 +101,7 @@ impl<'py> FromPyObject<'py> for Value {
             }
             serde_json::Value::Object(buf)
         } else {
-            return Err(PyTypeError::new_err("unknown type in JSON value"))
+            return Err(PyTypeError::new_err(format!("unknown type in JSON value: {} ({})", ob.get_type(), ob)))
         }))
     }
 }

@@ -36,27 +36,22 @@ use {
         Size,
         Task,
         Theme,
-        widget::{
-            Button,
-            Checkbox,
-            Column,
-            PickList,
-            Row,
-            Scrollable,
-            Space,
-            Text,
-            TextInput,
-        },
+        widget::*,
         window,
     },
+    if_chain::if_chain,
     indexmap::IndexMap,
-    itertools::Itertools as _,
+    itertools::{
+        Itertools as _,
+        Position,
+    },
     nonempty_collections::{
         IntoNonEmptyIterator,
         NEVec,
         NonEmptyIterator as _,
     },
     pyo3::{
+        exceptions::*,
         prelude::*,
         types::PyDict,
     },
@@ -760,7 +755,10 @@ impl Gui {
                             let preset = self.preset(preset_name);
                             for tab in &self.settings_mapping.tabs {
                                 if tab.name == *active_tab {
-                                    for section in &tab.sections {
+                                    for (pos, section) in tab.sections.iter().with_position() {
+                                        if let Position::Middle | Position::Last = pos {
+                                            col = col.push(Rule::horizontal(1));
+                                        }
                                         if !section.text.is_empty() {
                                             col = col.push(Text::new(&section.text).size(18));
                                         }
@@ -769,12 +767,14 @@ impl Gui {
                                                 let setting_info = py.import("SettingsList")?.getattr("SettingInfos")?.getattr("setting_infos")?.get_item(setting_name)?;
                                                 PyResult::Ok((
                                                     setting_info.getattr("gui_text")?.extract::<String>()?,
-                                                    setting_info.getattr("gui_type")?.extract::<String>()?,
+                                                    setting_info.getattr("gui_type")?.extract::<Option<String>>()?,
                                                     setting_info.getattr("default")?.extract::<settings::Value>()?,
                                                     setting_info.getattr("choices")?.extract::<IndexMap<settings::Value, String>>()?,
+                                                    setting_info.getattr("gui_params")?.extract::<HashMap<String, Py<PyAny>>>()?,
                                                 ))
                                             }) {
-                                                Ok((gui_text, gui_type, default, choices)) => {
+                                                Ok((gui_text, gui_type, default, choices, gui_params)) => {
+                                                    let Some(gui_type) = gui_type else { continue };
                                                     match &*gui_type {
                                                         "Checkbutton" => col = col.push(Checkbox::new(gui_text, preset.get(setting_name).unwrap_or(&default).as_bool().unwrap_or_default())
                                                             .on_toggle(move |new_value| Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) })
@@ -789,7 +789,7 @@ impl Gui {
                                                             .align_y(iced::Alignment::Center)
                                                             .spacing(8)
                                                         ),
-                                                        "MultipleSelect" => {
+                                                        "MultipleSelect" | "SearchBox" => {
                                                             let choices_clone = choices.clone();
                                                             let new_value = preset.get(setting_name).unwrap_or(&default).clone();
                                                             col = col.push(Row::new()
@@ -828,6 +828,38 @@ impl Gui {
                                                                 .spacing(8)
                                                             );
                                                         }
+                                                        "Scale" => match Python::with_gil(|py| PyResult::Ok((
+                                                            gui_params.get("min").ok_or_else(|| PyKeyError::new_err("Scale setting without minimum"))?.extract::<i32>(py)?,
+                                                            gui_params.get("max").ok_or_else(|| PyKeyError::new_err("Scale setting without maximum"))?.extract::<i32>(py)?,
+                                                            gui_params.get("step").ok_or_else(|| PyKeyError::new_err("Scale setting without step"))?.extract::<i32>(py)?,
+                                                        ))) {
+                                                            Ok((min, max, step)) => {
+                                                                let value = preset.get(setting_name).unwrap_or(&default).as_i64().expect("Scale value is not valid i64") as i32;
+                                                                col = col.push(Row::new()
+                                                                    .push(Text::new(format!("{gui_text}:")))
+                                                                    .push(Slider::new(min..=max, value, move |new_value| Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) }).step(step))
+                                                                    .push(TextInput::new(&format!("{min}–{max}"), &value.to_string()).on_input(move |new_value| if_chain! {
+                                                                        if let Ok(new_value) = new_value.parse();
+                                                                        if (min..=max).contains(&new_value);
+                                                                        then {
+                                                                            Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) }
+                                                                        } else {
+                                                                            Message::Nop
+                                                                        }
+                                                                    }).width(48).align_x(iced::Alignment::End))
+                                                                    .align_y(iced::Alignment::Center)
+                                                                    .spacing(8)
+                                                                );
+                                                            }
+                                                            Err(e) => col = col.push(Text::new(format!("error displaying setting {setting_name}: {e}")).color(iced::Color::from_rgb8(255, 0, 0))),
+                                                        },
+                                                        "Textbox" => col = col.push(Text::new(gui_text)),
+                                                        "Textinput" => col = col.push(Row::new()
+                                                            .push(Text::new(format!("{gui_text}:")))
+                                                            .push(TextInput::new("", preset.get(setting_name).unwrap_or(&default).as_str().unwrap_or_default()).on_input(move |new_value| Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) }))
+                                                            .align_y(iced::Alignment::Center)
+                                                            .spacing(8)
+                                                        ),
                                                         _ => col = col.push(Text::new(format!("unknown gui_type {gui_type} for setting {setting_name}")).color(iced::Color::from_rgb8(255, 0, 0))),
                                                     }
                                                 }
