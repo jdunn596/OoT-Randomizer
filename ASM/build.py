@@ -5,6 +5,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 import argparse
 import json
+import platform
 import re
 from subprocess import check_call as call
 from rom_diff import create_diff
@@ -50,7 +51,11 @@ if compile_c:
 
 if not diff_only:
     os.chdir(run_dir + '/src')
-    call(['/mnt/c/Users/fenhl/git/github.com/Kingcom/armips/main/build/Release/armips.exe', '-sym2', '../build/asm_symbols.txt', 'build.asm'])
+    if platform.system() == 'Windows':
+        armips = '/mnt/c/Users/fenhl/git/github.com/Kingcom/armips/main/build/Release/armips.exe'
+    else:
+        armips = 'armips'
+    call([armips, '-sym2', '../build/asm_symbols.txt', 'build.asm'])
 
 os.chdir(run_dir)
 

@@ -739,7 +739,7 @@ impl Gui {
                         // world_count, language → main view? Main Rules tab?
                         // player_num → seed window/ask when generating relevant output type
                         // generate_from_file, patch_file → main view? file argument/drop handler? both?
-                        // cosmetics, sfx → separate preset list in main view
+                        // cosmetics, sfx → separate preset list in seed window
                         // any others?
                         if tab.name == "general_tab" || tab.exclude_from_web || tab.exclude_from_electron || tab.app_type.iter().any(|app_type| app_type != "generator") { continue }
                         button_row = button_row.push(Button::new(Text::new(&tab.text).size(24))
