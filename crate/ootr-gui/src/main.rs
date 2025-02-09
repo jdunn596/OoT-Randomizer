@@ -3,7 +3,10 @@
 use {
     std::{
         borrow::Cow,
-        collections::HashMap,
+        collections::{
+            HashMap,
+            HashSet,
+        },
         fmt,
         io::{
             Cursor,
@@ -730,153 +733,205 @@ impl Gui {
                     ).height(Length::Fill).into()
                 }
             }
-            Some(WindowState::Preset { preset_name, active_tab }) => Column::new()
-                .push({
-                    let mut button_row = Row::new();
-                    for tab in &self.settings_mapping.tabs {
-                        //TODO reintroduce relevant settings:
-                        // pal_rom → main view, only displayed when relevant for selected language
-                        // world_count, language → main view? Main Rules tab?
-                        // player_num → seed window/ask when generating relevant output type
-                        // generate_from_file, patch_file → main view? file argument/drop handler? both?
-                        // cosmetics, sfx → separate preset list in seed window
-                        // any others?
-                        if tab.name == "general_tab" || tab.exclude_from_web || tab.exclude_from_electron || tab.app_type.iter().any(|app_type| app_type != "generator") { continue }
-                        button_row = button_row.push(Button::new(Text::new(&tab.text).size(24))
-                            .on_press_maybe((tab.name != *active_tab).then(|| Message::SetSettingsTab { window, tab_name: tab.name.clone() }))
-                        );
+            Some(WindowState::Preset { preset_name, active_tab }) => {
+                let preset = self.preset(preset_name);
+                let mut disabled_tabs = HashSet::new();
+                let mut disabled_sections = HashSet::new();
+                let mut disabled_settings = HashSet::new();
+                let mut col = Column::new();
+                let mut button_row = Row::new();
+                for tab in &self.settings_mapping.tabs {
+                    //TODO reintroduce relevant settings:
+                    // pal_rom → main view, only displayed when relevant for selected language
+                    // world_count, language → main view? Main Rules tab?
+                    // player_num → seed window/ask when generating relevant output type
+                    // generate_from_file, patch_file → main view? file argument/drop handler? both?
+                    // cosmetics, sfx → separate preset list in seed window
+                    // any others?
+                    if tab.name == "general_tab" || tab.exclude_from_web || tab.exclude_from_electron || tab.app_type.iter().any(|app_type| app_type != "generator") { continue }
+                    button_row = button_row.push(Button::new(Text::new(&tab.text).size(24))
+                        .on_press_maybe((tab.name != *active_tab).then(|| Message::SetSettingsTab { window, tab_name: tab.name.clone() }))
+                    );
+                    for section in &tab.sections {
+                        for setting_name in &section.settings {
+                            match Python::with_gil(|py| {
+                                let setting_info = py.import("SettingsList")?.getattr("SettingInfos")?.getattr("setting_infos")?.get_item(setting_name)?;
+                                PyResult::Ok((
+                                    setting_info.getattr("default")?.extract::<settings::Value>()?,
+                                    setting_info.getattr("disable")?.extract::<Option<HashMap<settings::Value, settings::Disable>>>()?.unwrap_or_default(),
+                                ))
+                            }) {
+                                Ok((default, disable)) => for (value, settings::Disable { tabs, sections, settings }) in disable {
+                                    if preset.get(setting_name).unwrap_or(&default).matches_disable(&value) {
+                                        disabled_tabs.extend(tabs);
+                                        disabled_sections.extend(sections);
+                                        disabled_settings.extend(settings);
+                                    }
+                                },
+                                Err(e) => col = col.push(Text::new(format!("error checking disables for setting {setting_name}: {e}")).color(iced::Color::from_rgb8(255, 0, 0))),
+                            }
+                        }
                     }
-                    button_row.align_y(iced::Alignment::Center).spacing(8).padding(8)
-                })
-                .push(Scrollable::new(
-                    Row::new()
-                        .push({
-                            let mut col = Column::new();
-                            let preset = self.preset(preset_name);
-                            for tab in &self.settings_mapping.tabs {
-                                if tab.name == *active_tab {
-                                    for (pos, section) in tab.sections.iter().with_position() {
-                                        if let Position::Middle | Position::Last = pos {
-                                            col = col.push(Rule::horizontal(1));
-                                        }
-                                        if !section.text.is_empty() {
-                                            col = col.push(Text::new(&section.text).size(18));
-                                        }
-                                        for setting_name in &section.settings {
-                                            match Python::with_gil(|py| {
-                                                let setting_info = py.import("SettingsList")?.getattr("SettingInfos")?.getattr("setting_infos")?.get_item(setting_name)?;
-                                                PyResult::Ok((
-                                                    setting_info.getattr("gui_text")?.extract::<String>()?,
-                                                    setting_info.getattr("gui_type")?.extract::<Option<String>>()?,
-                                                    setting_info.getattr("default")?.extract::<settings::Value>()?,
-                                                    setting_info.getattr("choices")?.extract::<IndexMap<settings::Value, String>>()?,
-                                                    setting_info.getattr("gui_params")?.extract::<HashMap<String, Py<PyAny>>>()?,
-                                                ))
-                                            }) {
-                                                Ok((gui_text, gui_type, default, choices, gui_params)) => {
-                                                    let Some(gui_type) = gui_type else { continue };
-                                                    match &*gui_type {
-                                                        "Checkbutton" => col = col.push(Checkbox::new(gui_text, preset.get(setting_name).unwrap_or(&default).as_bool().unwrap_or_default())
-                                                            .on_toggle(move |new_value| Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) })
-                                                        ),
-                                                        "Combobox" => col = col.push(Row::new()
-                                                            .push(Text::new(format!("{gui_text}:")))
-                                                            .push(PickList::new(
-                                                                choices.iter().filter_map(|(value, display)| Some(settings::DisplayValue { value: value.as_str()?.to_owned(), display: display.clone() })).collect_vec(),
-                                                                preset.get(setting_name).unwrap_or(&default).as_str().and_then(|value| Some(settings::DisplayValue { value: value.to_owned(), display: choices.get(&settings::Value(json!(value)))?.to_owned() })),
-                                                                move |settings::DisplayValue { value, .. }| Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(value)) },
-                                                            ).width(Length::Fill))
-                                                            .align_y(iced::Alignment::Center)
-                                                            .spacing(8)
-                                                        ),
-                                                        "MultipleSelect" | "SearchBox" => {
-                                                            let choices_clone = choices.clone();
-                                                            let new_value = preset.get(setting_name).unwrap_or(&default).clone();
-                                                            col = col.push(Row::new()
+                }
+                col
+                    .push(button_row.align_y(iced::Alignment::Center).spacing(8).padding(8))
+                    .push(Scrollable::new(
+                        Row::new()
+                            .push({
+                                let mut col = Column::new();
+                                for tab in &self.settings_mapping.tabs {
+                                    if tab.name == *active_tab {
+                                        for (pos, section) in tab.sections.iter().with_position() {
+                                            if let Position::Middle | Position::Last = pos {
+                                                col = col.push(Rule::horizontal(1));
+                                            }
+                                            if !section.text.is_empty() {
+                                                col = col.push(Text::new(&section.text).size(18));
+                                            }
+                                            for setting_name in &section.settings {
+                                                let enabled = !disabled_tabs.contains(&tab.name) && !disabled_sections.contains(&section.name) && !disabled_settings.contains(setting_name);
+                                                match Python::with_gil(|py| {
+                                                    let setting_info = py.import("SettingsList")?.getattr("SettingInfos")?.getattr("setting_infos")?.get_item(setting_name)?;
+                                                    let gui_params = setting_info.getattr("gui_params")?.extract::<HashMap<String, Py<PyAny>>>()?;
+                                                    PyResult::Ok((
+                                                        setting_info.getattr("gui_text")?.extract::<String>()?,
+                                                        setting_info.getattr("gui_type")?.extract::<Option<String>>()?,
+                                                        setting_info.getattr("default")?.extract::<settings::Value>()?,
+                                                        setting_info.getattr("disabled_default")?.extract::<settings::Value>()?,
+                                                        setting_info.getattr("choices")?.extract::<IndexMap<settings::Value, String>>()?,
+                                                        if let Some(hide_when_disabled) = gui_params.get("hide_when_disabled") { hide_when_disabled.extract(py)? } else { false },
+                                                        gui_params,
+                                                    ))
+                                                }) {
+                                                    Ok((gui_text, gui_type, default, disabled_default, choices, hide_when_disabled, gui_params)) => {
+                                                        let value = if enabled {
+                                                            preset.get(setting_name).unwrap_or(&default)
+                                                        } else {
+                                                            if hide_when_disabled { continue }
+                                                            &disabled_default
+                                                        };
+                                                        let Some(gui_type) = gui_type else { continue };
+                                                        match &*gui_type {
+                                                            "Checkbutton" => col = col.push(Checkbox::new(gui_text, value.as_bool().unwrap_or_default())
+                                                                .on_toggle_maybe(enabled.then(|| move |new_value| Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) }))
+                                                            ),
+                                                            "Combobox" => col = col.push(Row::new()
                                                                 .push(Text::new(format!("{gui_text}:")))
                                                                 .push(PickList::new(
-                                                                    choices.iter().filter_map(|(value, display)| Some(settings::DisplayValue { value: value.as_str()?.to_owned(), display: format!("{} {display}", if preset.get(setting_name).unwrap_or(&default).as_array().is_some_and(|choices| choices.contains(value)) { '✓' } else { ' ' }) })).collect_vec(),
-                                                                    None::<settings::DisplayValue>,
-                                                                    move |settings::DisplayValue { value, .. }| {
-                                                                        let mut new_value = new_value.clone();
-                                                                        if let Some(new_value) = new_value.as_array_mut() {
-                                                                            if new_value.contains(&settings::Value(json!(value))) {
-                                                                                new_value.retain(|iter_value| iter_value.as_str().is_none_or(|iter_value| iter_value != value));
-                                                                            } else {
-                                                                                if let Err(idx) = new_value.binary_search_by_key(&choices_clone.iter().position(|(iter_value, _)| *iter_value == settings::Value(json!(value))), |value| choices_clone.iter().position(|(iter_value, _)| *iter_value == settings::Value(json!(value)))) {
-                                                                                    new_value.insert(idx, json!(value));
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                        Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value }
-                                                                    },
-                                                                ).placeholder(if let settings::Value(serde_json::Value::Array(value)) = preset.get(setting_name).unwrap_or(&default) {
-                                                                    if choices.keys().map(|settings::Value(value)| value).eq(value) {
-                                                                        format!("All")
+                                                                    if enabled {
+                                                                        choices.iter().filter_map(|(value, display)| Some(settings::DisplayValue { value: value.as_str()?.to_owned(), display: display.clone() })).collect_vec()
                                                                     } else {
-                                                                        match &**value {
-                                                                            [] => format!("None"),
-                                                                            [value] => choices.get(value).map(|value| &**value).unwrap_or("Unknown").to_owned(),
-                                                                            [v1, v2] => format!("{}, {}", choices.get(v1).as_deref().map(|value| &**value).unwrap_or("Unknown"), choices.get(v2).as_deref().map(|value| &**value).unwrap_or("Unknown")),
-                                                                            [_, _, _, ..] => format!("{} Selected", value.len()),
-                                                                        }
-                                                                    }
-                                                                } else {
-                                                                    format!("Error")
-                                                                }).width(Length::Fill))
+                                                                        vec![settings::DisplayValue { value: String::default(), display: format!("This setting is disabled.") }]
+                                                                    },
+                                                                    value.as_str().and_then(|value| Some(settings::DisplayValue { value: value.to_owned(), display: choices.get(&settings::Value(json!(value)))?.to_owned() })),
+                                                                    move |settings::DisplayValue { value, .. }| if enabled {
+                                                                        Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(value)) }
+                                                                    } else {
+                                                                        Message::Nop
+                                                                    },
+                                                                ).width(Length::Fill))
                                                                 .align_y(iced::Alignment::Center)
                                                                 .spacing(8)
-                                                            );
-                                                        }
-                                                        "Scale" => match Python::with_gil(|py| PyResult::Ok((
-                                                            gui_params.get("min").ok_or_else(|| PyKeyError::new_err("Scale setting without minimum"))?.extract::<i32>(py)?,
-                                                            gui_params.get("max").ok_or_else(|| PyKeyError::new_err("Scale setting without maximum"))?.extract::<i32>(py)?,
-                                                            gui_params.get("step").ok_or_else(|| PyKeyError::new_err("Scale setting without step"))?.extract::<i32>(py)?,
-                                                        ))) {
-                                                            Ok((min, max, step)) => {
-                                                                let value = preset.get(setting_name).unwrap_or(&default).as_i64().expect("Scale value is not valid i64") as i32;
+                                                            ),
+                                                            "MultipleSelect" | "SearchBox" => {
+                                                                let choices_clone = choices.clone();
+                                                                let new_value = value.clone();
                                                                 col = col.push(Row::new()
                                                                     .push(Text::new(format!("{gui_text}:")))
-                                                                    .push(Slider::new(min..=max, value, move |new_value| Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) }).step(step))
-                                                                    .push(TextInput::new(&format!("{min}–{max}"), &value.to_string()).on_input(move |new_value| if_chain! {
-                                                                        if let Ok(new_value) = new_value.parse();
-                                                                        if (min..=max).contains(&new_value);
-                                                                        then {
-                                                                            Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) }
+                                                                    .push(PickList::new(
+                                                                        if enabled {
+                                                                            choices.iter().filter_map(|(iter_value, display)| Some(settings::DisplayValue { value: iter_value.as_str()?.to_owned(), display: format!("{} {display}", if value.as_array().is_some_and(|choices| choices.contains(iter_value)) { '✓' } else { ' ' }) })).collect_vec()
+                                                                        } else {
+                                                                            vec![settings::DisplayValue { value: String::default(), display: format!("This setting is disabled.") }]
+                                                                        },
+                                                                        None::<settings::DisplayValue>,
+                                                                        move |settings::DisplayValue { value, .. }| if enabled {
+                                                                            let mut new_value = new_value.clone();
+                                                                            if let Some(new_value) = new_value.as_array_mut() {
+                                                                                if new_value.contains(&settings::Value(json!(value))) {
+                                                                                    new_value.retain(|iter_value| iter_value.as_str().is_none_or(|iter_value| iter_value != value));
+                                                                                } else {
+                                                                                    if let Err(idx) = new_value.binary_search_by_key(&choices_clone.iter().position(|(iter_value, _)| *iter_value == settings::Value(json!(value))), |value| choices_clone.iter().position(|(iter_value, _)| *iter_value == settings::Value(json!(value)))) {
+                                                                                        new_value.insert(idx, json!(value));
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                            Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value }
                                                                         } else {
                                                                             Message::Nop
+                                                                        },
+                                                                    ).placeholder(if let settings::Value(serde_json::Value::Array(value)) = value {
+                                                                        if choices.keys().map(|settings::Value(value)| value).eq(value) {
+                                                                            format!("All")
+                                                                        } else {
+                                                                            match &**value {
+                                                                                [] => format!("None"),
+                                                                                [value] => choices.get(value).map(|value| &**value).unwrap_or("Unknown").to_owned(),
+                                                                                [v1, v2] => format!("{}, {}", choices.get(v1).as_deref().map(|value| &**value).unwrap_or("Unknown"), choices.get(v2).as_deref().map(|value| &**value).unwrap_or("Unknown")),
+                                                                                [_, _, _, ..] => format!("{} Selected", value.len()),
+                                                                            }
                                                                         }
-                                                                    }).width(48).align_x(iced::Alignment::End))
+                                                                    } else {
+                                                                        format!("Error")
+                                                                    }).width(Length::Fill))
                                                                     .align_y(iced::Alignment::Center)
                                                                     .spacing(8)
                                                                 );
                                                             }
-                                                            Err(e) => col = col.push(Text::new(format!("error displaying setting {setting_name}: {e}")).color(iced::Color::from_rgb8(255, 0, 0))),
-                                                        },
-                                                        "Textbox" => col = col.push(Text::new(gui_text)),
-                                                        "Textinput" => col = col.push(Row::new()
-                                                            .push(Text::new(format!("{gui_text}:")))
-                                                            .push(TextInput::new("", preset.get(setting_name).unwrap_or(&default).as_str().unwrap_or_default()).on_input(move |new_value| Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) }))
-                                                            .align_y(iced::Alignment::Center)
-                                                            .spacing(8)
-                                                        ),
-                                                        _ => col = col.push(Text::new(format!("unknown gui_type {gui_type} for setting {setting_name}")).color(iced::Color::from_rgb8(255, 0, 0))),
+                                                            "Scale" => match Python::with_gil(|py| PyResult::Ok((
+                                                                gui_params.get("min").ok_or_else(|| PyKeyError::new_err("Scale setting without minimum"))?.extract::<i32>(py)?,
+                                                                gui_params.get("max").ok_or_else(|| PyKeyError::new_err("Scale setting without maximum"))?.extract::<i32>(py)?,
+                                                                gui_params.get("step").ok_or_else(|| PyKeyError::new_err("Scale setting without step"))?.extract::<i32>(py)?,
+                                                            ))) {
+                                                                Ok((min, max, step)) => {
+                                                                    let value = value.as_i64().expect("Scale value is not valid i64") as i32;
+                                                                    col = col.push(Row::new()
+                                                                        .push(Text::new(format!("{gui_text}:")))
+                                                                        .push(Slider::new(min..=max, value, move |new_value| if enabled {
+                                                                            Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) }
+                                                                        } else {
+                                                                            Message::Nop
+                                                                        }).step(step))
+                                                                        .push(TextInput::new(&format!("{min}–{max}"), &value.to_string()).on_input_maybe(enabled.then(|| move |new_value: String| if_chain! {
+                                                                            if let Ok(new_value) = new_value.parse();
+                                                                            if (min..=max).contains(&new_value);
+                                                                            then {
+                                                                                Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) }
+                                                                            } else {
+                                                                                Message::Nop
+                                                                            }
+                                                                        })).width(48).align_x(iced::Alignment::End))
+                                                                        .align_y(iced::Alignment::Center)
+                                                                        .spacing(8)
+                                                                    );
+                                                                }
+                                                                Err(e) => col = col.push(Text::new(format!("error displaying setting {setting_name}: {e}")).color(iced::Color::from_rgb8(255, 0, 0))),
+                                                            },
+                                                            "Textbox" => col = col.push(Text::new(gui_text)),
+                                                            "Textinput" => col = col.push(Row::new()
+                                                                .push(Text::new(format!("{gui_text}:")))
+                                                                .push(TextInput::new("", value.as_str().unwrap_or_default()).on_input_maybe(enabled.then(|| move |new_value| Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) })))
+                                                                .align_y(iced::Alignment::Center)
+                                                                .spacing(8)
+                                                            ),
+                                                            _ => col = col.push(Text::new(format!("unknown gui_type {gui_type} for setting {setting_name}")).color(iced::Color::from_rgb8(255, 0, 0))),
+                                                        }
                                                     }
-                                                }
-                                                Err(e) => {
-                                                    col = col.push(Text::new(format!("error displaying setting {setting_name}: {e}")).color(iced::Color::from_rgb8(255, 0, 0)));
+                                                    Err(e) => {
+                                                        col = col.push(Text::new(format!("error displaying setting {setting_name}: {e}")).color(iced::Color::from_rgb8(255, 0, 0)));
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            col.spacing(8).padding(8).width(Length::Fill)
-                        })
-                        .push(Space::with_width(Length::Shrink)) // to avoid overlap with the scrollbar
-                        .spacing(16)
-                ).height(Length::Fill))
-                .into(),
+                                col.spacing(8).padding(8).width(Length::Fill)
+                            })
+                            .push(Space::with_width(Length::Shrink)) // to avoid overlap with the scrollbar
+                            .spacing(16)
+                    ).height(Length::Fill))
+                    .into()
+            }
             Some(WindowState::Seed(_)) => Column::new()
                 .push(Text::new("Seed").size(24)) //TODO show file hash instead
                 //TODO buttons to:

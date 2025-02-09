@@ -8,6 +8,7 @@ use {
             DerefMut,
         },
     },
+    if_chain::if_chain,
     indexmap::IndexMap,
     pyo3::{
         IntoPyObjectExt as _,
@@ -15,6 +16,7 @@ use {
             PyTypeError,
             PyValueError,
         },
+        intern,
         prelude::*,
         types::{
             PyDict,
@@ -57,6 +59,20 @@ impl fmt::Display for DisplayValue {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(transparent)]
 pub(crate) struct Value(pub(crate) serde_json::Value);
+
+impl Value {
+    pub(crate) fn matches_disable(&self, disable: &Self) -> bool {
+        if_chain! {
+            if let Some(disable_str) = disable.as_str();
+            if let Some(enable) = disable_str.strip_prefix('!');
+            then {
+                **self != enable
+            } else {
+                self == disable
+            }
+        }
+    }
+}
 
 impl Deref for Value {
     type Target = serde_json::Value;
@@ -135,6 +151,22 @@ impl<'py> IntoPyObject<'py> for Value {
                 }
                 dict.into_any()
             }
+        })
+    }
+}
+
+pub(crate) struct Disable {
+    pub(crate) tabs: Vec<String>,
+    pub(crate) sections: Vec<String>,
+    pub(crate) settings: Vec<String>,
+}
+
+impl<'py> FromPyObject<'py> for Disable {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        Ok(Self {
+            tabs: { let key = intern!(ob.py(), "tabs"); if ob.contains(key)? { ob.get_item(key)?.extract()? } else { Vec::default() } },
+            sections: { let key = intern!(ob.py(), "sections"); if ob.contains(key)? { ob.get_item(key)?.extract()? } else { Vec::default() } },
+            settings: { let key = intern!(ob.py(), "settings"); if ob.contains(key)? { ob.get_item(key)?.extract()? } else { Vec::default() } },
         })
     }
 }
