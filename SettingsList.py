@@ -47,6 +47,7 @@ class SettingInfos:
     generating_patch_file = Checkbutton(None)
     output_file = SettingInfoStr(None, None)
     seed = SettingInfoStr(None, None)
+    salt_seed = Checkbutton(None, default=True, shared=False)
 
     # GUI Only Buttons/Text
 
