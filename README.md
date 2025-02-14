@@ -155,6 +155,9 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
   * [4.0](#40)
 
 ## RealRob Changelog
+### v133
+  * Fix Forest Temple MQ Stalfos enemy drops
+
 ### v132
   * Fix Ganons Castle MQ Logic Error causing occassional generation error
 
