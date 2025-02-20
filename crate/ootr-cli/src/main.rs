@@ -93,7 +93,17 @@ fn main(Args { log_level, settings_string, convert_settings, settings, settings_
             if let Some(preset) = settings_mod.call_method0("get_preset_files")?.try_iter()?.filter_map(|filename| filename.map_err(Error::from).and_then(|filename| {
                 let presets = json.call_method1("loads", (fs::read_to_string(filename.extract::<&str>()?)?,))?;
                 let presets = presets.downcast::<PyDict>()?;
-                presets.get_item(&preset_name).map_err(Error::from) //TODO deal with preset aliases
+                if let Some(preset) = presets.get_item(&preset_name)? {
+                    return Ok(Some(preset))
+                }
+                for preset in presets.values() {
+                    if let Ok(aliases) = preset.get_item("aliases") {
+                        if aliases.contains(&preset_name)? {
+                            return Ok(Some(preset))
+                        }
+                    }
+                }
+                Ok(None)
             }).transpose()).next() {
                 settings_base.call_method1("update", (preset?,))?;
             } else {
