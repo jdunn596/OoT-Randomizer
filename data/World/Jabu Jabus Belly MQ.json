@@ -180,6 +180,7 @@
             "Jabu Jabus Belly Floor Lowered": "True"
         },
         "locations": {
+            "Jabu Jabus Belly MQ Cow": "can_play(Eponas_Song)",
             "Jabu Jabus Belly MQ After Big Octo Cow Wonderitem": "True",
             "Jabu Jabus Belly MQ Wiggler Platforms Cow Wonderitem": "True",
             "Jabu Jabus Belly MQ Small Crate Near Cow 1": "True",
