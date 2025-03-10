@@ -594,7 +594,7 @@ def shuffle_random_entrances(worlds: list[World]) -> None:
 
         # Combine all entrance pools into one when mixing entrance pools
         mixed_entrance_pools = []
-        for pool in world.mix_entrance_pools:
+        for pool in sorted(world.mix_entrance_pools):
             mixed_entrance_pools.append(pool)
             if pool != 'Overworld' and world.settings.decouple_entrances:
                 mixed_entrance_pools.append(pool + 'Reverse')
