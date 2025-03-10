@@ -4513,7 +4513,8 @@ class SettingInfos:
         gui_tooltip    = '''\
             Force the player to always lose the
             treasure chest game in the first room
-            unless they have the Lens of Truth.
+            unless they have the Lens of Truth and
+            a Magic Meter.
             Does not function if Treasure Chest Game
             small keys are shuffled.
         ''',

@@ -168,7 +168,7 @@ uint16_t tcg_key_to_rupee(z64_file_t* save, override_t override) {
     // is enabled. Room index is checked to avoid overriding the salesman's item.
     if (item_id == GI_DOOR_KEY && !SHUFFLE_CHEST_GAME && TCG_REQUIRES_LENS
         && override.value.base.player == PLAYER_ID
-        && save->items[Z64_SLOT_LENS] != Z64_ITEM_LENS
+        && (save->items[Z64_SLOT_LENS] != Z64_ITEM_LENS || !save->magic_acquired)
         && z64_game.room_index != 0
     ) {
         return GI_RUPEE_GREEN_LOSE; // Green Rupee (Chest Game)
