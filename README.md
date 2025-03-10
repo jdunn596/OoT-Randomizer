@@ -155,6 +155,9 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
   * [4.0](#40)
 
 ## RealRob Changelog
+### v135
+  * Fix DMT Summit boulder logic
+
 ### v134
   * Fix missing Jabu Jabus Belly MQ Cow
 
