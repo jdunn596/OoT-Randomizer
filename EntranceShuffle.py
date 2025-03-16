@@ -861,6 +861,24 @@ def shuffle_random_entrances(worlds: list[World]) -> None:
                         target = dungeon_exits[target.name]
                 blue_warp.connect(world.get_region(target.name.split(' -> ')[1]))
                 blue_warp.replaces = target
+        elif world.settings.blue_warps == 'vanilla' and ( # Settings where blue warps need to be patched to fix a crash when child steps into an adult blue warp
+            world.settings.shuffle_overworld_entrances
+            or world.shuffle_dungeon_entrances
+            or world.settings.shuffle_bosses != 'off'
+            or world.full_one_ways
+        ):
+            for blue_warp in (
+                world.get_entrance('Queen Gohma Blue Warp -> KF Outside Deku Tree'),
+                world.get_entrance('King Dodongo Blue Warp -> Death Mountain'),
+                world.get_entrance('Barinade Blue Warp -> Zoras Fountain'),
+                world.get_entrance('Phantom Ganon Blue Warp -> Sacred Forest Meadow'),
+                world.get_entrance('Volvagia Blue Warp -> DMC Central Local'),
+                world.get_entrance('Morpha Blue Warp -> Lake Hylia'),
+                world.get_entrance('Bongo Bongo Blue Warp -> Graveyard Warp Pad Region'),
+                world.get_entrance('Twinrova Blue Warp -> Desert Colossus'),
+            ):
+                blue_warp.connect(world.get_region(blue_warp.name.split(' -> ')[1]))
+                blue_warp.replaces = blue_warp
 
 
     # Multiple checks after shuffling entrances to make sure everything went fine
