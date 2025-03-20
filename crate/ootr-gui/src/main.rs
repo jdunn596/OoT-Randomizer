@@ -234,7 +234,7 @@ impl Seed {
     fn before_close_message(&self, window_to_close: window::Id, window_to_check: window::Id) -> Option<Message> {
         let unsaved_worlds = self.patches_saved.iter()
             .enumerate()
-            .filter(|(_, &saved)| !saved)
+            .filter(|&(_, &saved)| !saved)
             .map(|(world_idx, _)| NonZero::new(u8::try_from(world_idx + 1).expect("got more than 255 seeds")).expect("got more than 255 seeds"))
             .collect_vec();
         if let Ok(unsaved_worlds) = unsaved_worlds.try_into() {

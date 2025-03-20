@@ -36,7 +36,7 @@ enum Region {
 }
 
 impl Region {
-    fn locations(&self) -> impl IntoIterator<Item = Location> {
+    fn locations(&self) -> impl IntoIterator<Item = Location> + use<> {
         match self {
             Self::Root => [
                 Location::TotLightArrowCutscene,
