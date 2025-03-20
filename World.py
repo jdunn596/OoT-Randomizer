@@ -13,7 +13,7 @@ from Entrance import Entrance
 from Goals import Goal, GoalCategory
 from HintList import get_required_hints, misc_item_hint_table, misc_location_hint_table
 from Hints import hint_dist_keys, hint_dist_files
-from rs.hints import HintArea
+from rs.hints import HintArea, HintAreaNotFound
 from Item import Item, ItemFactory, ItemInfo, make_event_item
 from ItemList import REWARD_COLORS
 from ItemPool import reward_list, triforce_pieces
@@ -1325,7 +1325,10 @@ class World:
 
     def region_has_shortcuts(self, region_name: str) -> bool:
         region = self.get_region(region_name)
-        dungeon_name = HintArea.at(region).dungeon_name
+        try:
+            dungeon_name = HintArea.at(region).dungeon_name
+        except HintAreaNotFound:
+            return False # not connected to a hint area yet, can only happen for King Dodongo Boss Room, assume no shortcuts to be conservative
         return dungeon_name in self.settings.dungeon_shortcuts
 
     # Returns whether the given dungeon has a keyring.
