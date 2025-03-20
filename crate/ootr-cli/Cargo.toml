@@ -8,6 +8,6 @@ workspace = true
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-pyo3 = { version = "0.23", features = ["auto-initialize"] }
+pyo3 = { version = "0.24", features = ["auto-initialize"] }
 thiserror = "2"
 wheel = { git = "https://github.com/fenhl/wheel", branch = "main", features = ["pyo3"] }

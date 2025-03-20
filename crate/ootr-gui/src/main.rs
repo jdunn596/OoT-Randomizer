@@ -81,8 +81,8 @@ const CUSTOM_PRESETS_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../da
 const CUSTOM_PRESET_SUFFIX: &str = ".custom.json";
 
 fn natjoin<T: fmt::Display>(elts: impl IntoNonEmptyIterator<Item = T>) -> String {
-    let (first, rest) = elts.into_nonempty_iter().first();
-    let mut rest = rest.into_iter().fuse();
+    let (first, rest) = elts.into_nonempty_iter().next();
+    let mut rest = rest.fuse();
     match (rest.next(), rest.next()) {
         (None, _) => first.to_string(),
         (Some(second), None) => format!("{first} and {second}"),
@@ -464,7 +464,7 @@ impl Gui {
                     ..window::Settings::default()
                 });
                 self.windows.insert(seed_window_id, WindowState::Seed(Seed {
-                    patches_saved: patches.iter().map(|_| false).collect(),
+                    patches_saved: patches.nonempty_iter().map(|_| false).collect(),
                     spoiler_log_saved: false,
                     patches, spoiler_log,
                 }));
@@ -555,12 +555,12 @@ impl Gui {
                 return window_open_task.map(|_| Message::Nop)
             }
             Message::MarkPatchesSaved { window } => {
-                for saved in self.seed_mut(window).patches_saved.iter_mut() {
+                for saved in self.seed_mut(window).patches_saved.nonempty_iter_mut() {
                     *saved = true;
                 }
             }
             Message::MarkPatchesSavedAndContinueClosing { window_to_close, window_to_check } => {
-                for saved in self.seed_mut(window_to_check).patches_saved.iter_mut() {
+                for saved in self.seed_mut(window_to_check).patches_saved.nonempty_iter_mut() {
                     *saved = true;
                 }
                 return cmd(future::ok(Message::CloseRequested(window_to_close)))

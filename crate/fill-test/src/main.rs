@@ -8,7 +8,10 @@ use {
     },
     collect_mac::collect,
     itertools::Itertools as _,
-    rand::prelude::*,
+    rand::{
+        prelude::*,
+        rng,
+    },
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -187,7 +190,7 @@ fn fill(rng: &mut impl Rng, worlds: &mut [World], starting_items: HashSet<Item>)
             items.len() > 1
         }).map(move |(&location, _)| (world_id, location)))
         .collect_vec();
-    'fill: while let Some((idx, _)) = undecided_locations.iter().enumerate().min_by(|(_, (world1, loc1)), (_, (world2, loc2))| worlds[*world1].locations[loc1].len().cmp(&worlds[*world2].locations[loc2].len()).then_with(|| if rng.gen() { Less } else { Greater })) {
+    'fill: while let Some((idx, _)) = undecided_locations.iter().enumerate().min_by(|(_, (world1, loc1)), (_, (world2, loc2))| worlds[*world1].locations[loc1].len().cmp(&worlds[*world2].locations[loc2].len()).then_with(|| if rng.random() { Less } else { Greater })) {
         let (world_id, location) = undecided_locations.remove(idx);
         let mut candidates = worlds[world_id].locations[&location].iter().copied().collect_vec();
         candidates.shuffle(rng);
@@ -237,6 +240,6 @@ fn main() {
         ],
         settings: Settings { adult_start: false },
     }];
-    fill(&mut thread_rng(), &mut worlds, HashSet::default());
+    fill(&mut rng(), &mut worlds, HashSet::default());
     println!("{worlds:#?}");
 }
