@@ -45,7 +45,7 @@ BarrenFunc: TypeAlias = "Callable[[Spoiler, World, set[str], set[str]], HintRetu
 bingoBottlesForHints: set[str] = {
     "Bottle", "Bottle with Red Potion", "Bottle with Green Potion", "Bottle with Blue Potion",
     "Bottle with Fairy", "Bottle with Fish", "Bottle with Blue Fire", "Bottle with Bugs",
-    "Bottle with Big Poe", "Bottle with Poe",
+    "Bottle with Big Poe", "Bottle with Poe", "Bottle with Milk",
 }
 
 defaultHintDists: list[str] = [
@@ -1370,20 +1370,11 @@ def build_bingo_hint_list(board_url: str) -> list[str]:
     return hints
 
 
-def always_named_item(world: World, locations: Iterable[Location]):
-    for location in locations:
-        if location.item.name in bingoBottlesForHints and world.settings.hint_dist == 'bingo':
-            always_item = 'Bottle'
-        else:
-            always_item = location.item.name
-        if always_item in world.named_item_pool and world.settings.world_count == 1:
-            world.named_item_pool.remove(always_item)
-
-
 def build_gossip_hints(spoiler: Spoiler, worlds: list[World]) -> None:
     from Dungeon import Dungeon
 
-    checked_locations = dict()
+    checked_locations = {}
+    checked_always_locations = {}
     # Add misc. item hint locations to "checked" locations if the respective hint is reachable without the hinted item.
     for world in worlds:
         for location in world.hinted_dungeon_reward_locations.values():
@@ -1439,20 +1430,20 @@ def build_gossip_hints(spoiler: Spoiler, worlds: list[World]) -> None:
             location = world.get_location(misc_location_hint_table[hint_type]['item_location'])
             if hint_type in world.settings.misc_hints and can_reach_hint(worlds, world.get_location(misc_location_hint_table[hint_type]['hint_location']), location):
                 item_world = location.world
-                if item_world.id not in checked_locations:
-                    checked_locations[item_world.id] = set()
-                checked_locations[item_world.id].add(location.name)
+                if item_world.id not in checked_always_locations:
+                    checked_always_locations[item_world.id] = set()
+                checked_always_locations[item_world.id].add(location.name)
 
     # Build all the hints.
     for world in worlds:
         world.update_exclude_item_list()
     for world in worlds:
         world.update_useless_areas(spoiler)
-        build_world_gossip_hints(spoiler, world, checked_locations.pop(world.id, None))
+        build_world_gossip_hints(spoiler, world, checked_locations.pop(world.id, set()), checked_always_locations.pop(world.id, set()))
 
 
 # builds out general hints based on location and whether an item is required or not
-def build_world_gossip_hints(spoiler: Spoiler, world: World, checked_locations: Optional[set[str]] = None) -> None:
+def build_world_gossip_hints(spoiler: Spoiler, world: World, checked_locations: set[str], checked_always_locations: set[str]) -> None:
     world.barren_dungeon = 0
     world.woth_dungeon = 0
 
@@ -1461,10 +1452,6 @@ def build_world_gossip_hints(spoiler: Spoiler, world: World, checked_locations: 
         stone.reachable = (
             search.spot_access(world.get_location(stone.location))
             and search.state_list[world.id].guarantee_hint())
-
-    if checked_locations is None:
-        checked_locations = set()
-    checked_always_locations = set()
 
     stone_ids = list(gossipLocations.keys())
 
@@ -1586,8 +1573,6 @@ def build_world_gossip_hints(spoiler: Spoiler, world: World, checked_locations: 
             checked_always_locations.add(first_location.name)
             checked_always_locations.add(second_location.name)
 
-            always_named_item(world, [first_location, second_location])
-
             if hint.name in world.hint_text_overrides:
                 location_text = world.hint_text_overrides[hint.name]
             else:
@@ -1608,8 +1593,6 @@ def build_world_gossip_hints(spoiler: Spoiler, world: World, checked_locations: 
         for hint in always_locations:
             location = world.get_location(hint.name)
             checked_always_locations.add(hint.name)
-
-            always_named_item(world, [location])
 
             if location.name in world.hint_text_overrides:
                 location_text = world.hint_text_overrides[location.name]
@@ -1669,6 +1652,14 @@ def build_world_gossip_hints(spoiler: Spoiler, world: World, checked_locations: 
 
     # Add user-specified hinted item locations if using a built-in hint distribution
     # Raise error if hint copies is zero
+    for location_name in checked_always_locations:
+        location = world.get_location(location_name)
+        if location.item.name in bingoBottlesForHints and world.settings.hint_dist == 'bingo':
+            always_item = 'Bottle'
+        else:
+            always_item = location.item.name
+        if always_item in world.named_item_pool and world.settings.world_count == 1:
+            world.named_item_pool.remove(always_item)
     if len(world.named_item_pool) > 0 and world.hint_dist_user['named_items_required']:
         if hint_dist['named-item'][1] == 0:
             raise Exception('User-provided item hints were requested, but copies per named-item hint is zero')
