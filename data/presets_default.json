@@ -411,7 +411,7 @@
         "big_poe_count": 10,
         "clearer_hints": true,
         "hints": "always",
-        "hint_dist": "fenhl_tootr",
+        "hint_dist": "chaos",
         "item_hints": [],
         "hint_dist_user": {},
         "plandomized_locations": {},
