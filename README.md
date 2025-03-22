@@ -69,6 +69,7 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
   * “SGL 2023 Tournament” is a game mode that was used for [a tournament at SpeedGaming Live 2023](https://midos.house/event/sgl/2023live) as well as [an online tournament](https://midos.house/event/sgl/2023onl), taken from [Elagatua's `feature/sgl-2023` branch](https://github.com/Elagatua/OoT-Randomizer/tree/feature/sgl-2023). Note that the tournament itself was played on that branch, not this one. See [the official document](https://docs.google.com/document/d/1EACqBl8ZOreD6xT5jQ2HrdLOnpBpKyjS3FUYK8XFeqg/edit) for details.
   * “SDG Bingo Tournament 3” is a variant of “Bingo” used for an ongoing tournament. Note that the tournament itself is being played on version 8.0 of the randomizer, not this branch. See [the official document](https://docs.google.com/document/d/1fpDPSBGH9YQeC9W3P1SMDE7FhoikVgbFTJapqKnMmL4/edit) for details.
 * Other changes:
+  * Spoiler logs explicitly list the type of each hint and plandos can specify hint types to place on gossip stones ([#2393](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2393))
   * On Wii Virtual Console, additional information is displayed while the game is loading and when it crashes ([#2153](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2153))
   * Plandos can specify different settings for each world ([#2055](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2055))
   * The text box no longer shows the player's own gold skulltula token count when finding a token for another player (part of [#2055](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2055))
@@ -79,6 +80,7 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
   * The GUI tweaks made by [`Dev-R`](https://github.com/Roman971/OoT-Randomizer) are further adjusted to balance consistency with [main `Dev`](https://github.com/OoTRandomizer/OoT-Randomizer) and ease of use.
   * The Lens of Truth can be in a foolish area if Treasure Chest Game keys are shuffled and all relevant “lensless” tricks are enabled.
 * Bug fixes:
+  * Fix incorrect color highlighting in Important Check hints ([#2394](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2394))
   * Fix generator crash with bingo hints when all bottles (other than Ruto's letter) are milk bottles ([#2392](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2392))
   * Fix misc. location hints not being counted as always hints for the purpose of Barren and Named Item hints ([#2391](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2391))
   * Fix precompleted dungeon rewards not accounting for boss entrance randomizer ([#2330](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2330))

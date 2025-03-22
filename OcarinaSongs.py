@@ -449,7 +449,7 @@ def patch_songs(world: World, rom: Rom) -> None:
             continue  # song activation is vanilla (possibly because this row wasn't randomized), don't randomize playback
 
         if name == 'ZR Frogs Ocarina Game':
-            rom.write_bytes(0xB78AA0, [note['note'] for note in song.playback])
+            rom.write_bytes(0xB78AA0, song.activation)
             continue
 
         # fix the song of time

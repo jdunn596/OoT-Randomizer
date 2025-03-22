@@ -1484,7 +1484,7 @@ dependencies = [
 
 [[package]]
 name = "fill-test"
-version = "8.2.64-fenhl.6.riir.7"
+version = "8.2.64-fenhl.7.riir.8"
 dependencies = [
  "collect-mac",
  "itertools",
@@ -3077,7 +3077,7 @@ checksum = "d75b0bedcc4fe52caa0e03d9f1151a323e4aa5e2d78ba3580400cd3c9e2bc4bc"
 
 [[package]]
 name = "ootr-cli"
-version = "8.2.64-fenhl.6.riir.7"
+version = "8.2.64-fenhl.7.riir.8"
 dependencies = [
  "clap",
  "pyo3",
@@ -3087,7 +3087,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-gui"
-version = "8.2.64-fenhl.6.riir.7"
+version = "8.2.64-fenhl.7.riir.8"
 dependencies = [
  "dark-light 2.0.0",
  "futures",
@@ -3113,7 +3113,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-python"
-version = "8.2.64-fenhl.6.riir.7"
+version = "8.2.64-fenhl.7.riir.8"
 dependencies = [
  "anyhow",
  "decompress",
@@ -3767,7 +3767,7 @@ dependencies = [
 
 [[package]]
 name = "rust-n64-test"
-version = "8.2.64-fenhl.6.riir.7"
+version = "8.2.64-fenhl.7.riir.8"
 dependencies = [
  "cbindgen",
 ]
