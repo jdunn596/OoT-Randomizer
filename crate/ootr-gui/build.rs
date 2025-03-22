@@ -12,7 +12,7 @@ use {
 fn main() -> io::Result<()> {
     if env::var_os("CARGO_CFG_WINDOWS").is_some() {
         WindowsResource::new()
-            //TODO icon
+            .set_icon("../../assets/ootr-arrows.ico")
             .set_manifest_file("assets/manifest.xml")
             .compile()?;
     }
