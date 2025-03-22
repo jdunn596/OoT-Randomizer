@@ -93,7 +93,7 @@ class GossipStone:
 
 class GossipText:
     def __init__(self, text: str, colors: Optional[list[str]] = None, hinted_locations: Optional[list[str]] = None,
-                 hinted_items: Optional[list[str]] = None, prefix: str = "They say that ", capitalize: bool = True) -> None:
+                 hinted_items: Optional[list[str]] = None, *, prefix: str = "They say that ", capitalize: bool = True) -> None:
         text = prefix + text
         if capitalize:
             text = text[:1].upper() + text[1:]
@@ -699,7 +699,7 @@ def get_goal_legacy_hint(spoiler, world, checked):
 
     location_text = HintArea.at(location).text(world.settings.clearer_hints, world=None if location.world.id == world.id else location.world.id + 1)
 
-    return (GossipText(f'{location_text} is on the {goal.hint_text}.', ['Light Blue', goal.color], [location.name], [location.item.name]), [location])
+    return GossipText(f'{location_text} is on the {goal.hint_text}.', ['Light Blue', goal.color], [location.name], [location.item.name]), [location]
 
 def get_goal_hint(spoiler: Spoiler, world: World, checked: set[str]) -> HintReturn:
     goal_category = get_goal_category(spoiler, world, world.goal_categories)
@@ -839,7 +839,7 @@ def get_goal_count_hint(spoiler, world, checked):
     item_count = sum(len(locations) for locations in spoiler.goal_locations[world.id][goal_category.name][goal.name].values())
     item_text = 'step' if item_count == 1 else 'steps'
 
-    return (GossipText('the %s requires #%d# %s.' % (goal.hint_text, item_count, item_text), [goal.color, 'Light Blue']), None) #TODO adjust for multiworld?
+    return GossipText('the %s requires #%d# %s.' % (goal.hint_text, item_count, item_text), [goal.color, 'Light Blue']), None #TODO adjust for multiworld?
 
 def get_wanderer_hint(spoiler, world, checked):
     hint_types = [get_playthrough_location_hint, get_unlock_playthrough_hint]
@@ -875,7 +875,7 @@ def get_playthrough_location_hint(spoiler, world, checked):
     hint_area = HintArea.at(location)
     location_text = hint_area.text(world.settings.clearer_hints)
 
-    return (GossipText('%s is on the way of the #wanderer#.' % location_text, ['Light Blue', 'Yellow'], [location.name], [location.item.name]), [location])
+    return GossipText('%s is on the way of the #wanderer#.' % location_text, ['Light Blue', 'Yellow'], [location.name], [location.item.name]), [location]
 
 def get_unlock_woth_hint(spoiler, world, checked):
     return get_unlock_hint(spoiler, world, checked, 'unlock-woth')
@@ -979,7 +979,7 @@ def get_unlock_hint(spoiler: Spoiler, world: World, checked: set[str], hint_type
     else:
         gossip_colors = ['Light Blue', 'Light Blue']
 
-    return (GossipText(gossip_text, gossip_colors, [required_location.name, location.name], [required_location.item.name, location.item.name]), [required_location, location])
+    return GossipText(gossip_text, gossip_colors, [required_location.name, location.name], [required_location.item.name, location.item.name]), [required_location, location]
 
 def get_barren_hint(spoiler: Spoiler, world: World, checked: set[str], all_checked: set[str]) -> HintReturn:
     if not hasattr(world, 'get_barren_hint_prev'):
