@@ -40,9 +40,13 @@ use {
         Task,
         Theme,
         widget::*,
-        window,
+        window::{
+            self,
+            icon,
+        },
     },
     if_chain::if_chain,
+    ::image::ImageFormat,
     indexmap::IndexMap,
     itertools::{
         Itertools as _,
@@ -107,6 +111,7 @@ fn cmd(future: impl Future<Output = Result<Message, Error>> + Send + 'static) ->
 #[derive(Debug, thiserror::Error)]
 enum Error {
     #[error(transparent)] Iced(#[from] iced::Error),
+    #[error(transparent)] Icon(#[from] icon::Error),
     #[error(transparent)] Python(#[from] PyErr),
     #[error(transparent)] Task(#[from] tokio::task::JoinError),
     #[error(transparent)] Wheel(#[from] wheel::Error),
@@ -155,6 +160,7 @@ enum Message {
     Generate,
     GenerateError(Arc<Error>),
     Init {
+        icon: window::Icon,
         default_presets: settings::PresetsDefault,
         custom_presets: HashMap<String, settings::Preset>,
         settings_mapping: settings::Mapping,
@@ -204,6 +210,7 @@ struct Gui {
     // global/main window state
     error: Option<Arc<Error>>,
     base_rom_path: PathBuf,
+    icon: Option<window::Icon>,
     default_presets: settings::PresetsDefault,
     custom_presets: HashMap<String, settings::Preset>,
     settings_mapping: settings::Mapping,
@@ -425,6 +432,7 @@ impl Gui {
                     let (main_window_id, window_open_task) = window::open(window::Settings {
                         size: MAIN_WINDOW_SIZE,
                         exit_on_close_request: false,
+                        icon: self.icon.clone(),
                         ..window::Settings::default()
                     });
                     self.windows.insert(main_window_id, WindowState::Main);
@@ -461,6 +469,7 @@ impl Gui {
             Message::Done { patches, spoiler_log } => {
                 let (seed_window_id, window_open_task) = window::open(window::Settings {
                     exit_on_close_request: false,
+                    icon: self.icon.clone(),
                     ..window::Settings::default()
                 });
                 self.windows.insert(seed_window_id, WindowState::Seed(Seed {
@@ -477,6 +486,7 @@ impl Gui {
                 let (preset_window_id, window_open_task) = window::open(window::Settings {
                     size: Size { width: 750.0, height: 768.0 },
                     exit_on_close_request: false,
+                    icon: self.icon.clone(),
                     ..window::Settings::default()
                 });
                 self.windows.insert(preset_window_id, WindowState::Preset { active_tab: format!("main_tab"), preset_name });
@@ -542,13 +552,15 @@ impl Gui {
                 self.error = Some(e);
                 self.generating = false;
             }
-            Message::Init { default_presets, custom_presets, settings_mapping } => {
+            Message::Init { icon, default_presets, custom_presets, settings_mapping } => {
+                self.icon = Some(icon);
                 self.default_presets = default_presets;
                 self.custom_presets = custom_presets;
                 self.settings_mapping = settings_mapping;
                 let (main_window_id, window_open_task) = window::open(window::Settings {
                     size: MAIN_WINDOW_SIZE,
                     exit_on_close_request: false,
+                    icon: self.icon.clone(),
                     ..window::Settings::default()
                 });
                 self.windows.insert(main_window_id, WindowState::Main);
@@ -956,6 +968,7 @@ fn main() -> Result<(), Error> {
         .theme(Gui::theme)
         .default_font(iced::Font::with_name("DejaVu Sans"))
         .run_with(|| (Gui::default(), cmd(async move {
+            let icon = icon::from_file_data(include_bytes!("../../../assets/ootr-arrows.ico"), Some(ImageFormat::Ico))?;
             let () = spawn_blocking(move || Python::with_gil(|py| {
                 let py_version = py.version_info();
                 if py_version < (3, 8) {
@@ -978,7 +991,7 @@ fn main() -> Result<(), Error> {
                 })
                 .try_collect().await?;
             let settings_mapping = fs::read_json::<settings::Mapping>(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/settings_mapping.json")).await?;
-            Ok(Message::Init { default_presets, custom_presets, settings_mapping })
+            Ok(Message::Init { icon, default_presets, custom_presets, settings_mapping })
         })))?;
     Ok(())
 }
