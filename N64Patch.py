@@ -6,7 +6,7 @@ import zlib
 from typing import TYPE_CHECKING, Optional
 
 from Rom import Rom
-from ntype import BigStream
+from rs.rom import BigStream
 
 if TYPE_CHECKING:
     from Settings import Settings

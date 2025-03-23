@@ -1,6 +1,7 @@
 import itertools
 
-from ntype import uint32, BigStream
+from ntype import uint32
+from rs.rom import BigStream
 
 
 def calculate_crc(data: BigStream) -> bytearray:

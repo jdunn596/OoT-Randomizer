@@ -1318,11 +1318,11 @@ checksum = "7046468a81e6a002061c01e6a7c83139daf91b11c30e66795b13217c2d885c8b"
 [[package]]
 name = "decompress"
 version = "3.0.1"
-source = "git+https://github.com/fenhl/OoT_Decompressor?branch=riir#a9b6f2322bfd5a99a438fdc504fac8fd765fff7f"
+source = "git+https://github.com/fenhl/OoT_Decompressor?branch=riir#329e7a1653539153693edafc0e10a985400cb920"
 dependencies = [
  "arrayref",
  "itermore",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
  "wheel",
 ]
 
@@ -3523,6 +3523,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d75b0bedcc4fe52caa0e03d9f1151a323e4aa5e2d78ba3580400cd3c9e2bc4bc"
 
 [[package]]
+name = "ootr-build"
+version = "8.2.64-fenhl.7.riir.8"
+dependencies = [
+ "decompress",
+ "futures",
+ "itermore",
+ "lazy-regex",
+ "serde",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-stream",
+ "wheel",
+]
+
+[[package]]
 name = "ootr-cli"
 version = "8.2.64-fenhl.7.riir.8"
 dependencies = [
@@ -3564,7 +3579,9 @@ name = "ootr-python"
 version = "8.2.64-fenhl.7.riir.8"
 dependencies = [
  "anyhow",
+ "arrayref",
  "decompress",
+ "itertools",
  "lazy-regex",
  "pyo3",
  "pyo3-build-config",

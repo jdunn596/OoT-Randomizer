@@ -11,7 +11,7 @@ from Models import restrictiveBytes
 import rs.rom
 from Utils import is_bundled, subprocess_args, local_path, data_path, get_version_bytes
 from crc import calculate_crc
-from ntype import BigStream
+from rs.rom import BigStream
 from rs.version import base_version, branch_identifier, supplementary_version
 
 DMADATA_START: int = 0x7430  # NTSC 1.0/1.1: 0x7430, NTSC 1.2: 0x7960, Debug: 0x012F70
@@ -26,9 +26,10 @@ NUM_OVERLAY_ENTRIES: int = 0x1D7
 NUM_PAUSE_PLAYER_OVERLAY_ENTRIES: int = 2
 
 class Rom(BigStream):
-    def __init__(self, file: Optional[str] = None, *, pal: bool = False) -> None:
-        super().__init__(bytearray())
+    def __new__(cls, *args, **kwargs) -> Rom:
+        return super().__new__(cls, bytearray())
 
+    def __init__(self, file: Optional[str] = None, *, pal: bool = False) -> None:
         self.pal: bool = pal
         self.original: Rom = self
         self.changed_address: dict[int, int] = {}
@@ -67,7 +68,7 @@ class Rom(BigStream):
 
         if not pal:
             # Add file to maximum size
-            self.buffer.extend(bytearray([0x00] * (0x4000000 - len(self.buffer))))
+            self.buffer = self.buffer + bytes([0x00] * (0x4000000 - len(self.buffer)))
             self.original = self.copy()
             self.overlay_table: list[OverlayEntry] = OverlayTable.read_overlay_table(self, OVERLAY_TABLE_START, OVERLAY_TABLE_OFFSET, OVERLAY_TABLE_ENTRY_SIZE, NUM_OVERLAY_ENTRIES) + OverlayTable.read_overlay_table(self, PAUSE_PLAYER_OVERLAY_TABLE_START, PAUSE_PLAYER_OVERLAY_TABLE_OFFSET, PAUSE_PLAYER_OVERLAY_TABLE_ENTRY_SIZE, NUM_PAUSE_PLAYER_OVERLAY_ENTRIES)
             # Add version number to header.

@@ -9,7 +9,6 @@ extern char CFG_CUSTOM_MESSAGE_1[];
 extern char CFG_CUSTOM_MESSAGE_2[];
 extern char VERSION_STRING_TXT[];
 extern char TIME_STRING_TXT[];
-extern uint8_t SPOILER_AVAILABLE;
 extern uint8_t PLANDOMIZER_USED;
 
 #define TEXT_WIDTH 8
@@ -93,9 +92,6 @@ void draw_file_message(z64_disp_buf_t* db, const z64_menudata_t* menu_data) {
             print_msg(db, TIME_STRING_TXT,          &top);
             print_msg(db, "",                       &top);
 
-            if (SPOILER_AVAILABLE) {
-                print_msg(db, "Spoiler available",  &top);
-            }
             if (PLANDOMIZER_USED) {
                 print_msg(db, "Plandomizer",        &top);
             }

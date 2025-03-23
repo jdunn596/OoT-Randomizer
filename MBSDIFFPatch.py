@@ -8,7 +8,7 @@ from typing import Optional
 
 from Rom import Rom
 from Utils import default_output_path, is_bundled, local_path, run_process
-from ntype import BigStream
+from rs.rom import BigStream
 
 
 # Handle 3.0 website patches.

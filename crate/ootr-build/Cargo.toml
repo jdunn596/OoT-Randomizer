@@ -1,0 +1,18 @@
+[package]
+name = "ootr-build"
+version.workspace = true
+edition.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+decompress = { git = "https://github.com/fenhl/OoT_Decompressor", branch = "riir" }
+futures = "0.3.31"
+itermore = { version = "0.7.1", features = ["array_windows"] }
+lazy-regex = "3.4.1"
+serde = { version = "1.0.219", features = ["derive"] }
+thiserror = "2.0.12"
+tokio = { version = "1.44.1", features = ["io-util", "process"] }
+tokio-stream = { version = "0.1.17", features = ["io-util"] }
+wheel = { git = "https://github.com/fenhl/wheel", branch = "main", features = ["serde", "serde_json", "serde_json_path_to_error"] }

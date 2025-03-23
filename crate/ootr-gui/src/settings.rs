@@ -12,10 +12,7 @@ use {
     indexmap::IndexMap,
     pyo3::{
         IntoPyObjectExt as _,
-        exceptions::{
-            PyTypeError,
-            PyValueError,
-        },
+        exceptions::*,
         intern,
         prelude::*,
         types::{

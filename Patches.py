@@ -35,7 +35,7 @@ from Spoiler import Spoiler
 from TextBox import line_wrap
 from Utils import data_path, get_version_bytes
 from World import World
-from ntype import BigStream
+from rs.rom import BigStream
 from texture_util import ci4_rgba16patch_to_ci8, rgba16_patch
 from rs.version import __version__, base_version, branch_identifier, supplementary_version
 
@@ -480,9 +480,6 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
     if len(version_str) > line_len:
         version_str = "v" + __version__
     rom.write_bytes(rom.sym('VERSION_STRING_TXT'), make_bytes(version_str, 25))
-
-    if world.settings.create_spoiler:
-        rom.write_byte(rom.sym('SPOILER_AVAILABLE'), 0x01)
 
     if world.settings.enable_distribution_file:
         rom.write_byte(rom.sym('PLANDOMIZER_USED'), 0x01)

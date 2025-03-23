@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import copy
 from io import FileIO
 from Rom import Rom
 
@@ -87,7 +89,7 @@ class AudioBank:
         self.num_drums: int = table_entry[13]
         self.num_sfx: int = int.from_bytes(table_entry[14:16], 'big')
         self.bank_data = audiobank_file[self.bank_offset:self.bank_offset + self.size]
-        self.original_data = self.bank_data.copy()
+        self.original_data = copy.copy(self.bank_data)
         self.table_entry: bytearray = table_entry
         self.duplicate_banks: list[AudioBank] = []
         # Process the bank
