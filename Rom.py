@@ -2,14 +2,12 @@ from __future__ import annotations
 import copy
 import json
 import os
-import platform
-import subprocess
 from collections.abc import Iterator, Sequence
 from typing import Optional
 
 from Models import restrictiveBytes
 import rs.rom
-from Utils import is_bundled, subprocess_args, local_path, data_path, get_version_bytes
+from Utils import local_path, data_path, get_version_bytes
 from crc import calculate_crc
 from rs.rom import BigStream
 from rs.version import base_version, branch_identifier, supplementary_version
