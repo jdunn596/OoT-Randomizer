@@ -4,6 +4,7 @@ use {
     std::{
         borrow::Cow,
         collections::{
+            BTreeMap,
             HashMap,
             HashSet,
         },
@@ -165,7 +166,7 @@ enum Message {
     Init {
         icon: window::Icon,
         default_presets: settings::PresetsDefault,
-        custom_presets: HashMap<String, settings::Preset>,
+        custom_presets: BTreeMap<String, settings::Preset>,
         settings_mapping: settings::Mapping,
     },
     MarkPatchesSaved {
@@ -219,7 +220,7 @@ struct Gui {
     base_rom_path: PathBuf,
     icon: Option<window::Icon>,
     default_presets: settings::PresetsDefault,
-    custom_presets: HashMap<String, settings::Preset>,
+    custom_presets: BTreeMap<String, settings::Preset>,
     settings_mapping: settings::Mapping,
     #[default(Some(DEFAULT_PRESET.to_owned()))]
     /// `None` means we're customizing presets.
