@@ -9,6 +9,7 @@ use {
         },
         fmt,
         io::{
+            self,
             Cursor,
             prelude::*,
         },
@@ -118,6 +119,8 @@ enum Error {
     #[error(transparent)] Zip(#[from] zip::result::ZipError),
     #[error("{0}")]
     Empty(nonempty_collections::Error),
+    #[error("integer overflow while attempting to copy preset")]
+    TooManyCopies,
     #[error("support for non-UTF-8 paths not yet implemented")] //TODO
     Utf8,
 }
@@ -180,6 +183,10 @@ enum Message {
         window_to_check: window::Id,
     },
     Nop,
+    PresetCopied {
+        copy_name: String,
+        value: settings::Preset,
+    },
     SavePatches {
         window: window::Id,
     },
@@ -440,12 +447,21 @@ impl Gui {
                 }
             }
             Message::CopyPreset(name) => {
-                let copy_name = format!("Copy of {name}");
                 let value = self.preset(&name).into_owned();
-                self.custom_presets.insert(copy_name.clone(), value.clone());
                 return cmd(async move {
-                    fs::write_json(custom_preset_path(&copy_name), value).await?;
-                    Ok(Message::EditPreset(copy_name))
+                    for copy_idx in 1.. {
+                        let copy_name = if copy_idx == 1 {
+                            format!("Copy of {name}")
+                        } else {
+                            format!("Copy {copy_idx} of {name}")
+                        };
+                        match fs::write_json_new(custom_preset_path(&copy_name), &value).await {
+                            Ok(()) => return Ok(Message::PresetCopied { copy_name, value }),
+                            Err(wheel::Error::Io { inner, .. }) if inner.kind() == io::ErrorKind::AlreadyExists => {}
+                            Err(e) => return Err(e.into()),
+                        }
+                    }
+                    Err(Error::TooManyCopies)
                 })
             }
             Message::CustomizeSettings => self.selected_preset = None,
@@ -585,6 +601,10 @@ impl Gui {
                 return cmd(future::ok(Message::CloseRequested(window_to_close)))
             }
             Message::Nop => {}
+            Message::PresetCopied { copy_name, value } => {
+                self.custom_presets.insert(copy_name.clone(), value);
+                return cmd(future::ok(Message::EditPreset(copy_name)))
+            }
             Message::SavePatches { window } => {
                 let seed = self.seed(window).clone();
                 return cmd(async move {
@@ -905,7 +925,7 @@ impl Gui {
                                                                             Message::Nop
                                                                         }).step(step))
                                                                         .push(TextInput::new(&format!("{min}–{max}"), &value.to_string()).on_input_maybe(enabled.then(|| move |new_value: String| if_chain! {
-                                                                            if let Ok(new_value) = new_value.parse();
+                                                                            if let Ok(new_value) = new_value.parse::<i32>();
                                                                             if (min..=max).contains(&new_value);
                                                                             then {
                                                                                 Message::EditPresetSetting { window, setting_name: setting_name.clone(), new_value: settings::Value(json!(new_value)) }
