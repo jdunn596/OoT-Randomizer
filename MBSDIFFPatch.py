@@ -76,7 +76,7 @@ def apply_ootr_3_web_patch(settings, rom: Rom) -> None:
         rom.write_bytes(0x35, version_bytes)
     # Force language to be English in the event a Japanese rom was submitted
     rom.write_byte(0x3E, 0x45)
-    rom.force_patch.append(0x3E)
+    rom.force_patch.add(0x3E)
 
 
 # Re-implementation of https://github.com/mhinds7/minibsdiff

@@ -585,7 +585,7 @@ def cosmetic_patch(settings: Settings) -> None:
     patched_base_rom = copy.copy(rom.buffer)
     rom.changed_address = {}
     rom.changed_dma = {}
-    rom.force_patch = []
+    rom.force_patch = set()
 
     patchfilename = '%s_Cosmetic.zpf' % output_path
     cosmetics_log = patch_cosmetics(settings, rom)
@@ -619,7 +619,7 @@ def diff_roms(settings: Settings, diff_rom_file: str) -> None:
 
     logger.info('Loading base ROM.')
     rom = Rom(settings.rom)
-    rom.force_patch = []
+    rom.force_patch = set()
 
     filename_split = os.path.basename(diff_rom_file).rpartition('.')
     output_filename_base = settings.output_file if settings.output_file else filename_split[0]

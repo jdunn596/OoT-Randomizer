@@ -32,7 +32,7 @@ class Rom(BigStream):
         self.original: Rom = self
         self.changed_address: dict[int, int] = {}
         self.changed_dma: dict[int, tuple[int, int, int]] = {}
-        self.force_patch: list[int] = []
+        self.force_patch: set[int] = set()
         self.dma: DMAIterator = DMAIterator(self, DMADATA_START)
 
         if not pal:
@@ -157,7 +157,7 @@ class Rom(BigStream):
         self.buffer = copy.copy(self.original.buffer)
         self.changed_address = {}
         self.changed_dma = {}
-        self.force_patch = []
+        self.force_patch = set()
         self.last_address = 0
         self.write_version_bytes()
 
@@ -181,7 +181,7 @@ class Rom(BigStream):
         version_bytes = get_version_bytes(base_version, branch_identifier, supplementary_version)
         self.write_bytes(0x19, version_bytes[:5])
         self.write_bytes(0x35, version_bytes[:3])
-        self.force_patch.extend([0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x35, 0x36, 0x37])
+        self.force_patch |= {0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x35, 0x36, 0x37}
 
     def read_version_bytes(self) -> bytearray:
         version_bytes = self.read_bytes(0x19, 5)
