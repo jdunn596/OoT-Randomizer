@@ -9,11 +9,7 @@ use {
             HashSet,
         },
         fmt,
-        io::{
-            self,
-            Cursor,
-            prelude::*,
-        },
+        io,
         iter,
         num::NonZero,
         path::{
@@ -76,7 +72,21 @@ use {
         fs,
         traits::IoResultExt as _,
     },
+};
+#[cfg(target_arch = "wasm32")] use {
+    std::io::{
+        Cursor,
+        prelude::*,
+    },
     zip::ZipWriter,
+};
+#[cfg(not(target_arch = "wasm32"))] use {
+    async_zip::{
+        Compression,
+        ZipEntryBuilder,
+        tokio::write::ZipFileWriter,
+    },
+    wheel::fs::File,
 };
 
 mod settings;
@@ -117,7 +127,8 @@ enum Error {
     #[error(transparent)] Python(#[from] PyErr),
     #[error(transparent)] Task(#[from] tokio::task::JoinError),
     #[error(transparent)] Wheel(#[from] wheel::Error),
-    #[error(transparent)] Zip(#[from] zip::result::ZipError),
+    #[cfg(target_arch = "wasm32")] #[error(transparent)] Zip(#[from] zip::result::ZipError),
+    #[cfg(not(target_arch = "wasm32"))] #[error(transparent)] Zip(#[from] async_zip::error::ZipError),
     #[error("{0}")]
     Empty(nonempty_collections::Error),
     #[error("Randomizer requires at least Python 3.8 and you are using {major}.{minor}.{patch}")]
@@ -278,13 +289,23 @@ impl Seed {
             if let Ok(patch) = self.patches.iter().into_iter().exactly_one() {
                 file.write(patch).await.at(file.path())?;
             } else {
-                let mut zip = ZipWriter::new(Cursor::<Vec<_>>::default()); //TODO on non-WASM platforms, write directly to the file for better performance
-                for (world_idx, world_patch) in self.patches.iter().enumerate() {
-                    let world_id = NonZero::new(u8::try_from(world_idx + 1).expect("got more than 255 seeds")).expect("got more than 255 seeds");
-                    zip.start_file(format!("P{world_id}"), zip::write::SimpleFileOptions::default())?;
-                    zip.write_all(world_patch).at_unknown()?;
+                #[cfg(target_arch = "wasm32")] {
+                    let mut zip = ZipWriter::new(Cursor::<Vec<_>>::default());
+                    for (world_idx, world_patch) in self.patches.iter().enumerate() {
+                        let world_id = NonZero::new(u8::try_from(world_idx + 1).expect("got more than 255 seeds")).expect("got more than 255 seeds");
+                        zip.start_file(format!("P{world_id}"), zip::write::SimpleFileOptions::default())?;
+                        zip.write_all(world_patch).at_unknown()?;
+                    }
+                    file.write(&zip.finish()?.into_inner()).await.at(file.path())?;
                 }
-                file.write(&zip.finish()?.into_inner()).await.at(file.path())?;
+                #[cfg(not(target_arch = "wasm32"))] {
+                    let mut zip = ZipFileWriter::with_tokio(File::create(file.path()).await?);
+                    for (world_idx, world_patch) in self.patches.iter().enumerate() {
+                        let world_id = NonZero::new(u8::try_from(world_idx + 1).expect("got more than 255 seeds")).expect("got more than 255 seeds");
+                        zip.write_entry_whole(ZipEntryBuilder::new(format!("P{world_id}").into(), Compression::Deflate), world_patch).await?;
+                    }
+                    zip.close().await?.into_inner().sync_all().await?;
+                }
             }
             true
         } else {
