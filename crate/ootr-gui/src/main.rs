@@ -416,7 +416,15 @@ impl Gui {
             Message::AskSavePatches { window_to_close, window_to_check, unsaved_worlds } => return cmd(AsyncMessageDialog::default()
                 .set_level(rfd::MessageLevel::Warning)
                 .set_title("Unsaved Seed")
-                .set_description(format!("Do you want to keep this seed? You haven't saved worlds {}.", natjoin(unsaved_worlds))) //TODO special cases: single-world seed, no world saved, only one world not saved
+                .set_description(if_chain! {
+                    if let Some(WindowState::Seed(seed)) = self.windows.get(&window_to_check);
+                    if unsaved_worlds.len() == seed.patches.len();
+                    then {
+                        format!("Do you want to keep this seed?")
+                    } else {
+                        format!("Do you want to keep this seed? You haven't saved world{} {}.", if unsaved_worlds.len() == NonZero::<usize>::MIN { "" } else { "s" }, natjoin(unsaved_worlds))
+                    }
+                })
                 .set_buttons(rfd::MessageButtons::YesNoCancelCustom(format!("Save"), format!("Delete"), format!("Cancel")))
                 //TODO set_parent (iced::window::run_with_handle, requires iced to upgrade to raw-window-handle 0.6)
                 .show()
