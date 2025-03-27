@@ -120,6 +120,12 @@ enum Error {
     #[error(transparent)] Zip(#[from] zip::result::ZipError),
     #[error("{0}")]
     Empty(nonempty_collections::Error),
+    #[error("Randomizer requires at least Python 3.8 and you are using {major}.{minor}.{patch}")]
+    PythonVersion {
+        major: u8,
+        minor: u8,
+        patch: u8,
+    },
     #[error("integer overflow while attempting to copy preset")]
     TooManyCopies,
     #[error("support for non-UTF-8 paths not yet implemented")] //TODO
@@ -993,7 +999,11 @@ fn main() -> Result<(), Error> {
             let () = spawn_blocking(move || Python::with_gil(|py| {
                 let py_version = py.version_info();
                 if py_version < (3, 8) {
-                    panic!("Randomizer requires at least Python 3.8 and you are using {}.{}.{}", py_version.major, py_version.minor, py_version.patch); //TODO GUI dialog
+                    return Err(Error::PythonVersion {
+                        major: py_version.major,
+                        minor: py_version.minor,
+                        patch: py_version.patch,
+                    })
                 }
                 let sys = py.import("sys")?;
                 sys.getattr("path")?.call_method1("append", (concat!(env!("CARGO_MANIFEST_DIR"), "/../.."),))?;
