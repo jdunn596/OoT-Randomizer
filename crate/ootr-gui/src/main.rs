@@ -22,6 +22,7 @@ use {
         Dark,
         Light,
     },
+    enum_iterator::all,
     futures::{
         future::{
             self,
@@ -55,6 +56,7 @@ use {
         NEVec,
         NonEmptyIterator as _,
     },
+    ootr_macros::translate,
     pyo3::{
         exceptions::*,
         prelude::*,
@@ -72,6 +74,7 @@ use {
         fs,
         traits::IoResultExt as _,
     },
+    crate::lang::Language,
 };
 #[cfg(target_arch = "wasm32")] use {
     std::io::{
@@ -89,6 +92,7 @@ use {
     wheel::fs::File,
 };
 
+mod lang;
 mod settings;
 
 const MAIN_WINDOW_SIZE: Size = Size { width: 675.0, height: 512.0 };
@@ -201,6 +205,7 @@ enum Message {
         window_to_check: window::Id,
     },
     Nop,
+    PalRomBrowse,
     PresetCopied {
         copy_name: String,
         value: settings::Preset,
@@ -222,6 +227,8 @@ enum Message {
         response: rfd::MessageDialogResult,
     },
     SetBaseRomPath(PathBuf),
+    SetLanguage(Language),
+    SetPalRomPath(PathBuf),
     SetPreset(String),
     SetSettingsTab {
         window: window::Id,
@@ -234,7 +241,9 @@ struct Gui {
     windows: HashMap<window::Id, WindowState>,
     // global/main window state
     error: Option<Arc<Error>>,
+    language: Language,
     base_rom_path: PathBuf,
+    pal_rom_path: PathBuf,
     icon: Option<window::Icon>,
     default_presets: settings::PresetsDefault,
     custom_presets: BTreeMap<String, settings::Preset>,
@@ -328,6 +337,10 @@ impl Seed {
 impl Gui {
     fn has_cached_base_rom(&self) -> bool {
         Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../ZOOTDEC.z64")).exists()
+    }
+
+    fn has_cached_pal_rom(&self) -> bool {
+        Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../ZOOTDEC-PAL.z64")).exists()
     }
 
     fn presets(&self) -> impl Iterator<Item = (&str, bool, Cow<'_, settings::Preset>)> {
@@ -562,10 +575,16 @@ impl Gui {
                 //TODO if goal hints are used and there are more than 5 worlds, ask for confirmation due to long generation times
                 //TODO when generating a multiworld rom/wad, ask for the player number. The text field is initially blank
                 let mut settings_base = self.selected_preset().into_owned();
+                let language = self.language;
+                settings_base.insert(format!("language"), settings::Value(json!(language.setting_value())));
                 let base_rom_path = self.base_rom_path.clone();
+                let pal_rom_path = self.pal_rom_path.clone();
                 return cmd(async move {
                     if !base_rom_path.as_os_str().is_empty() {
                         settings_base.insert(format!("rom"), settings::Value(json!(base_rom_path.to_str().ok_or(Error::Utf8)?.to_owned())));
+                    }
+                    if language.requires_pal_rom() && !pal_rom_path.as_os_str().is_empty() {
+                        settings_base.insert(format!("pal_rom"), settings::Value(json!(pal_rom_path.to_str().ok_or(Error::Utf8)?.to_owned())));
                     }
                     settings_base.insert(format!("create_compressed_rom"), settings::Value(json!(false)));
                     settings_base.insert(format!("create_cosmetics_log"), settings::Value(json!(false)));
@@ -637,6 +656,16 @@ impl Gui {
                 return cmd(future::ok(Message::CloseRequested(window_to_close)))
             }
             Message::Nop => {}
+            Message::PalRomBrowse => return cmd(async move {
+                Ok(if let Some(file) = AsyncFileDialog::default()
+                    .add_filter("Nintendo 64 rom", &["n64", "v64", "z64"])
+                    .pick_file().await
+                {
+                    Message::SetPalRomPath(file.path().to_owned())
+                } else {
+                    Message::Nop
+                })
+            }),
             Message::PresetCopied { copy_name, value } => {
                 self.custom_presets.insert(copy_name.clone(), value);
                 return cmd(future::ok(Message::EditPreset(copy_name)))
@@ -716,6 +745,8 @@ impl Gui {
                 unreachable!("got non-custom response from dialog with custom labels")
             },
             Message::SetBaseRomPath(new_path) => self.base_rom_path = new_path,
+            Message::SetLanguage(language) => self.language = language,
+            Message::SetPalRomPath(new_path) => self.pal_rom_path = new_path,
             Message::SetPreset(new_preset) => self.selected_preset = Some(new_preset),
             Message::SetSettingsTab { window, tab_name } => if let Some(window) = self.windows.get_mut(&window) {
                 if let WindowState::Preset { active_tab, .. } = window {
@@ -741,9 +772,20 @@ impl Gui {
                     .padding(8)
                     .into()
                 } else if let Some(selected_preset) = self.selected_preset.as_deref() {
-                    Column::new()
+                    let mut col = Column::new()
                     //TODO “Generate from” (dropdown, random seed/set seed/patch file, hide irrelevant GUI elements)
                     //TODO “Seed” (text field, only if “Generate from set seed”)
+                    .push(Row::new()
+                        .push(translate! {
+                            self.language;
+                            French => "Langue :";
+                            German => "Sprache:";
+                            English => "Language:";
+                        })
+                        .push(PickList::new(all().collect_vec(), Some(self.language), Message::SetLanguage).width(Length::Fill))
+                        .align_y(iced::Alignment::Center)
+                        .spacing(8)
+                    )
                     .push(Row::new()
                         .push("Base rom:")
                         .push(TextInput::new(if self.has_cached_base_rom() { "Using cached rom" } else { "Required" }, &self.base_rom_path.to_string_lossy())
@@ -753,7 +795,20 @@ impl Gui {
                         .push(Button::new("Browse…").on_press(Message::BaseRomBrowse))
                         .align_y(iced::Alignment::Center)
                         .spacing(8)
-                    )
+                    );
+                    if self.language.requires_pal_rom() {
+                        col = col.push(Row::new()
+                            .push("Base rom (PAL):")
+                            .push(TextInput::new(if self.has_cached_pal_rom() { "Using cached rom" } else { "Required" }, &self.pal_rom_path.to_string_lossy())
+                                .on_input(|s| Message::SetPalRomPath(PathBuf::from(s)))
+                                .on_paste(|s| Message::SetPalRomPath(PathBuf::from(s)))
+                            )
+                            .push(Button::new("Browse…").on_press(Message::PalRomBrowse))
+                            .align_y(iced::Alignment::Center)
+                            .spacing(8)
+                        );
+                    }
+                    col
                     .push(Row::new()
                         .push("Settings:")
                         .push(PickList::<&str, _, _, _, _>::new(self.presets().map(|(name, _, _)| name).collect_vec(), Some(selected_preset), |preset| Message::SetPreset(preset.to_owned())).width(Length::Fill))
@@ -766,6 +821,8 @@ impl Gui {
                     .push({
                         let disable_reason = if !self.has_cached_base_rom() && self.base_rom_path.as_os_str().is_empty() {
                             Some("Please load a base rom")
+                        } else if self.language.requires_pal_rom() && !self.has_cached_pal_rom() && self.pal_rom_path.as_os_str().is_empty() {
+                            Some("Please load a PAL base rom")
                         } else if self.generating {
                             Some("Generating seed…")
                         } else {
@@ -810,8 +867,7 @@ impl Gui {
                 let mut button_row = Row::new();
                 for tab in &self.settings_mapping.tabs {
                     //TODO reintroduce relevant settings:
-                    // pal_rom → main view, only displayed when relevant for selected language
-                    // world_count, language → main view? Main Rules tab?
+                    // world_count → main view? Main Rules tab?
                     // player_num → seed window/ask when generating relevant output type
                     // generate_from_file, patch_file → main view? file argument/drop handler? both?
                     // cosmetics, sfx → separate preset list in seed window

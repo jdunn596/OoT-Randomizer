@@ -15,6 +15,7 @@ warnings = "deny"
 
 [dependencies]
 dark-light = "2"
+enum-iterator = "2.1.0"
 futures = "0.3"
 iced = { version = "0.13", default-features = false, features = ["auto-detect-theme", "image", "multi-window", "tiny-skia", "tokio"] }
 if_chain = "1.0.2"
@@ -22,6 +23,7 @@ image = { version = "0.24", default-features = false, features = ["ico"] } # tra
 indexmap = { version = "2.6.0", features = ["serde"] }
 itertools = "0.14"
 nonempty-collections = "0.3"
+ootr-macros = { path = "../ootr-macros" }
 pyo3 = { version = "0.24", features = [
     "auto-initialize",
     "indexmap",
