@@ -401,7 +401,7 @@ impl Gui {
                 .set_title("Delete Preset")
                 .set_description(format!("Are you sure you want to permanently delete the preset “{name}”?"))
                 .set_buttons(rfd::MessageButtons::OkCancelCustom(format!("Delete"), format!("Cancel")))
-                //TODO set_parent (iced::window::run_with_handle)
+                //TODO set_parent (iced::window::run_with_handle, requires iced to upgrade to raw-window-handle 0.6)
                 .show()
                 .map(move |response| Ok(if let rfd::MessageDialogResult::Custom(label) = response {
                     match &*label {
@@ -418,7 +418,7 @@ impl Gui {
                 .set_title("Unsaved Seed")
                 .set_description(format!("Do you want to keep this seed? You haven't saved worlds {}.", natjoin(unsaved_worlds))) //TODO special cases: single-world seed, no world saved, only one world not saved
                 .set_buttons(rfd::MessageButtons::YesNoCancelCustom(format!("Save"), format!("Delete"), format!("Cancel")))
-                //TODO set_parent (iced::window::run_with_handle)
+                //TODO set_parent (iced::window::run_with_handle, requires iced to upgrade to raw-window-handle 0.6)
                 .show()
                 .map(move |response| Ok(Message::SavePatchesResponse { window_to_close, window_to_check, response }))
             ),
@@ -427,7 +427,7 @@ impl Gui {
                 .set_title("Unsaved Spoiler Log")
                 .set_description("Do you want to save the spoiler log for this seed? A spoiler log is vital if you need help while playing the seed.")
                 .set_buttons(rfd::MessageButtons::YesNoCancelCustom(format!("Save"), format!("Delete"), format!("Cancel")))
-                //TODO set_parent (iced::window::run_with_handle)
+                //TODO set_parent (iced::window::run_with_handle, requires iced to upgrade to raw-window-handle 0.6)
                 .show()
                 .map(move |response| Ok(Message::SaveSpoilerResponse { window_to_close, window_to_check, response }))
             ),
