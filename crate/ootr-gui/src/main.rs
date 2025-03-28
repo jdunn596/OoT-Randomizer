@@ -8,7 +8,6 @@ use {
             HashMap,
             HashSet,
         },
-        fmt,
         io,
         iter,
         num::NonZero,
@@ -52,7 +51,6 @@ use {
         Position,
     },
     nonempty_collections::{
-        IntoNonEmptyIterator,
         NEVec,
         NonEmptyIterator as _,
     },
@@ -74,7 +72,10 @@ use {
         fs,
         traits::IoResultExt as _,
     },
-    crate::lang::Language,
+    crate::lang::Language::{
+        self,
+        *,
+    },
 };
 #[cfg(target_arch = "wasm32")] use {
     std::io::{
@@ -99,20 +100,6 @@ const MAIN_WINDOW_SIZE: Size = Size { width: 675.0, height: 512.0 };
 const DEFAULT_PRESET: &str = "Default / Beginner";
 const CUSTOM_PRESETS_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/Presets");
 const CUSTOM_PRESET_SUFFIX: &str = ".custom.json";
-
-fn natjoin<T: fmt::Display>(elts: impl IntoNonEmptyIterator<Item = T>) -> String {
-    let (first, rest) = elts.into_nonempty_iter().next();
-    let mut rest = rest.fuse();
-    match (rest.next(), rest.next()) {
-        (None, _) => first.to_string(),
-        (Some(second), None) => format!("{first} and {second}"),
-        (Some(second), Some(third)) => {
-            let mut rest = [second, third].into_nonempty_iter().chain(rest).collect::<NEVec<_>>();
-            let last = rest.pop().expect("rest contains at least second and third");
-            format!("{first}, {}, and {last}", rest.into_iter().format(", "))
-        }
-    }
-}
 
 fn custom_preset_path(name: &str) -> PathBuf {
     Path::new(CUSTOM_PRESETS_PATH).join(format!("{}{CUSTOM_PRESET_SUFFIX}", name.replace('/', "_")))
@@ -241,6 +228,7 @@ struct Gui {
     windows: HashMap<window::Id, WindowState>,
     // global/main window state
     error: Option<Arc<Error>>,
+    //TODO default to system language if possible, see https://github.com/unicode-org/icu4x/issues/3990
     language: Language,
     base_rom_path: PathBuf,
     pal_rom_path: PathBuf,
@@ -287,12 +275,18 @@ impl Seed {
         None
     }
 
-    async fn patches_save_dialog(&self) -> Result<bool, Error> {
+    async fn patches_save_dialog(&self, lang: Language) -> Result<bool, Error> {
         let dialog = AsyncFileDialog::default();
         let dialog = if self.patches.len() == NonZero::<usize>::MIN {
-            dialog.add_filter("Ocarina of Time randomizer patch file", &["zpf"])
+            dialog.add_filter(translate! {
+                lang;
+                English => "Ocarina of Time randomizer patch file";
+            }, &["zpf"])
         } else {
-            dialog.add_filter("Ocarina of Time randomizer patch file archive", &["zpfz"])
+            dialog.add_filter(translate! {
+                lang;
+                English => "Ocarina of Time randomizer patch file archive";
+            }, &["zpfz"])
         };
         Ok(if let Some(file) = dialog.save_file().await {
             if let Ok(patch) = self.patches.iter().into_iter().exactly_one() {
@@ -322,9 +316,13 @@ impl Seed {
         })
     }
 
-    async fn spoiler_save_dialog(&self) -> Result<bool, Error> {
+    async fn spoiler_save_dialog(&self, lang: Language) -> Result<bool, Error> {
         let dialog = AsyncFileDialog::default()
-            .add_filter("JSON document", &["json"]);
+            .add_filter(translate! {
+                lang;
+                German => "JSON-Dokument";
+                English => "JSON document";
+            }, &["json"]);
         Ok(if let Some(file) = dialog.save_file().await {
             file.write(self.spoiler_log.as_bytes()).await.at(file.path())?;
             true
@@ -401,67 +399,134 @@ impl Gui {
 
     fn title(&self, window: window::Id) -> String {
         match self.windows.get(&window) {
-            None | Some(WindowState::Main) => format!("OoT Randomizer"),
+            None | Some(WindowState::Main) => translate! {
+                self.language;
+                English => format!("OoT Randomizer");
+            },
             Some(WindowState::Preset { preset_name, .. }) => preset_name.clone(),
-            Some(WindowState::Seed(_)) => format!("Seed"),
+            Some(WindowState::Seed(_)) => translate! {
+                self.language;
+                English => format!("Seed");
+            },
         }
     }
 
     fn update(&mut self, msg: Message) -> Task<Message> {
         match msg {
-            Message::AskDeletePreset(name) => return cmd(AsyncMessageDialog::default()
-                .set_level(rfd::MessageLevel::Warning)
-                .set_title("Delete Preset")
-                .set_description(format!("Are you sure you want to permanently delete the preset “{name}”?"))
-                .set_buttons(rfd::MessageButtons::OkCancelCustom(format!("Delete"), format!("Cancel")))
-                //TODO set_parent (iced::window::run_with_handle, requires iced to upgrade to raw-window-handle 0.6)
-                .show()
-                .map(move |response| Ok(if let rfd::MessageDialogResult::Custom(label) = response {
-                    match &*label {
-                        "Delete" => Message::DeletePreset(name),
-                        "Cancel" => Message::Nop,
-                        _ => unreachable!("got {label} from Delete/Cancel dialog"),
-                    }
-                } else {
-                    unreachable!("got non-custom response from dialog with custom labels")
-                }))
-            ),
-            Message::AskSavePatches { window_to_close, window_to_check, unsaved_worlds } => return cmd(AsyncMessageDialog::default()
-                .set_level(rfd::MessageLevel::Warning)
-                .set_title("Unsaved Seed")
-                .set_description(if_chain! {
-                    if let Some(WindowState::Seed(seed)) = self.windows.get(&window_to_check);
-                    if unsaved_worlds.len() == seed.patches.len();
-                    then {
-                        format!("Do you want to keep this seed?")
+            Message::AskDeletePreset(name) => {
+                let delete_label = translate! {
+                    self.language;
+                    English => "Delete";
+                };
+                let cancel_label = translate! {
+                    self.language;
+                    English => "Cancel";
+                };
+                return cmd(AsyncMessageDialog::default()
+                    .set_level(rfd::MessageLevel::Warning)
+                    .set_title(translate! {
+                        self.language;
+                        English => "Delete Preset";
+                    })
+                    .set_description(translate! {
+                        self.language;
+                        English => format!("Are you sure you want to permanently delete the preset “{name}”?");
+                    })
+                    .set_buttons(rfd::MessageButtons::OkCancelCustom(delete_label.to_owned(), cancel_label.to_owned()))
+                    //TODO set_parent (iced::window::run_with_handle, requires iced to upgrade to raw-window-handle 0.6)
+                    .show()
+                    .map(move |response| Ok(if let rfd::MessageDialogResult::Custom(label) = response {
+                        if label == delete_label {
+                            Message::DeletePreset(name)
+                        } else if label == cancel_label {
+                            Message::Nop
+                        } else {
+                            unreachable!("got {label} from Delete/Cancel dialog")
+                        }
                     } else {
-                        format!("Do you want to keep this seed? You haven't saved world{} {}.", if unsaved_worlds.len() == NonZero::<usize>::MIN { "" } else { "s" }, natjoin(unsaved_worlds))
-                    }
+                        unreachable!("got non-custom response from dialog with custom labels")
+                    }))
+                )
+            }
+            Message::AskSavePatches { window_to_close, window_to_check, unsaved_worlds } => {
+                let save_label = translate! {
+                    self.language;
+                    English => "Save";
+                };
+                let delete_label = translate! {
+                    self.language;
+                    English => "Delete";
+                };
+                let cancel_label = translate! {
+                    self.language;
+                    English => "Cancel";
+                };
+                return cmd(AsyncMessageDialog::default()
+                    .set_level(rfd::MessageLevel::Warning)
+                    .set_title(translate! {
+                        self.language;
+                        English => "Unsaved Seed";
+                    })
+                    .set_description(translate! {
+                        self.language;
+                        English => if_chain! {
+                            if let Some(WindowState::Seed(seed)) = self.windows.get(&window_to_check);
+                            if unsaved_worlds.len() == seed.patches.len();
+                            then {
+                                format!("Do you want to keep this seed?")
+                            } else {
+                                format!("Do you want to keep this seed? You haven't saved world{} {}.", if unsaved_worlds.len() == NonZero::<usize>::MIN { "" } else { "s" }, English.join(unsaved_worlds))
+                            }
+                        };
+                    })
+                    .set_buttons(rfd::MessageButtons::YesNoCancelCustom(save_label.to_owned(), delete_label.to_owned(), cancel_label.to_owned()))
+                    //TODO set_parent (iced::window::run_with_handle, requires iced to upgrade to raw-window-handle 0.6)
+                    .show()
+                    .map(move |response| Ok(Message::SavePatchesResponse { window_to_close, window_to_check, response }))
+                )
+            }
+            Message::AskSaveSpoiler { window_to_close, window_to_check } => {
+                let save_label = translate! {
+                    self.language;
+                    English => "Save";
+                };
+                let delete_label = translate! {
+                    self.language;
+                    English => "Delete";
+                };
+                let cancel_label = translate! {
+                    self.language;
+                    English => "Cancel";
+                };
+                return cmd(AsyncMessageDialog::default()
+                    .set_level(rfd::MessageLevel::Warning)
+                    .set_title(translate! {
+                        self.language;
+                        English => "Unsaved Spoiler Log";
+                    })
+                    .set_description("Do you want to save the spoiler log for this seed? A spoiler log is vital if you need help while playing the seed.")
+                    .set_buttons(rfd::MessageButtons::YesNoCancelCustom(save_label.to_owned(), delete_label.to_owned(), cancel_label.to_owned()))
+                    //TODO set_parent (iced::window::run_with_handle, requires iced to upgrade to raw-window-handle 0.6)
+                    .show()
+                    .map(move |response| Ok(Message::SaveSpoilerResponse { window_to_close, window_to_check, response }))
+                )
+            }
+            Message::BaseRomBrowse => {
+                let lang = self.language;
+                return cmd(async move {
+                    Ok(if let Some(file) = AsyncFileDialog::default()
+                        .add_filter(translate! {
+                            lang;
+                            English => "Nintendo 64 rom";
+                        }, &["n64", "v64", "z64"])
+                        .pick_file().await
+                    {
+                        Message::SetBaseRomPath(file.path().to_owned())
+                    } else {
+                        Message::Nop
+                    })
                 })
-                .set_buttons(rfd::MessageButtons::YesNoCancelCustom(format!("Save"), format!("Delete"), format!("Cancel")))
-                //TODO set_parent (iced::window::run_with_handle, requires iced to upgrade to raw-window-handle 0.6)
-                .show()
-                .map(move |response| Ok(Message::SavePatchesResponse { window_to_close, window_to_check, response }))
-            ),
-            Message::AskSaveSpoiler { window_to_close, window_to_check } => return cmd(AsyncMessageDialog::default()
-                .set_level(rfd::MessageLevel::Warning)
-                .set_title("Unsaved Spoiler Log")
-                .set_description("Do you want to save the spoiler log for this seed? A spoiler log is vital if you need help while playing the seed.")
-                .set_buttons(rfd::MessageButtons::YesNoCancelCustom(format!("Save"), format!("Delete"), format!("Cancel")))
-                //TODO set_parent (iced::window::run_with_handle, requires iced to upgrade to raw-window-handle 0.6)
-                .show()
-                .map(move |response| Ok(Message::SaveSpoilerResponse { window_to_close, window_to_check, response }))
-            ),
-            Message::BaseRomBrowse => return cmd(async move {
-                Ok(if let Some(file) = AsyncFileDialog::default()
-                    .add_filter("Nintendo 64 rom", &["n64", "v64", "z64"])
-                    .pick_file().await
-                {
-                    Message::SetBaseRomPath(file.path().to_owned())
-                } else {
-                    Message::Nop
-                })
-            }),
+            }
             Message::CloseRequested(window) => {
                 match &self.windows[&window] {
                     WindowState::Main => {
@@ -496,13 +561,17 @@ impl Gui {
                 }
             }
             Message::CopyPreset(name) => {
+                let lang = self.language;
                 let value = self.preset(&name).into_owned();
                 return cmd(async move {
                     for copy_idx in 1.. {
-                        let copy_name = if copy_idx == 1 {
-                            format!("Copy of {name}")
-                        } else {
-                            format!("Copy {copy_idx} of {name}")
+                        let copy_name = translate! {
+                            lang;
+                            English => if copy_idx == 1 {
+                                format!("Copy of {name}")
+                            } else {
+                                format!("Copy {copy_idx} of {name}")
+                            };
                         };
                         match fs::write_json_new(custom_preset_path(&copy_name), &value).await {
                             Ok(()) => return Ok(Message::PresetCopied { copy_name, value }),
@@ -656,24 +725,31 @@ impl Gui {
                 return cmd(future::ok(Message::CloseRequested(window_to_close)))
             }
             Message::Nop => {}
-            Message::PalRomBrowse => return cmd(async move {
-                Ok(if let Some(file) = AsyncFileDialog::default()
-                    .add_filter("Nintendo 64 rom", &["n64", "v64", "z64"])
-                    .pick_file().await
-                {
-                    Message::SetPalRomPath(file.path().to_owned())
-                } else {
-                    Message::Nop
+            Message::PalRomBrowse => {
+                let lang = self.language;
+                return cmd(async move {
+                    Ok(if let Some(file) = AsyncFileDialog::default()
+                        .add_filter(translate! {
+                            lang;
+                            English => "Nintendo 64 rom";
+                        }, &["n64", "v64", "z64"])
+                        .pick_file().await
+                    {
+                        Message::SetPalRomPath(file.path().to_owned())
+                    } else {
+                        Message::Nop
+                    })
                 })
-            }),
+            }
             Message::PresetCopied { copy_name, value } => {
                 self.custom_presets.insert(copy_name.clone(), value);
                 return cmd(future::ok(Message::EditPreset(copy_name)))
             }
             Message::SavePatches { window } => {
+                let lang = self.language;
                 let seed = self.seed(window).clone();
                 return cmd(async move {
-                    Ok(if seed.patches_save_dialog().await? {
+                    Ok(if seed.patches_save_dialog(lang).await? {
                         Message::MarkPatchesSaved { window }
                     } else {
                         Message::Nop
@@ -681,36 +757,49 @@ impl Gui {
                 })
             }
             Message::SavePatchesResponse { window_to_close, window_to_check, response } => if let rfd::MessageDialogResult::Custom(label) = response {
-                match &*label {
-                    "Save" => {
-                        let seed = self.seed(window_to_check).clone();
-                        return cmd(async move {
-                            Ok(if seed.patches_save_dialog().await? {
-                                Message::MarkPatchesSavedAndContinueClosing { window_to_close, window_to_check }
-                            } else {
-                                Message::Nop
-                            })
-                        })
-                    }
-                    "Delete" => {
-                        self.windows.remove(&window_to_check);
-                        return if window_to_close == window_to_check {
-                            window::close(window_to_check)
+                let save_label = translate! {
+                    self.language;
+                    English => "Save";
+                };
+                let delete_label = translate! {
+                    self.language;
+                    English => "Delete";
+                };
+                let cancel_label = translate! {
+                    self.language;
+                    English => "Cancel";
+                };
+                if label == save_label {
+                    let lang = self.language;
+                    let seed = self.seed(window_to_check).clone();
+                    return cmd(async move {
+                        Ok(if seed.patches_save_dialog(lang).await? {
+                            Message::MarkPatchesSavedAndContinueClosing { window_to_close, window_to_check }
                         } else {
-                            window::close(window_to_check)
-                            .chain(cmd(future::ok(Message::CloseRequested(window_to_close))))
-                        }
+                            Message::Nop
+                        })
+                    })
+                } else if label == delete_label {
+                    self.windows.remove(&window_to_check);
+                    return if window_to_close == window_to_check {
+                        window::close(window_to_check)
+                    } else {
+                        window::close(window_to_check)
+                        .chain(cmd(future::ok(Message::CloseRequested(window_to_close))))
                     }
-                    "Cancel" => {}
-                    _ => unreachable!("got {label} from Save/Delete/Cancel dialog"),
+                } else if label == cancel_label {
+                    // do nothing
+                } else {
+                    unreachable!("got {label} from Save/Delete/Cancel dialog")
                 }
             } else {
                 unreachable!("got non-custom response from dialog with custom labels")
             },
             Message::SaveSpoiler { window } => {
+                let lang = self.language;
                 let seed = self.seed(window).clone();
                 return cmd(async move {
-                    Ok(if seed.spoiler_save_dialog().await? {
+                    Ok(if seed.spoiler_save_dialog(lang).await? {
                         Message::MarkSpoilerSaved { window }
                     } else {
                         Message::Nop
@@ -718,28 +807,40 @@ impl Gui {
                 })
             }
             Message::SaveSpoilerResponse { window_to_close, window_to_check, response } => if let rfd::MessageDialogResult::Custom(label) = response {
-                match &*label {
-                    "Save" => {
-                        let seed = self.seed(window_to_check).clone();
-                        return cmd(async move {
-                            Ok(if seed.spoiler_save_dialog().await? {
-                                Message::MarkSpoilerSavedAndContinueClosing { window_to_close, window_to_check }
-                            } else {
-                                Message::Nop
-                            })
-                        })
-                    }
-                    "Delete" => {
-                        self.windows.remove(&window_to_check);
-                        return if window_to_close == window_to_check {
-                            window::close(window_to_check)
+                let save_label = translate! {
+                    self.language;
+                    English => "Save";
+                };
+                let delete_label = translate! {
+                    self.language;
+                    English => "Delete";
+                };
+                let cancel_label = translate! {
+                    self.language;
+                    English => "Cancel";
+                };
+                if label == save_label {
+                    let lang = self.language;
+                    let seed = self.seed(window_to_check).clone();
+                    return cmd(async move {
+                        Ok(if seed.spoiler_save_dialog(lang).await? {
+                            Message::MarkSpoilerSavedAndContinueClosing { window_to_close, window_to_check }
                         } else {
-                            window::close(window_to_check)
-                            .chain(cmd(future::ok(Message::CloseRequested(window_to_close))))
-                        }
+                            Message::Nop
+                        })
+                    })
+                } else if label == delete_label {
+                    self.windows.remove(&window_to_check);
+                    return if window_to_close == window_to_check {
+                        window::close(window_to_check)
+                    } else {
+                        window::close(window_to_check)
+                        .chain(cmd(future::ok(Message::CloseRequested(window_to_close))))
                     }
-                    "Cancel" => {}
-                    _ => unreachable!("got {label} from Save/Delete/Cancel dialog"),
+                } else if label == cancel_label {
+                    // do nothing
+                } else {
+                    unreachable!("got {label} from Save/Delete/Cancel dialog")
                 }
             } else {
                 unreachable!("got non-custom response from dialog with custom labels")
@@ -765,9 +866,16 @@ impl Gui {
             Some(WindowState::Main) => {
                 if let Some(ref e) = self.error {
                     Column::new()
-                    .push(Text::new("Error").size(24))
+                    .push(Text::new(translate! {
+                        self.language;
+                        German => "Fehler";
+                        English => "Error";
+                    }).size(24))
                     .push(Text::new(e.to_string()))
-                    .push(Button::new("Dismiss").on_press(Message::DismissError))
+                    .push(Button::new(translate! {
+                        self.language;
+                        English => "Dismiss";
+                    }).on_press(Message::DismissError))
                     .spacing(8)
                     .padding(8)
                     .into()
@@ -787,32 +895,78 @@ impl Gui {
                         .spacing(8)
                     )
                     .push(Row::new()
-                        .push("Base rom:")
-                        .push(TextInput::new(if self.has_cached_base_rom() { "Using cached rom" } else { "Required" }, &self.base_rom_path.to_string_lossy())
+                        .push(if self.language.requires_pal_rom() {
+                            translate! {
+                                self.language;
+                                English => "Base rom (NTSC):";
+                            }
+                        } else {
+                            translate! {
+                                self.language;
+                                English => "Base rom:";
+                            }
+                        })
+                        .push(TextInput::new(if self.has_cached_base_rom() {
+                            translate! {
+                                self.language;
+                                English => "Using cached rom";
+                            }
+                        } else {
+                            translate! {
+                                self.language;
+                                English => "Required";
+                            }
+                        }, &self.base_rom_path.to_string_lossy())
                             .on_input(|s| Message::SetBaseRomPath(PathBuf::from(s)))
                             .on_paste(|s| Message::SetBaseRomPath(PathBuf::from(s)))
                         )
-                        .push(Button::new("Browse…").on_press(Message::BaseRomBrowse))
+                        .push(Button::new(translate! {
+                            self.language;
+                            English => "Browse…";
+                        }).on_press(Message::BaseRomBrowse))
                         .align_y(iced::Alignment::Center)
                         .spacing(8)
                     );
                     if self.language.requires_pal_rom() {
                         col = col.push(Row::new()
-                            .push("Base rom (PAL):")
-                            .push(TextInput::new(if self.has_cached_pal_rom() { "Using cached rom" } else { "Required" }, &self.pal_rom_path.to_string_lossy())
+                            .push(translate! {
+                                self.language;
+                                English => "Base rom (PAL):";
+                            })
+                            .push(TextInput::new(if self.has_cached_pal_rom() {
+                                translate! {
+                                    self.language;
+                                    English => "Using cached rom";
+                                }
+                            } else {
+                                translate! {
+                                    self.language;
+                                    English => "Required";
+                                }
+                            }, &self.pal_rom_path.to_string_lossy())
                                 .on_input(|s| Message::SetPalRomPath(PathBuf::from(s)))
                                 .on_paste(|s| Message::SetPalRomPath(PathBuf::from(s)))
                             )
-                            .push(Button::new("Browse…").on_press(Message::PalRomBrowse))
+                            .push(Button::new(translate! {
+                                self.language;
+                                English => "Browse…";
+                            }).on_press(Message::PalRomBrowse))
                             .align_y(iced::Alignment::Center)
                             .spacing(8)
                         );
                     }
                     col
                     .push(Row::new()
-                        .push("Settings:")
+                        .push(translate! {
+                            self.language;
+                            German => "Einstellungen:";
+                            English => "Settings:";
+                        })
                         .push(PickList::<&str, _, _, _, _>::new(self.presets().map(|(name, _, _)| name).collect_vec(), Some(selected_preset), |preset| Message::SetPreset(preset.to_owned())).width(Length::Fill))
-                        .push(Button::new("Customize").on_press(Message::CustomizeSettings))
+                        .push(Button::new(translate! {
+                            self.language;
+                            English => "Customize";
+                        }).on_press(Message::CustomizeSettings))
                         .align_y(iced::Alignment::Center)
                         .spacing(8)
                     )
@@ -820,15 +974,27 @@ impl Gui {
                     //TODO “Output type” (dropdown with options depending on world count)
                     .push({
                         let disable_reason = if !self.has_cached_base_rom() && self.base_rom_path.as_os_str().is_empty() {
-                            Some("Please load a base rom")
+                            Some(translate! {
+                                self.language;
+                                English => "Please load a base rom";
+                            })
                         } else if self.language.requires_pal_rom() && !self.has_cached_pal_rom() && self.pal_rom_path.as_os_str().is_empty() {
-                            Some("Please load a PAL base rom")
+                            Some(translate! {
+                                self.language;
+                                English => "Please load a PAL base rom";
+                            })
                         } else if self.generating {
-                            Some("Generating seed…")
+                            Some(translate! {
+                                self.language;
+                                English => "Generating seed…";
+                            })
                         } else {
                             None
                         };
-                        let mut btn = Button::new(Text::new("Generate!"));
+                        let mut btn = Button::new(Text::new(translate! {
+                            self.language;
+                            English => "Generate!";
+                        }));
                         if disable_reason.is_none() { btn = btn.on_press(Message::Generate) }
                         let mut row = Row::new().push(btn);
                         if let Some(disable_reason) = disable_reason {
@@ -843,11 +1009,23 @@ impl Gui {
                     Scrollable::new(
                         Row::new()
                             .push(Column::from_vec(self.presets().map(|(name, is_custom, _)| Row::new()
-                                .push(Button::new("Select").on_press(Message::SetPreset(name.to_owned())))
-                                .push(Button::new("Copy").on_press(Message::CopyPreset(name.to_owned())))
-                                .push(Button::new("Edit").on_press_maybe(is_custom.then(|| Message::EditPreset(name.to_owned()))))
+                                .push(Button::new(translate! {
+                                    self.language;
+                                    English => "Select";
+                                }).on_press(Message::SetPreset(name.to_owned())))
+                                .push(Button::new(translate! {
+                                    self.language;
+                                    English => "Copy";
+                                }).on_press(Message::CopyPreset(name.to_owned())))
+                                .push(Button::new(translate! {
+                                    self.language;
+                                    English => "Edit";
+                                }).on_press_maybe(is_custom.then(|| Message::EditPreset(name.to_owned()))))
                                 //TODO rename button? (and/or allow renaming the preset when editing it)
-                                .push(Button::new("Delete").on_press_maybe(is_custom.then(|| Message::AskDeletePreset(name.to_owned()))))
+                                .push(Button::new(translate! {
+                                    self.language;
+                                    English => "Delete";
+                                }).on_press_maybe(is_custom.then(|| Message::AskDeletePreset(name.to_owned()))))
                                 .push(name)
                                 .align_y(iced::Alignment::Center)
                                 .spacing(8)
@@ -892,7 +1070,10 @@ impl Gui {
                                         disabled_settings.extend(settings);
                                     }
                                 },
-                                Err(e) => col = col.push(Text::new(format!("error checking disables for setting {setting_name}: {e}")).color(iced::Color::from_rgb8(255, 0, 0))),
+                                Err(e) => col = col.push(Text::new(translate! {
+                                    self.language;
+                                    English => format!("error checking disables for setting {setting_name}: {e}");
+                                }).color(iced::Color::from_rgb8(255, 0, 0))),
                             }
                         }
                     }
@@ -945,7 +1126,10 @@ impl Gui {
                                                                     if enabled {
                                                                         choices.iter().filter_map(|(value, display)| Some(settings::DisplayValue { value: value.as_str()?.to_owned(), display: display.clone() })).collect_vec()
                                                                     } else {
-                                                                        vec![settings::DisplayValue { value: String::default(), display: format!("This setting is disabled.") }]
+                                                                        vec![settings::DisplayValue { value: String::default(), display: translate! {
+                                                                            self.language;
+                                                                            English => format!("This setting is disabled.");
+                                                                        } }]
                                                                     },
                                                                     value.as_str().and_then(|value| Some(settings::DisplayValue { value: value.to_owned(), display: choices.get(&settings::Value(json!(value)))?.to_owned() })),
                                                                     move |settings::DisplayValue { value, .. }| if enabled {
@@ -966,7 +1150,10 @@ impl Gui {
                                                                         if enabled {
                                                                             choices.iter().filter_map(|(iter_value, display)| Some(settings::DisplayValue { value: iter_value.as_str()?.to_owned(), display: format!("{} {display}", if value.as_array().is_some_and(|choices| choices.contains(iter_value)) { '✓' } else { ' ' }) })).collect_vec()
                                                                         } else {
-                                                                            vec![settings::DisplayValue { value: String::default(), display: format!("This setting is disabled.") }]
+                                                                            vec![settings::DisplayValue { value: String::default(), display: translate! {
+                                                                                self.language;
+                                                                                English => format!("This setting is disabled.");
+                                                                            } }]
                                                                         },
                                                                         None::<settings::DisplayValue>,
                                                                         move |settings::DisplayValue { value, .. }| if enabled {
@@ -986,17 +1173,39 @@ impl Gui {
                                                                         },
                                                                     ).placeholder(if let settings::Value(serde_json::Value::Array(value)) = value {
                                                                         if choices.keys().map(|settings::Value(value)| value).eq(value) {
-                                                                            format!("All")
+                                                                            translate! {
+                                                                                self.language;
+                                                                                English => format!("All");
+                                                                            }
                                                                         } else {
                                                                             match &**value {
-                                                                                [] => format!("None"),
-                                                                                [value] => choices.get(value).map(|value| &**value).unwrap_or("Unknown").to_owned(),
-                                                                                [v1, v2] => format!("{}, {}", choices.get(v1).as_deref().map(|value| &**value).unwrap_or("Unknown"), choices.get(v2).as_deref().map(|value| &**value).unwrap_or("Unknown")),
-                                                                                [_, _, _, ..] => format!("{} Selected", value.len()),
+                                                                                [] => translate! {
+                                                                                    self.language;
+                                                                                    English => format!("None");
+                                                                                },
+                                                                                [value] => choices.get(value).map(|value| &**value).unwrap_or(translate! {
+                                                                                    self.language;
+                                                                                    English => "Unknown";
+                                                                                }).to_owned(),
+                                                                                [v1, v2] => format!("{}, {}", choices.get(v1).as_deref().map(|value| &**value).unwrap_or(translate! {
+                                                                                    self.language;
+                                                                                    English => "Unknown";
+                                                                                }), choices.get(v2).as_deref().map(|value| &**value).unwrap_or(translate! {
+                                                                                    self.language;
+                                                                                    English => "Unknown";
+                                                                                })),
+                                                                                [_, _, _, ..] => translate! {
+                                                                                    self.language;
+                                                                                    English => format!("{} Selected", value.len());
+                                                                                },
                                                                             }
                                                                         }
                                                                     } else {
-                                                                        format!("Error")
+                                                                        translate! {
+                                                                            self.language;
+                                                                            German => format!("Fehler");
+                                                                            English => format!("Error");
+                                                                        }
                                                                     }).width(Length::Fill))
                                                                     .align_y(iced::Alignment::Center)
                                                                     .spacing(8)
@@ -1057,12 +1266,21 @@ impl Gui {
                     .into()
             }
             Some(WindowState::Seed(_)) => Column::new()
-                .push(Text::new("Seed").size(24)) //TODO show file hash instead
+                .push(Text::new(translate! {
+                    self.language;
+                    English => "Seed";
+                }).size(24)) //TODO show file hash instead
                 //TODO buttons to:
                 // * Save rom
                 // * Save wad
-                .push(Button::new("Save patch file").on_press(Message::SavePatches { window }))
-                .push(Button::new("Save spoiler log").on_press(Message::SaveSpoiler { window }))
+                .push(Button::new(translate! {
+                    self.language;
+                    English => "Save patch file";
+                }).on_press(Message::SavePatches { window }))
+                .push(Button::new(translate! {
+                    self.language;
+                    English => "Save spoiler log";
+                }).on_press(Message::SaveSpoiler { window }))
                 .spacing(8)
                 .padding(8)
                 .into(),
