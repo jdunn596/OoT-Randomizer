@@ -38,6 +38,7 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
   * New “Shuffle Blue Warps” setting
   * New “Mutually Exclusive One-Ways” setting which makes the hint area restriction apply to one-way entrances of different types
   * The “Key Appearance Matches Dungeon” setting has been reworked into “Distinct Item Models”, with additional options that are on by default but can be disabled to reintroduce pairs of items with the same model, including frog songs/warp songs and small keys/keyrings
+  * Ganon's Castle can now be a pre-completed dungeon; new “Ganon's Castle Can Be Pre-completed” setting which can be disabled to make “Pre-completed Dungeon Count” exclude Ganon's Castle
 * New hint types based on [Elagatua's `Dev` branch](https://github.com/Elagatua/OoT-Randomizer/tree/Dev):
   * `goal-count` tells you how many items are on the path to a goal.
   * `goal-legacy` is a variant of `goal` with many subtle differences. Notably, hints will be placed in the goal's world, not the world where the item can be found. It is used in the “Triforce Blitz S2” hint distribution.
@@ -81,6 +82,7 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
   * The GUI tweaks made by [`Dev-R`](https://github.com/Roman971/OoT-Randomizer) are further adjusted to balance consistency with [main `Dev`](https://github.com/OoTRandomizer/OoT-Randomizer) and ease of use.
   * The Lens of Truth can be in a foolish area if Treasure Chest Game keys are shuffled and all relevant “lensless” tricks are enabled.
 * Bug fixes:
+  * Fix Dual and Dual Always hints hinting locations in precompleted dungeons ([#2397](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2397))
   * Fix incorrect color highlighting in Important Check hints ([#2394](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2394))
   * Fix generator crash with bingo hints when all bottles (other than Ruto's letter) are milk bottles ([#2392](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2392))
   * Fix misc. location hints not being counted as always hints for the purpose of Barren and Named Item hints ([#2391](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2391))

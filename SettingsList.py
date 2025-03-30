@@ -1689,7 +1689,7 @@ class SettingInfos:
         disable        = {
             '!specific': {'settings': ['empty_dungeons_specific']},
             '!rewards':  {'settings': ['empty_dungeons_rewards']},
-            '!count':    {'settings': ['empty_dungeons_count']},
+            '!count':    {'settings': ['empty_dungeons_count', 'empty_dungeons_count_include_ganon']},
         },
         gui_params     = {
             'distribution':  [
@@ -1708,7 +1708,8 @@ class SettingInfos:
             'Fire Temple':            "Fire Temple",
             'Water Temple':           "Water Temple",
             'Shadow Temple':          "Shadow Temple",
-            'Spirit Temple':          "Spirit Temple"
+            'Spirit Temple':          "Spirit Temple",
+            'Ganons Castle':          "Ganon's Castle",
         },
         default         = [],
         gui_tooltip     = '''\
@@ -1749,11 +1750,29 @@ class SettingInfos:
         gui_text       = "Pre-completed Dungeon Count",
         default        = 2,
         minimum        = 1,
-        maximum        = 8,
+        maximum        = 9,
         gui_tooltip    = '''\
             Specify the number of pre-completed
             dungeons to appear in the game.
         ''',
+        shared         = True,
+        disable        = {
+            9: {'settings': ['empty_dungeons_count_include_ganon']},
+        },
+        gui_params     = {
+            "hide_when_disabled": True,
+        },
+    )
+
+    empty_dungeons_count_include_ganon = Checkbutton(
+        gui_text       = "Ganon's Castle Can Be Pre-completed",
+        gui_tooltip    = '''\
+            The setting "Pre-completed Dungeon Count"
+            randomly selects which dungeons should be
+            pre-completed. This setting controls
+            whether Ganon's Castle can be selected.
+        ''',
+        disabled_default = True,
         shared         = True,
         gui_params     = {
             "hide_when_disabled": True,
