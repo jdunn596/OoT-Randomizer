@@ -196,6 +196,7 @@ class World:
             'Water Temple': False,
             'Spirit Temple': False,
             'Shadow Temple': False,
+            'Ganons Castle': False,
         }
 
         # dungeon forms will be decided later
@@ -561,6 +562,8 @@ class World:
                 self.skipped_trials[trial] = True
 
         # Determine precompleted and MQ Dungeons (avoid having an MQ dungeon be precompleted unless necessary)
+        if not self.settings.empty_dungeons_count_include_ganon:
+            del self.precompleted_dungeons['Ganons Castle']
         mq_dungeon_pool = list(self.dungeon_mq)
         precompleted_dungeon_pool = list(self.precompleted_dungeons)
         dist_num_mq, dist_num_empty = self.distribution.configure_dungeons(self, mq_dungeon_pool, precompleted_dungeon_pool)
@@ -578,7 +581,7 @@ class World:
             if nb_to_pick < 0:
                 raise RuntimeError(f"{dist_num_empty} dungeons are set to empty on world {self.id+1}, but only {self.settings.empty_dungeons_count} empty dungeons allowed")
             if len(precompleted_dungeon_pool) < nb_to_pick:
-                non_empty = 8 - dist_num_empty - len(precompleted_dungeon_pool)
+                non_empty = len(self.precompleted_dungeons) - dist_num_empty - len(precompleted_dungeon_pool)
                 raise RuntimeError(f"On world {self.id+1}, {dist_num_empty} dungeons are set to empty and {non_empty} to non-empty. Can't reach {self.settings.empty_dungeons_count} empty dungeons.")
 
             # Prioritize non-Deku dungeons in Require Gohma, then prioritize non-MQ dungeons
