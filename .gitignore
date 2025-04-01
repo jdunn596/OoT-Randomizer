@@ -48,4 +48,5 @@ tests/Output
 /ASM/c/rs.h
 /flamegraph.svg
 /rs.pyd
+/rs.so
 /target

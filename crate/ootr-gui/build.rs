@@ -10,6 +10,7 @@ use {
 };
 
 fn main() -> io::Result<()> {
+    pyo3_build_config::add_python_framework_link_args();
     if env::var_os("CARGO_CFG_WINDOWS").is_some() {
         WindowsResource::new()
             .set_icon("../../assets/ootr-arrows.ico")
