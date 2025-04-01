@@ -171,6 +171,7 @@
             "empty_dungeons_specific",
             "empty_dungeons_rewards",
             "empty_dungeons_count",
+            "empty_dungeons_count_include_ganon",
             "shuffle_interior_entrances",
             "shuffle_hideout_entrances",
             "shuffle_gerudo_fortress_heart_piece",

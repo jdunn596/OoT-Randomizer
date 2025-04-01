@@ -93,7 +93,7 @@ class GossipStone:
 
 class GossipText:
     def __init__(self, text: str, colors: Optional[list[str]] = None, hinted_locations: Optional[list[str]] = None,
-                 hinted_items: Optional[list[str]] = None, prefix: str = "They say that ", capitalize: bool = True) -> None:
+                 hinted_items: Optional[list[str]] = None, *, prefix: str = "They say that ", capitalize: bool = True) -> None:
         text = prefix + text
         if capitalize:
             text = text[:1].upper() + text[1:]
@@ -104,7 +104,13 @@ class GossipText:
         self.hint_type: Optional[str] = None
 
     def to_json(self) -> dict:
-        return {'text': self.text, 'colors': self.colors, 'hinted_locations': self.hinted_locations, 'hinted_items': self.hinted_items, 'hint_type': self.hint_type}
+        return {
+            'text': self.text,
+            'colors': self.colors,
+            'hinted_locations': self.hinted_locations,
+            'hinted_items': self.hinted_items,
+            'hint_type': self.hint_type,
+        }
 
     def __str__(self) -> str:
         return get_raw_text(line_wrap(color_text(self)))
@@ -196,7 +202,7 @@ def is_restricted_dungeon_item(item: Item) -> bool:
 
 
 def add_hint(spoiler: Spoiler, world: World, groups: list[list[int]], gossip_text: GossipText, count: int,
-             locations: Optional[list[Location]] = None, force_reachable: bool = False, hint_type: str = None) -> bool:
+             locations: Optional[list[Location]] = None, force_reachable: bool = False, *, hint_type: str) -> bool:
     gossip_text.hint_type = hint_type
 
     random.shuffle(groups)
@@ -699,7 +705,7 @@ def get_goal_legacy_hint(spoiler, world, checked):
 
     location_text = HintArea.at(location).text(world.settings.clearer_hints, world=None if location.world.id == world.id else location.world.id + 1)
 
-    return (GossipText(f'{location_text} is on the {goal.hint_text}.', ['Light Blue', goal.color], [location.name], [location.item.name]), [location])
+    return GossipText(f'{location_text} is on the {goal.hint_text}.', ['Light Blue', goal.color], [location.name], [location.item.name]), [location]
 
 def get_goal_hint(spoiler: Spoiler, world: World, checked: set[str]) -> HintReturn:
     goal_category = get_goal_category(spoiler, world, world.goal_categories)
@@ -839,7 +845,7 @@ def get_goal_count_hint(spoiler, world, checked):
     item_count = sum(len(locations) for locations in spoiler.goal_locations[world.id][goal_category.name][goal.name].values())
     item_text = 'step' if item_count == 1 else 'steps'
 
-    return (GossipText('the %s requires #%d# %s.' % (goal.hint_text, item_count, item_text), [goal.color, 'Light Blue']), None) #TODO adjust for multiworld?
+    return GossipText('the %s requires #%d# %s.' % (goal.hint_text, item_count, item_text), [goal.color, 'Light Blue']), None #TODO adjust for multiworld?
 
 def get_wanderer_hint(spoiler, world, checked):
     hint_types = [get_playthrough_location_hint, get_unlock_playthrough_hint]
@@ -875,7 +881,7 @@ def get_playthrough_location_hint(spoiler, world, checked):
     hint_area = HintArea.at(location)
     location_text = hint_area.text(world.settings.clearer_hints)
 
-    return (GossipText('%s is on the way of the #wanderer#.' % location_text, ['Light Blue', 'Yellow'], [location.name], [location.item.name]), [location])
+    return GossipText('%s is on the way of the #wanderer#.' % location_text, ['Light Blue', 'Yellow'], [location.name], [location.item.name]), [location]
 
 def get_unlock_woth_hint(spoiler, world, checked):
     return get_unlock_hint(spoiler, world, checked, 'unlock-woth')
@@ -979,7 +985,7 @@ def get_unlock_hint(spoiler: Spoiler, world: World, checked: set[str], hint_type
     else:
         gossip_colors = ['Light Blue', 'Light Blue']
 
-    return (GossipText(gossip_text, gossip_colors, [required_location.name, location.name], [required_location.item.name, location.item.name]), [required_location, location])
+    return GossipText(gossip_text, gossip_colors, [required_location.name, location.name], [required_location.item.name, location.item.name]), [required_location, location]
 
 def get_barren_hint(spoiler: Spoiler, world: World, checked: set[str], all_checked: set[str]) -> HintReturn:
     if not hasattr(world, 'get_barren_hint_prev'):
@@ -1308,11 +1314,16 @@ def get_dungeon_hint(spoiler: Spoiler, world: World, checked: set[str]) -> HintR
 
 
 def get_random_multi_hint(spoiler: Spoiler, world: World, checked: set[str], hint_type: str) -> HintReturn:
+    def is_valid_hint(hint: Hint) -> bool:
+        locations = [world.get_location(location) for location in get_multi(hint.name).locations]
+        if not is_checked(locations, checked):
+            return False
+        if world.settings.empty_dungeons_mode != 'none' and any(location.world.precompleted_dungeons.get(HintArea.at(location).dungeon_name, False) for location in locations):
+            return False
+        return True
+
     hint_group = get_hint_group(hint_type, world)
-    multi_hints = list(filter(
-        lambda hint: not is_checked([world.get_location(location) for location in get_multi(hint.name).locations], checked),
-        hint_group,
-    ))
+    multi_hints = list(filter(is_valid_hint, hint_group))
 
     if not multi_hints:
         return None
@@ -1465,7 +1476,7 @@ def get_important_check_hint(spoiler: Spoiler, world: World, checked: set[str]) 
     else:
         numcolor = 'Green'
 
-    return GossipText('#%s# has #%d# major item%s.' % (hint_loc, item_count, "s" if item_count != 1 else ""), ['Green', numcolor]), None
+    return GossipText('%s has #%d# major item%s.' % (hint_loc, item_count, "s" if item_count != 1 else ""), ['Green', numcolor]), None
 
 
 hint_func: dict[str, HintFunc | BarrenFunc] = {
@@ -1628,7 +1639,7 @@ def build_world_gossip_hints(spoiler: Spoiler, world: World, checked_locations: 
 
     stone_ids = list(gossipLocations.keys())
 
-    world.distribution.configure_gossip(spoiler, stone_ids)
+    world.distribution.configure_gossip(spoiler, world, stone_ids, checked_locations, checked_always_locations)
 
     # If all gossip stones already have plando'd hints, do not roll any more
     if len(stone_ids) == 0:

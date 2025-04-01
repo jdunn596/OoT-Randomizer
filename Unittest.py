@@ -21,10 +21,14 @@ from ItemPool import remove_junk_items, remove_junk_ludicrous_items, ludicrous_i
 from LocationList import location_is_viewable
 from Main import main, resolve_settings, build_world_graphs
 from Messages import Message, read_messages, shuffle_messages
-from Settings import Settings, get_preset_files
+from Settings import Settings
 from Spoiler import Spoiler
 from Rom import Rom
 from Audiobank import *
+from Utils import data_path
+
+def get_preset_files() -> list[str]:
+    return [data_path('presets_default.json')]
 
 test_dir = os.path.join(os.path.dirname(__file__), 'tests')
 output_dir = os.path.join(test_dir, 'Output')
