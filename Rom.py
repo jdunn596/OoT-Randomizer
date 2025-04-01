@@ -171,7 +171,7 @@ class Rom(BigStream):
         self.verify_dmadata()
         self.update_header()
         with open(file, 'wb') as outfile:
-            outfile.write(self.buffer)
+            outfile.write(self.buffer[:])
 
     def update_header(self) -> None:
         crc = calculate_crc(self)

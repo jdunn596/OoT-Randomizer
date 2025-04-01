@@ -1678,7 +1678,7 @@ dependencies = [
 
 [[package]]
 name = "fill-test"
-version = "8.2.67-fenhl.1.riir.2"
+version = "8.2.67-fenhl.1.riir.3"
 dependencies = [
  "collect-mac",
  "itertools",
@@ -3579,7 +3579,7 @@ checksum = "d75b0bedcc4fe52caa0e03d9f1151a323e4aa5e2d78ba3580400cd3c9e2bc4bc"
 
 [[package]]
 name = "ootr-build"
-version = "8.2.67-fenhl.1.riir.2"
+version = "8.2.67-fenhl.1.riir.3"
 dependencies = [
  "decompress",
  "futures",
@@ -3594,7 +3594,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-cli"
-version = "8.2.67-fenhl.1.riir.2"
+version = "8.2.67-fenhl.1.riir.3"
 dependencies = [
  "clap",
  "pyo3",
@@ -3604,7 +3604,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-gui"
-version = "8.2.67-fenhl.1.riir.2"
+version = "8.2.67-fenhl.1.riir.3"
 dependencies = [
  "async_zip",
  "dark-light 2.0.0",
@@ -3634,7 +3634,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-macros"
-version = "8.2.67-fenhl.1.riir.2"
+version = "8.2.67-fenhl.1.riir.3"
 dependencies = [
  "indexmap 2.8.0",
  "proc-macro2",
@@ -3644,7 +3644,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-python"
-version = "8.2.67-fenhl.1.riir.2"
+version = "8.2.67-fenhl.1.riir.3"
 dependencies = [
  "anyhow",
  "arrayref",
@@ -4339,7 +4339,7 @@ dependencies = [
 
 [[package]]
 name = "rust-n64-test"
-version = "8.2.67-fenhl.1.riir.2"
+version = "8.2.67-fenhl.1.riir.3"
 dependencies = [
  "cbindgen",
 ]
