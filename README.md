@@ -73,6 +73,7 @@ Differences between `dev-fenhl` and [`Dev-R`](https://github.com/Roman971/OoT-Ra
   * The GUI tweaks made by [`Dev-R`](https://github.com/Roman971/OoT-Randomizer) are further adjusted to balance consistency with [main `Dev`](https://github.com/OoTRandomizer/OoT-Randomizer) and ease of use.
   * The Lens of Truth can be in a foolish area if Treasure Chest Game keys are shuffled and all relevant “lensless” tricks are enabled.
 * Bug fixes:
+  * Potentially fix a bug causing an item to turn into a Gerudo mask when picked up at the same time a Triforce piece is received from the network ([#2406](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2406))
   * Fix Dual and Dual Always hints hinting locations in precompleted dungeons ([#2397](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2397))
   * Fix incorrect color highlighting in Important Check hints ([#2394](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2394))
   * Fix generator crash with bingo hints when all bottles (other than Ruto's letter) are milk bottles ([#2392](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2392))
