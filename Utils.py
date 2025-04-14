@@ -62,7 +62,7 @@ def default_output_path(path: str, *, create: bool = True) -> str:
 
 def read_logic_file(file_path: str):
     json_string = ""
-    with io.open(file_path, 'r') as file:
+    with io.open(file_path, 'r', encoding='utf-8') as file:
         for line in file.readlines():
             json_string += line.split('#')[0].replace('\n', ' ')
     json_string = re.sub(' +', ' ', json_string)

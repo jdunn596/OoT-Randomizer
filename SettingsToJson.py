@@ -261,7 +261,7 @@ def create_settings_list_json(path: str, web_version: bool = False) -> None:
             output_json['cosmeticsArray'].append(tab_json_array)
 
     for d in hint_dist_files():
-        with open(d, 'r') as dist_file:
+        with open(d, 'r', encoding='utf-8') as dist_file:
             dist = json.load(dist_file)
         if ('distribution' in dist and
            'goal' in dist['distribution'] and
@@ -269,7 +269,7 @@ def create_settings_list_json(path: str, web_version: bool = False) -> None:
                 dist['distribution']['goal']['weight'] != 0)):
             output_json['distroArray'].append(dist['name'])
 
-    with open(path, 'w') as f:
+    with open(path, 'w', encoding='utf-8') as f:
         json.dump(output_json, f)
 
 

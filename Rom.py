@@ -36,11 +36,11 @@ class Rom(BigStream):
         self.dma: DMAIterator = DMAIterator(self, DMADATA_START)
 
         if not pal:
-            with open(data_path('generated/symbols.json'), 'r') as stream:
+            with open(data_path('generated/symbols.json'), 'r', encoding='utf-8') as stream:
                 symbols = json.load(stream)
                 self.symbols: dict[str, int] = {name: {'address': int(sym['address'], 16), 'length': sym['length']} for name, sym in symbols.items()}
 
-        with open(data_path('generated/patch_symbols.json'), 'r') as stream:
+        with open(data_path('generated/patch_symbols.json'), 'r', encoding='utf-8') as stream:
             self.patch_symbols: dict[str, int] = json.load(stream)
 
         if file is None:

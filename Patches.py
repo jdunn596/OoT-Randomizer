@@ -48,7 +48,7 @@ OverrideEntry: TypeAlias = "tuple[int, int, int, int, int, int]"
 
 
 def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
-    with open(data_path('generated/rom_patch.txt'), 'r') as stream:
+    with open(data_path('generated/rom_patch.txt'), 'r', encoding='utf-8') as stream:
         for line in stream:
             address, value = [int(x, 16) for x in line.split(',')]
             rom.write_int32(address, value)

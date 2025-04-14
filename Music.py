@@ -164,7 +164,7 @@ def process_sequences(rom: Rom, ids: Iterable[tuple[str, int]], seq_type: str = 
 
     # If present, load the file containing custom music to exclude
     try:
-        with open(os.path.join(data_path(), u'custom_music_exclusion.txt')) as excl_in:
+        with open(os.path.join(data_path(), u'custom_music_exclusion.txt'), encoding='utf-8') as excl_in:
             seq_exclusion_list = excl_in.readlines()
         seq_exclusion_list = [seq.rstrip() for seq in seq_exclusion_list if seq[0] != '#']
         seq_exclusion_list = [seq for seq in seq_exclusion_list if seq.endswith('.ootrs')]

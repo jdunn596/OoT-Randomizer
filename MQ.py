@@ -428,7 +428,7 @@ def patch_files(rom: Rom, mq_scenes: list[int]) -> None:
 
 
 def get_json() -> Any:
-    with open(data_path('mqu.json'), 'r') as stream:
+    with open(data_path('mqu.json'), 'r', encoding='utf-8') as stream:
         data = json.load(stream)
     return data
 

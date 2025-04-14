@@ -6209,7 +6209,7 @@ class UnmappedSettingError(Exception):
 
 
 SettingInfos.setting_infos = {n: s for n, s in SettingInfos.__dict__.items() if isinstance(s, SettingInfo)}
-with open(data_path('settings_mapping.json')) as f:
+with open(data_path('settings_mapping.json'), encoding='utf-8') as f:
     SettingInfos.setting_map = json.load(f)
 
 for info in SettingInfos.setting_infos.values():

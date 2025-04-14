@@ -1343,7 +1343,7 @@ class CosmeticsLog:
                 try:
                     if any(map(self.settings.cosmetic_file.endswith, ['.z64', '.n64', '.v64'])):
                         raise InvalidFileException("Your Ocarina of Time ROM doesn't belong in the cosmetics plandomizer setting. If you don't know what this is for, or don't plan to use it, disable cosmetic plandomizer and try again.")
-                    with open(self.settings.cosmetic_file) as infile:
+                    with open(self.settings.cosmetic_file, encoding='utf-8') as infile:
                         self.src_dict = json.load(infile)
                 except json.decoder.JSONDecodeError as e:
                     raise InvalidFileException(f"Invalid Cosmetic Plandomizer File. Make sure the file is a valid JSON file. Failure reason: {str(e)}") from None
@@ -1407,5 +1407,5 @@ class CosmeticsLog:
 
     def to_file(self, filename: str) -> None:
         json_str = self.to_str()
-        with open(filename, 'w') as outfile:
+        with open(filename, 'w', encoding='utf-8') as outfile:
             outfile.write(json_str)

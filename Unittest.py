@@ -89,13 +89,13 @@ def load_settings(settings_file: dict[str, Any] | str, seed: Optional[str] = Non
     else:
         sfile = os.path.join(test_dir, settings_file)
         filename = os.path.splitext(settings_file)[0]
-        with open(sfile) as f:
+        with open(sfile, encoding='utf-8') as f:
             j = json.load(f)
     return make_settings_for_test(j, seed=seed, outfilename=filename)
 
 
 def load_spoiler(json_file: str) -> Any:
-    with open(json_file) as f:
+    with open(json_file, encoding='utf-8') as f:
         return json.load(f)
 
 
@@ -721,7 +721,7 @@ class TestEntranceRandomizer(unittest.TestCase):
                 # Work around normal test loading system to avoid disturbing the seed
                 sfile = os.path.join(test_dir, 'plando', filename)
                 basename = os.path.splitext(filename)[0]
-                with open(sfile) as f:
+                with open(sfile, encoding='utf-8') as f:
                     j = json.load(f)
                 base_settings = make_settings_for_test(j, seed='UWR8ZEKTU7', outfilename=basename)
                 _, world_settings = resolve_settings(base_settings)
@@ -926,7 +926,7 @@ class TestValidSpoilers(unittest.TestCase):
                     self.verify_disables(spoiler)
                 except Exception as e:
                     # output the settings file in case of any failure
-                    with open(settings_file, 'w') as f:
+                    with open(settings_file, 'w', encoding='utf-8') as f:
                         d = {k: settings.settings_dict[k] for k in out_keys}
                         json.dump(d, f, indent=0)
                     logging.getLogger('').exception(f'Failed to generate with these settings:\n{settings.get_settings_display()}\n')

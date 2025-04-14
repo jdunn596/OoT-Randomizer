@@ -227,7 +227,7 @@ class World:
 
         if len(settings.hint_dist_user) == 0:
             for d in hint_dist_files():
-                with open(d, 'r') as dist_file:
+                with open(d, 'r', encoding='utf-8') as dist_file:
                     dist = json.load(dist_file)
                 if dist['name'] == self.settings.hint_dist:
                     self.hint_dist_user: dict[str, Any] = dist

@@ -131,7 +131,7 @@ for _ in range(arguments['--seeds']):
                 base_name = base_name[:-2]
             if seed is None:
                 spoiler_path = rom_path.parent / f'{base_name}_Spoiler.json'
-                with spoiler_path.open() as spoiler_f:
+                with spoiler_path.open(encoding='utf-8') as spoiler_f:
                     spoiler = json.load(spoiler_f)
                 seed = spoiler[':seed']
             rom_paths.append(rom_path)
