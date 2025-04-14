@@ -1501,13 +1501,13 @@
         "custom_ice_trap_count": 100,
         "ice_trap_appearance": "junk_only"
     },
-    "3rd Mixed Pools Tournament": {
+    "4th Mixed Pools Tournament": {
         "aliases": [
             "mixed"
         ],
         "language": "english",
         "show_seed_info": true,
-        "user_message": "3rd Mixed Pools Tournament",
+        "user_message": "4th Mixed Pools Tournament",
         "world_count": 1,
         "create_spoiler": true,
         "password_lock": false,
@@ -1544,10 +1544,8 @@
         "open_door_of_time": true,
         "zora_fountain": "open",
         "gerudo_fortress": "open",
-        "dungeon_shortcuts_choice": "choice",
-        "dungeon_shortcuts": [
-            "Jabu Jabus Belly"
-        ],
+        "dungeon_shortcuts_choice": "off",
+        "dungeon_shortcuts": [],
         "starting_age": "random",
         "mq_dungeons_mode": "vanilla",
         "mq_dungeons_specific": [],
@@ -1627,13 +1625,13 @@
         "shuffle_silver_rupees": "vanilla",
         "silver_rupee_pouches_choice": "off",
         "silver_rupee_pouches": [],
-        "enhance_map_compass": false,
+        "enhance_map_compass": true,
         "triforce_hunt_mode": "normal",
         "free_bombchu_drops": false,
         "logic_no_night_tokens_without_suns_song": false,
         "logic_water_gold_scale_no_entry": false,
         "disabled_locations": [
-            "Deku Theater Mask of Truth",
+            "Kak 30 Gold Skulltula Reward",
             "Kak 40 Gold Skulltula Reward",
             "Kak 50 Gold Skulltula Reward"
         ],
@@ -1657,9 +1655,7 @@
             "logic_deku_b1_webs_with_bow",
             "logic_visible_collisions"
         ],
-        "starting_equipment": [
-            "deku_shield"
-        ],
+        "starting_equipment": [],
         "starting_inventory": [
             "ocarina",
             "farores_wind",
@@ -1698,7 +1694,8 @@
         "misc_hints": [
             "altar",
             "ganondorf",
-            "warp_songs_and_owls"
+            "warp_songs_and_owls",
+            "20_skulltulas"
         ],
         "correct_chest_appearances": "both",
         "chest_textures_specific": [
@@ -1709,7 +1706,9 @@
             "hearts"
         ],
         "soa_unlocks_chest_texture": false,
-        "minor_items_as_major_chest": [],
+        "minor_items_as_major_chest": [
+            "shields"
+        ],
         "invisible_chests": false,
         "correct_potcrate_appearances": "off",
         "potcrate_textures_specific": [
