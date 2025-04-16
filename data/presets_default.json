@@ -1670,7 +1670,7 @@
         "no_guard_stealth": true,
         "no_epona_race": true,
         "skip_some_minigame_phases": true,
-        "complete_mask_quest": true,
+        "complete_mask_quest": false,
         "useful_cutscenes": false,
         "fast_chests": true,
         "free_scarecrow": true,
