@@ -1678,7 +1678,7 @@ dependencies = [
 
 [[package]]
 name = "fill-test"
-version = "8.2.69-fenhl.5.riir.6"
+version = "8.2.69-fenhl.6.riir.7"
 dependencies = [
  "collect-mac",
  "itertools",
@@ -3600,7 +3600,7 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
 name = "ootr-build"
-version = "8.2.69-fenhl.5.riir.6"
+version = "8.2.69-fenhl.6.riir.7"
 dependencies = [
  "decompress",
  "futures",
@@ -3615,7 +3615,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-cli"
-version = "8.2.69-fenhl.5.riir.6"
+version = "8.2.69-fenhl.6.riir.7"
 dependencies = [
  "clap",
  "mimalloc",
@@ -3627,7 +3627,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-gui"
-version = "8.2.69-fenhl.5.riir.6"
+version = "8.2.69-fenhl.6.riir.7"
 dependencies = [
  "async_zip",
  "dark-light 2.0.0",
@@ -3659,7 +3659,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-macros"
-version = "8.2.69-fenhl.5.riir.6"
+version = "8.2.69-fenhl.6.riir.7"
 dependencies = [
  "indexmap 2.8.0",
  "proc-macro2",
@@ -3669,7 +3669,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-python"
-version = "8.2.69-fenhl.5.riir.6"
+version = "8.2.69-fenhl.6.riir.7"
 dependencies = [
  "anyhow",
  "arrayref",
@@ -4364,7 +4364,7 @@ dependencies = [
 
 [[package]]
 name = "rust-n64-test"
-version = "8.2.69-fenhl.5.riir.6"
+version = "8.2.69-fenhl.6.riir.7"
 dependencies = [
  "cbindgen",
 ]
