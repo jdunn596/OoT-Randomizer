@@ -39,6 +39,7 @@
 ## Other Changes
 * Now supports custom music written for the Majora's Mask Randomizer.
 * New Magic Meter item model to allow magic drops to be shuffled in the future.
+* Add a smoke effect to Deku Stick Capacity and Deku Nut Capacity items to distinguish them from refills.
 * Seeds rolled on ootrandomizer.com display their ID in the top left corner of the file select screen.
 * The `Other` tab of the generator has been rearranged for better grouping of settings, and the `One Major Item per Dungeon` setting has been moved there since it was causing frequent failures with `Randomize Main Rule Settings`.
 * Biggoron's text after turning in the Eyedrops has been changed to avoid potential confusion.
