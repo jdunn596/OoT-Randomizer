@@ -155,6 +155,9 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
   * [4.0](#40)
 
 ## RealRob Changelog
+### v136
+  * Fix BGS/Giants Knife/DD advancement
+
 ### v135
   * Fix DMT Summit boulder logic
 
