@@ -713,18 +713,7 @@ class SettingInfos:
         default        = False,
         disable        = {
             True: {
-                'sections': ['shuffle_section'],
-                'settings': [
-                    'open_deku', 'open_forest', 'require_gohma', 'open_kakariko', 'open_door_of_time', 'zora_fountain', 'gerudo_fortress', 'dungeon_shortcuts_choice',
-                    'dungeon_shortcuts', 'trials_random', 'trials',
-                    'starting_age', 'shuffle_interior_entrances', 'shuffle_hideout_entrances', 'shuffle_gerudo_fortress_heart_piece',
-                    'shuffle_grotto_entrances', 'shuffle_dungeon_entrances',
-                    'shuffle_bosses', 'shuffle_ganon_tower', 'shuffle_overworld_entrances', 'shuffle_gerudo_valley_river_exit', 'owl_drops', 'warp_songs', 'blue_warps', 'shuffle_child_spawn', 'shuffle_adult_spawn',
-                    'mix_entrance_pools', 'decouple_entrances', 'exclusive_one_ways',
-                    'triforce_hunt', 'triforce_hunt_mode', 'triforce_count_per_world', 'triforce_goal_per_world', 'free_bombchu_drops',
-                    'shuffle_mapcompass', 'shuffle_smallkeys', 'shuffle_hideoutkeys', 'shuffle_tcgkeys', 'key_rings_choice', 'key_rings',
-                    'shuffle_silver_rupees', 'silver_rupee_pouches_choice', 'silver_rupee_pouches', 'shuffle_bosskeys', 'enhance_map_compass',
-                ],
+                'sections': ['open_section', 'world_section', 'shuffle_section', 'shuffle_dungeon_section', 'various_section'],
             },
         },
         shared         = True,
