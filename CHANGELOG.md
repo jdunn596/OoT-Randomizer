@@ -30,6 +30,7 @@
 * Fix the “VC Crash” bug.
 * Fix Spirit Temple music not resuming after Nabooru is defeated.
 * Fix Grog not spawning when Odd Mushroom reverts on savewarp.
+* Fix some settings on the `Main Rules` tab not being disabled when `Randomize Main Rule Settings` is enabled.
 
 ## New Speedups
 * The first text box from each carpenter in the Thieves' Hideout is skipped.

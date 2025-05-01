@@ -881,7 +881,7 @@ class World:
         trials = GoalCategory('trials', 30, minimum_goals=1)
         th = GoalCategory('triforce_hunt', 30, goal_count=round(self.triforce_goal_per_world / 10), minimum_goals=3 if self.settings.triforce_hunt_mode == 'blitz' else 1)
         ganon = GoalCategory('ganon', 40, goal_count=1)
-        trial_goal = Goal(self, 'the Tower', 'path to #the Tower#', 'White', items=[{'name': 'Ganons Tower Access', 'quantity': 1, 'minimum': 1, 'hintable': True}])
+        trial_goal = Goal(self, 'the Tower', 'path to #the Tower#', 'White', items=[], create_empty=True)
 
         if self.settings.triforce_hunt and self.triforce_goal_per_world > 0:
             # "Hintable" value of False means the goal items themselves cannot
@@ -1125,7 +1125,13 @@ class World:
 
             # To avoid too many goals in the hint selection phase,
             # trials are reduced to one goal with six items to obtain.
-            if not self.settings.shuffle_ganon_tower:
+            if self.settings.shuffle_ganon_tower:
+                trial_goal.items.append({'name': 'Ganons Tower Access', 'quantity': 1, 'minimum': 1, 'hintable': True})
+                trials.goal_count += 1
+
+                trials.add_goal(trial_goal)
+                self.goal_categories[trials.name] = trials
+            else:
                 if not self.skipped_trials['Forest']:
                     trial_goal.items.append({'name': 'Forest Trial Clear', 'quantity': 1, 'minimum': 1, 'hintable': True})
                     trials.goal_count += 1
@@ -1144,8 +1150,14 @@ class World:
                 if not self.skipped_trials['Light']:
                     trial_goal.items.append({'name': 'Light Trial Clear', 'quantity': 1, 'minimum': 1, 'hintable': True})
                     trials.goal_count += 1
-            trials.add_goal(trial_goal)
-            self.goal_categories[trials.name] = trials
+
+                # Trials category is finalized and saved only if at least one trial is on
+                # If random trials are on and one world in multiworld gets 0 trials, still
+                # add the goal to prevent key errors. Since no items fulfill the goal, it
+                # will always be invalid for that world and not generate hints.
+                if self.settings.trials > 0 or self.settings.trials_random:
+                    trials.add_goal(trial_goal)
+                    self.goal_categories[trials.name] = trials
 
             # In glitched logic or if trials are off, it's possible that some items required to beat the game
             # (such as bow, magic, light arrows, or anything required to reach Ganon's Castle)
