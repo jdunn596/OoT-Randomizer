@@ -721,7 +721,7 @@ class SettingInfos:
                     'shuffle_grotto_entrances', 'shuffle_dungeon_entrances',
                     'shuffle_bosses', 'shuffle_ganon_tower', 'shuffle_overworld_entrances', 'shuffle_gerudo_valley_river_exit', 'owl_drops', 'warp_songs', 'blue_warps', 'shuffle_child_spawn', 'shuffle_adult_spawn',
                     'mix_entrance_pools', 'decouple_entrances', 'exclusive_one_ways',
-                    'triforce_hunt', 'triforce_hunt_mode', 'triforce_count_per_world', 'triforce_goal_per_world', 'free_bombchu_drops', 'one_item_per_dungeon',
+                    'triforce_hunt', 'triforce_hunt_mode', 'triforce_count_per_world', 'triforce_goal_per_world', 'free_bombchu_drops',
                     'shuffle_mapcompass', 'shuffle_smallkeys', 'shuffle_hideoutkeys', 'shuffle_tcgkeys', 'key_rings_choice', 'key_rings',
                     'shuffle_silver_rupees', 'silver_rupee_pouches_choice', 'silver_rupee_pouches', 'shuffle_bosskeys', 'enhance_map_compass',
                 ],
@@ -4590,9 +4590,6 @@ class SettingInfos:
             fail to generate, consider turning this option off.
         ''',
         shared         = True,
-        gui_params     = {
-            'randomize_key': 'randomize_settings',
-        },
     )
 
     item_pool_value = Combobox(

@@ -1445,6 +1445,15 @@ hintTable: dict[str, tuple[list[str] | str, Optional[str], str | list[str]]] = {
     'Shadow Temple Before Boss -> Bongo Bongo Boss Room':       (["past a #big lock within the house of the dead# waits", "#invisible stepping stones# past a ferry reveal"], "the #boss door in the Shadow Temple# leads to", 'entrance_exclude'),
     'Spirit Temple Before Boss -> Twinrova Boss Room':          (["past a #big lock inside a goddess of the sand# waits", "a #crumbling face# reveals"], "the #boss door in the Spirit Temple# leads to", 'entrance_exclude'),
 
+    'Queen Gohma Boss Room -> Deku Tree Before Boss':           ("the #Parasitic Armored Arachnid# resides in", "#Queen Gohma# resides in", 'entrance_exclude'),
+    'King Dodongo Boss Room -> Dodongos Cavern Mouth':          ("the #Infernal Dinosaur# resides in", "#King Dodongo# resides in", 'entrance_exclude'),
+    'Barinade Boss Room -> Jabu Jabus Belly Before Boss':       ("the #Bio-Electric Anemone# resides in", "#Barinade# resides in", 'entrance_exclude'),
+    'Phantom Ganon Boss Room -> Forest Temple Before Boss':     ("the #Evil Spirit from Beyond# resides in", "#Phantom Ganon# resides in", 'entrance_exclude'),
+    'Volvagia Boss Room -> Fire Temple Before Boss':            ("the #Subterranean Lava Dragon# resides in", "#Volvagia# resides in", 'entrance_exclude'),
+    'Morpha Boss Room -> Water Temple Before Boss':             ("the #Giant Aquatic Amoeba# resides in", "#Morpha# resides in", 'entrance_exclude'),
+    'Bongo Bongo Boss Room -> Shadow Temple Before Boss':       ("the #Phantom Shadow Beast# resides in", "#Bongo Bongo# resides in", 'entrance_exclude'),
+    'Twinrova Boss Room -> Spirit Temple Before Boss':          ("the #Sorceress Sisters# resides in", "#Twinrova# resides in", 'entrance_exclude'),
+
     'KF Links House':                                           ("Link's House", None, 'region'),
     'Temple of Time':                                           ("the #Temple of Time#", None, 'region'),
     'KF Midos House':                                           ("Mido's house", None, 'region'),

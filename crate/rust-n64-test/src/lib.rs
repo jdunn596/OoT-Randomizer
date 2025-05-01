@@ -4,7 +4,7 @@
 use core::panic::PanicInfo;
 
 #[cfg_attr(target_vendor = "ultra64", panic_handler)]
-#[unsafe(no_mangle)] fn panic(_: &PanicInfo<'_>) -> ! {
+fn panic(_: &PanicInfo<'_>) -> ! {
     loop {}
 }
 

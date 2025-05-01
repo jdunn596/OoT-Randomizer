@@ -75,10 +75,12 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
   * Support for multiworld on EverDrive ([#2042](https://github.com/OoTRandomizer/OoT-Randomizer/issues/2042))
   * Some settings have been renamed for clarity ([#1560](https://github.com/OoTRandomizer/OoT-Randomizer/pull/1560))
   * The conditions for forcing one-way entrances that lead to the Bolero, Nocturne, and Requiem warp pads have been adjusted to increase variety with some settings, such as “Guarantee Reachable Locations” set to “All Goals”, “Shuffle Dungeon Rewards”, or “Mix Entrance Pools” (based on [#1440](https://github.com/OoTRandomizer/OoT-Randomizer/pull/1440))
+  * New hint distribution option `boss_goal_names` (defaults to `true`) that can be disabled to force dungeon reward names to be used in Goal hints instead of boss names even if dungeon rewards aren't shuffled.
   * Gold skulltula tokens can be on excluded locations if there are no checks requiring them (such as in SAWS)
   * The GUI tweaks made by [`Dev-R`](https://github.com/Roman971/OoT-Randomizer) are further adjusted to balance consistency with [main `Dev`](https://github.com/OoTRandomizer/OoT-Randomizer) and ease of use.
   * The Lens of Truth can be in a foolish area if Treasure Chest Game keys are shuffled and all relevant “lensless” tricks are enabled.
 * Bug fixes:
+  * Fix path to the tower in tower ER ([#2412](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2412))
   * Potentially fix a bug causing an item to turn into a Gerudo mask when picked up at the same time a Triforce piece is received from the network ([#2406](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2406))
   * Fix Dual and Dual Always hints hinting locations in precompleted dungeons ([#2397](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2397))
   * Fix incorrect color highlighting in Important Check hints ([#2394](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2394))

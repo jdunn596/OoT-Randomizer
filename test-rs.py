@@ -64,7 +64,8 @@ if not arguments['--no-rebuild']:
     subprocess.run(['cargo', 'build', *(['--release'] if arguments['--release'] else []), '--package=ootr-python'], check=True)
     shutil.copy(f'target/{"release" if arguments["--release"] else "debug"}/rs.dll', 'rs.pyd')
     if subprocess.run(['git', 'diff', '--quiet', 'HEAD', '--', 'ASM']).returncode != 0: # any staged or unstaged changes to the ASM directory?
-        subprocess.run(['wsl', 'ASM/build.py', '--compile-c'], check=True)
+        subprocess.run(['cargo', 'run', '--package=ootr-build'], check=True)
+    subprocess.run(['cargo', 'build', *(['--release'] if arguments['--release'] else [])], check=True)
 
 successes = 0
 failures = 0
@@ -75,9 +76,7 @@ for _ in range(arguments['--seeds']):
         rom_paths = []
         for world_id in range(1, arguments['--worlds'] + 1):
             iter_settings = {**settings, 'player_num': world_id}
-            #rando_args = ['target/debug/ootr', '--settings=-']
-            rando_args = [sys.executable]
-            rando_args += ['.\\OoTRandomizer.py', '--settings=-']
+            rando_args = ['target/release/ootr-cli.exe' if arguments['--release'] else 'target/debug/ootr-cli.exe', '--settings=-']
             if arguments['--no-plando']:
                 del iter_settings['distribution_file']
                 iter_settings['enable_distribution_file'] = False
@@ -88,9 +87,9 @@ for _ in range(arguments['--seeds']):
                         del iter_settings['distribution_file']
                         iter_settings['enable_distribution_file'] = False
             if arguments['--preset']:
-                rando_args.append(f'--settings_preset={arguments["--preset"]}')
+                rando_args.append(f'--settings-preset={arguments["--preset"]}')
             if arguments['--settings']:
-                rando_args.append(f'--settings_string={arguments["--settings"]}')
+                rando_args.append(f'--settings-string={arguments["--settings"]}')
             if world_id == 1 and iter_settings['enable_distribution_file'] and (arguments['--preset'] or arguments['--settings']):
                 input('plando.json will override settings preset/string, press return to confirm')
             if seed:
