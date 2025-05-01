@@ -222,7 +222,7 @@ class SettingInfos:
             True: {
                 'tabs':     ['main_tab', 'detailed_tab', 'starting_tab', 'other_tab'],
                 'sections': ['preset_section'],
-                'settings': ['count', 'create_spoiler', 'world_count', 'enable_distribution_file', 'distribution_file', 'create_patch_file', 'show_seed_info', 'user_message'],
+                'settings': ['create_spoiler', 'world_count', 'enable_distribution_file', 'distribution_file', 'create_patch_file', 'show_seed_info', 'user_message'],
             },
             False: {
                 'settings': ['repatch_cosmetics'],
@@ -472,13 +472,6 @@ class SettingInfos:
                 },
             ],
         },
-    )
-
-    count = Numberinput(
-        gui_text       = "Generation Count",
-        shared         = False,
-        default        = 1,
-        minimum        = 1,
     )
 
     world_count = Numberinput(

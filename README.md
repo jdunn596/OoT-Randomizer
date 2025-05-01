@@ -15,6 +15,7 @@ Differences between `riir` and [`dev-fenhl`](https://github.com/fenhl/OoT-Random
 * Decompressing the base rom works on all platforms.
 * New experimental GUI, not yet fully featured. Try with `cargo run --release --package=ootr-gui`.
 * New CLI with improved command-line option handling. Run with `cargo run --release`.
+* The “Generation Count” setting has been removed; use [ootrstats](https://github.com/fenhl/ootrstats) to generate multiple seeds.
 
 Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [`Dev-R`](https://github.com/Roman971/OoT-Randomizer):
 

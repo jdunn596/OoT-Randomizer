@@ -20,7 +20,6 @@
             "enable_cosmetic_file",
             "distribution_file",
             "cosmetic_file",
-            "count",
             "create_spoiler",
             "create_cosmetics_log",
             "output_types",

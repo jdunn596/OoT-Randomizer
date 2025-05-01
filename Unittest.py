@@ -68,7 +68,6 @@ def make_settings_for_test(settings_dict: dict[str, Any], seed: Optional[str] = 
         'create_compressed_rom': False,
         'create_wad_file': False,
         'create_uncompressed_rom': False,
-        'count': 1,
         'create_spoiler': True,
         'output_file': os.path.join(test_dir, 'Output', outfilename),
     })
@@ -121,7 +120,6 @@ def generate_with_plandomizer(filename: str, live_copy: bool = False, max_attemp
             'create_compressed_rom': False,
             'create_wad_file': False,
             'create_uncompressed_rom': False,
-            'count': 1,
             'create_spoiler': True,
             'output_file': os.path.join(test_dir, 'Output', filename),
             'seed': 'TESTTESTTEST'
@@ -225,7 +223,6 @@ class TestPlandomizer(unittest.TestCase):
                     'create_compressed_rom': False,
                     'create_wad_file': False,
                     'create_uncompressed_rom': False,
-                    'count': 1,
                     'create_spoiler': True,
                     'create_cosmetics_log': False,
                     'output_file': os.path.join(test_dir, 'Output', filename),

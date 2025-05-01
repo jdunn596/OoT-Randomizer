@@ -35,11 +35,6 @@ def start(settings: Settings, loglevel: int, no_log_file: bool, diff_rom: bool) 
             cosmetic_patch(settings)
         elif settings.patch_file != '':
             from_patch_file(settings)
-        elif settings.count is not None and settings.count > 1:
-            orig_seed = settings.seed
-            for i in range(settings.count):
-                settings.update_seed(orig_seed + '-' + str(i))
-                main(settings)
         else:
             main(settings)
     except Exception as ex:
