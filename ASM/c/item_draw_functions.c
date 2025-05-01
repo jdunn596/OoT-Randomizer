@@ -730,13 +730,13 @@ void draw_gi_magic_meter(z64_game_t* game, uint32_t draw_id) {
     z64_gfx_t *gfx = game->common.gfx;
 
     // Magic
-    colorRGBA8_t prim_color = item_draw_table[draw_id].args[5].color;
+    colorRGBA8_t prim_color = item_draw_table[draw_id].args[4].color;
     if (CFG_CORRECT_MODEL_COLORS) {
         prim_color.r = CFG_MAGIC_COLOR.r;
         prim_color.g = CFG_MAGIC_COLOR.g;
         prim_color.b = CFG_MAGIC_COLOR.b;
     }
-    colorRGBA8_t env_color = item_draw_table[draw_id].args[6].color;
+    colorRGBA8_t env_color = item_draw_table[draw_id].args[5].color;
 
     uint8_t alpha = 0x80;
     if (curr_drawn_actor != NULL && curr_drawn_actor->actor_id == 21) {// En_Item00
@@ -749,26 +749,19 @@ void draw_gi_magic_meter(z64_game_t* game, uint32_t draw_id) {
     colorRGBA8_t rainbow_color;
     rainbow_color.a = 0xFF;
     rainbow_color.color = get_rainbow_color(game->gameplay_frames, 10);
-    //z64_xyzf_t translation = { .x = 0, .y = -35.0f, .z = -20.0f };
     z64_xyzf_t translation = { .x = 0.0, .y = -35.0f, .z = 0.0f };
     z64_xyzf_t scale = { .x = .0125f, .y = .0075f, .z = .01f };
     draw_gi_flame(&gfx->poly_xlu, game, rainbow_color, rainbow_color, translation, scale);
+
     // Parchment
     append_setup_dl_25_to_xlu(gfx);
     gSPMatrix(gfx->poly_xlu.p++, append_sys_matrix(gfx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
-    gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[3].dlist);
+    gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[2].dlist);
+
     // Writing
     append_setup_dl_25_to_xlu(gfx);
     gSPMatrix(gfx->poly_xlu.p++, append_sys_matrix(gfx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
-    gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[4].dlist);
-
-    // Shine
-    /*append_setup_dl_25_to_xlu(gfx);
-    gSPMatrix(gfx->poly_xlu.p++, append_sys_matrix(gfx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
-    gDPSetPrimColor(gfx->poly_xlu.p++, 0, 0x80, prim_color.r, prim_color.g, prim_color.b, alpha);
-    gDPSetEnvColor(gfx->poly_xlu.p++, env_color.r, env_color.g, env_color.b, env_color.a);
-    gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[2].dlist);
-    */
+    gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[3].dlist);
 
     // Jar
     append_setup_dl_25_to_xlu(gfx);
@@ -776,6 +769,7 @@ void draw_gi_magic_meter(z64_game_t* game, uint32_t draw_id) {
     gDPSetPrimColor(gfx->poly_xlu.p++, 0, 0x80, prim_color.r, prim_color.g, prim_color.b, alpha);
     gDPSetEnvColor(gfx->poly_xlu.p++, env_color.r, env_color.g, env_color.b, env_color.a);
     gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[0].dlist);
+
     // Label
     append_setup_dl_25_to_xlu(gfx);
     gSPMatrix(gfx->poly_xlu.p++, append_sys_matrix(gfx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);

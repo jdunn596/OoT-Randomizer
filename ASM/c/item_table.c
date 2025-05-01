@@ -224,7 +224,7 @@ item_row_t item_table[GI_RANDO_MAX] = {
 
     [GI_DOUBLE_DEFENSE]                                         = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x00E9, 0x0194, 0x13, no_upgrade, give_defense,      -1, -1, NULL), // Double Defense
     [GI_MAGIC_METER]                                            = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x00E4, 0x01B4, 0xA0, no_upgrade, give_magic,        -1, -1, NULL), // Magic Meter
-    [GI_DOUBLE_MAGIC]                                           = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x00E8, 0x01B4, 0xA0, no_upgrade, give_double_magic, -1, -1, NULL), // Double Magic
+    [GI_DOUBLE_MAGIC]                                           = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x00E8, 0x01B5, 0xA3, no_upgrade, give_double_magic, -1, -1, NULL), // Double Magic
 
     [GI_MINUET_OF_FOREST]                                       = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9091, 0x0196, 0x78, no_upgrade, give_quest_item,  6, -1, NULL), // Minuet of Forest
     [GI_BOLERO_OF_FIRE]                                         = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9092, 0x0196, 0x79, no_upgrade, give_quest_item,  7, -1, NULL), // Bolero of Fire
@@ -351,10 +351,10 @@ item_row_t item_table[GI_RANDO_MAX] = {
     // New items in dev-fenhl which are not in main Dev
     // Some previously used IDs may be skipped, to simplify auto-tracker support
 
-    [GI_EASTER_EGG_PINK]                                        = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9057, 0x01B5, 0x29, no_upgrade, give_triforce_piece, -1, -1, NULL), // Easter egg (pink)
-    [GI_EASTER_EGG_ORANGE]                                      = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9057, 0x01B6, 0x29, no_upgrade, give_triforce_piece, -1, -1, NULL), // Easter egg (orange)
-    [GI_EASTER_EGG_GREEN]                                       = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9057, 0x01B7, 0x29, no_upgrade, give_triforce_piece, -1, -1, NULL), // Easter egg (green)
-    [GI_EASTER_EGG_BLUE]                                        = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9057, 0x01B8, 0x29, no_upgrade, give_triforce_piece, -1, -1, NULL), // Easter egg (blue)
+    [GI_EASTER_EGG_PINK]                                        = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9057, 0x01B6, 0x29, no_upgrade, give_triforce_piece, -1, -1, NULL), // Easter egg (pink)
+    [GI_EASTER_EGG_ORANGE]                                      = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9057, 0x01B7, 0x29, no_upgrade, give_triforce_piece, -1, -1, NULL), // Easter egg (orange)
+    [GI_EASTER_EGG_GREEN]                                       = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9057, 0x01B8, 0x29, no_upgrade, give_triforce_piece, -1, -1, NULL), // Easter egg (green)
+    [GI_EASTER_EGG_BLUE]                                        = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9057, 0x01B9, 0x29, no_upgrade, give_triforce_piece, -1, -1, NULL), // Easter egg (blue)
 
     [GI_TRIFORCE_OF_POWER]                                      = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x904A, 0x0193, 0x76, no_upgrade, give_triforce_piece, -1, -1, NULL), // Triforce of Power
     [GI_TRIFORCE_OF_WISDOM]                                     = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x904B, 0x0193, 0x76, no_upgrade, give_triforce_piece, -1, -1, NULL), // Triforce of Wisdom
