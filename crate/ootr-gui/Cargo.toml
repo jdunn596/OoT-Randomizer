@@ -17,6 +17,7 @@ warnings = "deny"
 dark-light = "2"
 enum-iterator = "2.1.0"
 futures = "0.3"
+gres = { git = "https://github.com/fenhl/gres", branch = "main" }
 iced = { version = "0.13", default-features = false, features = ["auto-detect-theme", "image", "multi-window", "tiny-skia", "tokio"] }
 if_chain = "1.0.2"
 image = { version = "0.24", default-features = false, features = ["ico"] } # transitive dependency of iced
@@ -24,6 +25,7 @@ indexmap = { version = "2.6.0", features = ["serde"] }
 itertools = "0.14"
 mimalloc = "0.1.44"
 nonempty-collections = "0.3"
+ootr-common = { version = "8.2.76-fenhl.1.riir.2", path = "../ootr-common" }
 ootr-macros = { path = "../ootr-macros" }
 pyo3 = { version = "0.24", features = [
     "auto-initialize",

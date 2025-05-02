@@ -30,9 +30,13 @@ use {
             self,
             Future,
             FutureExt as _,
-            TryFutureExt as _,
         },
         stream::TryStreamExt as _,
+    },
+    gres::{
+        Percent,
+        Progress as _,
+        Task as _,
     },
     iced::{
         Element,
@@ -61,7 +65,6 @@ use {
     pyo3::{
         exceptions::*,
         prelude::*,
-        types::PyDict,
     },
     rfd::{
         AsyncFileDialog,
@@ -75,9 +78,13 @@ use {
         fs,
         traits::IoResultExt as _,
     },
-    crate::lang::Language::{
-        self,
-        *,
+    ootr_common::Generator,
+    crate::{
+        lang::Language::{
+            self,
+            *,
+        },
+        settings::ValueExt as _,
     },
 };
 #[cfg(target_arch = "wasm32")] use {
@@ -123,8 +130,6 @@ enum Error {
     #[error(transparent)] Wheel(#[from] wheel::Error),
     #[cfg(target_arch = "wasm32")] #[error(transparent)] Zip(#[from] zip::result::ZipError),
     #[cfg(not(target_arch = "wasm32"))] #[error(transparent)] Zip(#[from] async_zip::error::ZipError),
-    #[error("{0}")]
-    Empty(nonempty_collections::Error),
     #[error("Randomizer requires at least Python 3.8 and you are using {major}.{minor}.{patch}")]
     PythonVersion {
         major: u8,
@@ -135,12 +140,6 @@ enum Error {
     TooManyCopies,
     #[error("support for non-UTF-8 paths not yet implemented")] //TODO
     Utf8,
-}
-
-impl From<nonempty_collections::Error> for Error {
-    fn from(e: nonempty_collections::Error) -> Self {
-        Self::Empty(e)
-    }
 }
 
 #[derive(Debug, Clone /*TODO this requires PyO3's py-clone feature, remove by using on_press_with (requires patch to iced to remove the unconditional Clone bound) */)]
@@ -163,8 +162,8 @@ enum Message {
     DeletePreset(String),
     DismissError,
     Done {
-        patches: NEVec<Vec<u8>>,
-        spoiler_log: String,
+        window: window::Id,
+        seed: ootr_common::Seed,
     },
     EditPreset(String),
     EditPresetSetting {
@@ -173,7 +172,10 @@ enum Message {
         new_value: settings::Value,
     },
     Generate,
-    GenerateError(Arc<Error>),
+    GenerateError {
+        window: window::Id,
+        error: Arc<ootr_common::RollError>,
+    },
     Init {
         icon: window::Icon,
         default_presets: settings::PresetsDefault,
@@ -199,6 +201,10 @@ enum Message {
     PresetCopied {
         copy_name: String,
         value: settings::Preset,
+    },
+    RunGenerator {
+        window: window::Id,
+        generator: Arc<Generator>,
     },
     SavePatches {
         window: window::Id,
@@ -242,7 +248,6 @@ struct Gui {
     #[default(Some(DEFAULT_PRESET.to_owned()))]
     /// `None` means we're customizing presets.
     selected_preset: Option<String>,
-    generating: bool,
 }
 
 enum WindowState {
@@ -251,14 +256,17 @@ enum WindowState {
         preset_name: String,
         active_tab: String,
     },
+    Generator {
+        progress: Percent,
+    },
     Seed(Seed),
+    RollError(Arc<ootr_common::RollError>),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct Seed {
-    patches: NEVec<Vec<u8>>,
+    inner: ootr_common::Seed,
     patches_saved: NEVec<bool>,
-    spoiler_log: String,
     spoiler_log_saved: bool,
 }
 
@@ -280,7 +288,7 @@ impl Seed {
 
     async fn patches_save_dialog(&self, lang: Language) -> Result<bool, Error> {
         let dialog = AsyncFileDialog::default();
-        let dialog = if self.patches.len() == NonZero::<usize>::MIN {
+        let dialog = if self.inner.patches.len() == NonZero::<usize>::MIN {
             dialog.add_filter(translate! {
                 lang;
                 English => "Ocarina of Time randomizer patch file";
@@ -292,7 +300,7 @@ impl Seed {
             }, &["zpfz"])
         };
         Ok(if let Some(file) = dialog.save_file().await {
-            if let Ok(patch) = self.patches.iter().into_iter().exactly_one() {
+            if let Ok(patch) = self.inner.patches.iter().into_iter().exactly_one() {
                 file.write(patch).await.at(file.path())?;
             } else {
                 #[cfg(target_arch = "wasm32")] {
@@ -306,7 +314,7 @@ impl Seed {
                 }
                 #[cfg(not(target_arch = "wasm32"))] {
                     let mut zip = ZipFileWriter::with_tokio(File::create(file.path()).await?);
-                    for (world_idx, world_patch) in self.patches.iter().enumerate() {
+                    for (world_idx, world_patch) in self.inner.patches.iter().enumerate() {
                         let world_id = NonZero::new(u8::try_from(world_idx + 1).expect("got more than 255 seeds")).expect("got more than 255 seeds");
                         zip.write_entry_whole(ZipEntryBuilder::new(format!("P{world_id}").into(), Compression::Deflate), world_patch).await?;
                     }
@@ -327,7 +335,7 @@ impl Seed {
                 English => "JSON document";
             }, &["json"]);
         Ok(if let Some(file) = dialog.save_file().await {
-            file.write(self.spoiler_log.as_bytes()).await.at(file.path())?;
+            file.write(self.inner.spoiler_log.as_bytes()).await.at(file.path())?;
             true
         } else {
             false
@@ -407,9 +415,17 @@ impl Gui {
                 English => format!("OoT Randomizer");
             },
             Some(WindowState::Preset { preset_name, .. }) => preset_name.clone(),
+            Some(WindowState::Generator { .. }) => translate! {
+                self.language;
+                English => format!("Generating Seed…");
+            },
             Some(WindowState::Seed(_)) => translate! {
                 self.language;
                 English => format!("Seed");
+            },
+            Some(WindowState::RollError(_)) => translate! {
+                self.language;
+                English => format!("Seed Error");
             },
         }
     }
@@ -474,7 +490,7 @@ impl Gui {
                         self.language;
                         English => if_chain! {
                             if let Some(WindowState::Seed(seed)) = self.windows.get(&window_to_check);
-                            if unsaved_worlds.len() == seed.patches.len();
+                            if unsaved_worlds.len() == seed.inner.patches.len();
                             then {
                                 format!("Do you want to keep this seed?")
                             } else {
@@ -543,9 +559,11 @@ impl Gui {
                         return iced::exit()
                     }
                     WindowState::Preset { .. } => {}
+                    WindowState::Generator { .. } => {}
                     WindowState::Seed(seed) => if let Some(msg) = seed.before_close_message(window, window) {
                         return cmd(future::ok(msg))
                     },
+                    WindowState::RollError(_) => {}
                 }
                 self.windows.remove(&window);
                 return window::close(window)
@@ -603,20 +621,13 @@ impl Gui {
                 return Task::batch(tasks)
             }
             Message::DismissError => self.error = None,
-            Message::Done { patches, spoiler_log } => {
-                let (seed_window_id, window_open_task) = window::open(window::Settings {
-                    exit_on_close_request: false,
-                    icon: self.icon.clone(),
-                    ..window::Settings::default()
-                });
-                self.windows.insert(seed_window_id, WindowState::Seed(Seed {
-                    patches_saved: patches.nonempty_iter().map(|_| false).collect(),
+            Message::Done { window, seed } => if let Some(window_state) = self.windows.get_mut(&window) {
+                *window_state = WindowState::Seed(Seed {
+                    patches_saved: seed.patches.nonempty_iter().map(|_| false).collect(),
                     spoiler_log_saved: false,
-                    patches, spoiler_log,
-                }));
-                self.generating = false;
-                return window_open_task.map(|_| Message::Nop)
-            }
+                    inner: seed,
+                });
+            },
             Message::EditPreset(preset_name) => if let Some((window, _)) = self.windows.iter().find(|(_, window_state)| if let WindowState::Preset { preset_name: iter_preset_name, .. } = window_state { *iter_preset_name == preset_name } else { false }) {
                 return window::gain_focus(*window)
             } else {
@@ -643,57 +654,34 @@ impl Gui {
                 }
             },
             Message::Generate => {
-                self.generating = true;
-                //TODO if goal hints are used and there are more than 5 worlds, ask for confirmation due to long generation times
-                //TODO when generating a multiworld rom/wad, ask for the player number. The text field is initially blank
                 let mut settings_base = self.selected_preset().into_owned();
-                let language = self.language;
-                settings_base.insert(format!("language"), settings::Value(json!(language.setting_value())));
-                let base_rom_path = self.base_rom_path.clone();
-                let pal_rom_path = self.pal_rom_path.clone();
-                return cmd(async move {
-                    if !base_rom_path.as_os_str().is_empty() {
-                        settings_base.insert(format!("rom"), settings::Value(json!(base_rom_path.to_str().ok_or(Error::Utf8)?.to_owned())));
+                settings_base.insert(format!("language"), settings::Value(json!(self.language.setting_value())));
+                if !self.base_rom_path.as_os_str().is_empty() {
+                    match self.base_rom_path.to_str() {
+                        Some(base_rom_path) => { settings_base.insert(format!("rom"), settings::Value(json!(base_rom_path.to_owned()))); }
+                        None => return cmd(future::err(Error::Utf8)),
                     }
-                    if language.requires_pal_rom() && !pal_rom_path.as_os_str().is_empty() {
-                        settings_base.insert(format!("pal_rom"), settings::Value(json!(pal_rom_path.to_str().ok_or(Error::Utf8)?.to_owned())));
+                }
+                if self.language.requires_pal_rom() && !self.pal_rom_path.as_os_str().is_empty() {
+                    match self.pal_rom_path.to_str() {
+                        Some(pal_rom_path) => { settings_base.insert(format!("pal_rom"), settings::Value(json!(pal_rom_path.to_owned()))); }
+                        None => return cmd(future::err(Error::Utf8)),
                     }
-                    settings_base.insert(format!("create_compressed_rom"), settings::Value(json!(false)));
-                    settings_base.insert(format!("create_cosmetics_log"), settings::Value(json!(false)));
-                    settings_base.insert(format!("create_spoiler"), settings::Value(json!(false)));
-                    settings_base.insert(format!("patch_without_output"), settings::Value(json!(true)));
-                    let (patches, spoiler_log) = spawn_blocking(move || Python::with_gil(|py| {
-                        let base_settings = py.import("Settings")?.call_method1("Settings", (settings_base,))?;
-                        py.import("HintList")?.call_method0("clear_hint_exclusion_cache")?;
-                        let main = py.import("Main")?;
-                        let (rom, world_settings) = main.call_method1("resolve_settings", (&base_settings,))?.extract::<(Bound<'_, PyAny>, Vec<Bound<'_, PyAny>>)>()?;
-                        let mut attempt = 0;
-                        let spoiler = loop {
-                            attempt += 1;
-                            match main.call_method1("generate", (world_settings.clone(),)) {
-                                Ok(spoiler) => break spoiler,
-                                Err(e) if e.is_instance(py, py.import("Fill")?.getattr("ShuffleError")?.downcast().map_err(PyErr::from)?) => {
-                                    if attempt == 10 { return Err(e.into()) }
-                                }
-                                Err(e) => return Err(e.into()),
-                            }
-                            for settings in &world_settings {
-                                settings.call_method0("reset_distribution")?;
-                            }
-                        };
-                        let patches = py.import("Main")?.call_method1("patch_and_output", (&base_settings, spoiler, rom))?.extract::<Vec<_>>()?.try_into()?;
-                        let kwargs = PyDict::new(py);
-                        kwargs.set_item("spoiler", true)?;
-                        let mut spoiler_log = base_settings.getattr("distribution")?.call_method("to_str", (), Some(&kwargs))?.extract::<String>()?;
-                        spoiler_log.push('\n');
-                        Ok::<_, Error>((patches, spoiler_log))
-                    })).await??;
-                    Ok(Message::Done { patches, spoiler_log })
-                }.or_else(|e| future::ok(Message::GenerateError(Arc::new(e)))))
+                }
+                //TODO if goal hints are used and there are more than 5 worlds, ask for confirmation due to long generation times
+                let (seed_window_id, window_open_task) = window::open(window::Settings {
+                    exit_on_close_request: false,
+                    icon: self.icon.clone(),
+                    ..window::Settings::default()
+                });
+                let generator = Arc::new(Generator::new(settings_base));
+                self.windows.insert(seed_window_id, WindowState::Generator {
+                    progress: Percent::default(),
+                });
+                return window_open_task.map(move |window| Message::RunGenerator { window, generator: Arc::clone(&generator) })
             }
-            Message::GenerateError(e) => {
-                self.error = Some(e);
-                self.generating = false;
+            Message::GenerateError { window, error } => if let Some(window_state) = self.windows.get_mut(&window) {
+                *window_state = WindowState::RollError(error);
             }
             Message::Init { icon, default_presets, custom_presets, settings_mapping } => {
                 self.icon = Some(icon);
@@ -748,6 +736,18 @@ impl Gui {
                 self.custom_presets.insert(copy_name.clone(), value);
                 return cmd(future::ok(Message::EditPreset(copy_name)))
             }
+            Message::RunGenerator { window, generator } => if let Some(window_state) = self.windows.get_mut(&window) {
+                if let WindowState::Generator { progress } = window_state {
+                    *progress = generator.progress();
+                    return cmd(async move {
+                        Ok(match Arc::into_inner(generator).expect("generator used multiple times").run().await {
+                            Ok(Ok(seed)) => Message::Done { window, seed },
+                            Ok(Err(e)) => Message::GenerateError { window, error: Arc::new(e) },
+                            Err(generator) => Message::RunGenerator { window, generator: Arc::new(generator) },
+                        })
+                    })
+                }
+            },
             Message::SavePatches { window } => {
                 let lang = self.language;
                 let seed = self.seed(window).clone();
@@ -985,11 +985,6 @@ impl Gui {
                             Some(translate! {
                                 self.language;
                                 English => "Please load a PAL base rom";
-                            })
-                        } else if self.generating {
-                            Some(translate! {
-                                self.language;
-                                English => "Generating seed…";
                             })
                         } else {
                             None
@@ -1268,7 +1263,17 @@ impl Gui {
                     ).height(Length::Fill))
                     .into()
             }
-            Some(WindowState::Seed(_)) => Column::new()
+            Some(WindowState::Generator { progress }) => Column::new()
+                .push(Text::new(translate! {
+                    self.language;
+                    English => "Generating Seed…";
+                }).size(24))
+                .push(ProgressBar::new(0.0..=100.0, (*progress).into()))
+                //TODO detailed progress?
+                .spacing(8)
+                .padding(8)
+                .into(),
+            Some(WindowState::Seed(seed)) => Column::new()
                 .push(Text::new(translate! {
                     self.language;
                     English => "Seed";
@@ -1276,14 +1281,35 @@ impl Gui {
                 //TODO buttons to:
                 // * Save rom
                 // * Save wad
-                .push(Button::new(translate! {
-                    self.language;
-                    English => "Save patch file";
+                // (when patching a multiworld rom/wad, ask for the player number. The text field is initially blank)
+                .push(Button::new(if seed.inner.patches.len() == NonZero::<usize>::MIN {
+                    translate! {
+                        self.language;
+                        English => "Save patch file";
+                    }
+                } else {
+                    translate! {
+                        self.language;
+                        English => "Save patch file archive";
+                    }
                 }).on_press(Message::SavePatches { window }))
                 .push(Button::new(translate! {
                     self.language;
                     English => "Save spoiler log";
                 }).on_press(Message::SaveSpoiler { window }))
+                .spacing(8)
+                .padding(8)
+                .into(),
+            Some(WindowState::RollError(e)) => Column::new()
+                .push(Text::new(translate! {
+                    self.language;
+                    English => "Error rolling seed";
+                }).size(24))
+                .push(Text::new(e.to_string()))
+                .push(Button::new(translate! {
+                    self.language;
+                    English => "Dismiss";
+                }).on_press(Message::DismissError))
                 .spacing(8)
                 .padding(8)
                 .into(),

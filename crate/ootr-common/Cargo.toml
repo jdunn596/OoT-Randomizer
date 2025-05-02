@@ -1,0 +1,21 @@
+[package]
+name = "ootr-common"
+version.workspace = true
+edition.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+async-trait = "0.1.88"
+gres = { git = "https://github.com/fenhl/gres", branch = "main" }
+indexmap = { version = "2.6.0", features = ["serde"] }
+nonempty-collections = "0.3.0"
+pyo3 = { version = "0.24", features = [
+    "auto-initialize",
+    "indexmap",
+] }
+serde = { version = "1.0.214", features = ["derive"] }
+serde_json = { package = "serde_json_path_to_error", version = "0.1" }
+thiserror = "2.0.12"
+tokio = { version = "1", features = ["rt"] }
