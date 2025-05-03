@@ -216,6 +216,9 @@ name = "arrayvec"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "as-raw-xcb-connection"
@@ -1689,7 +1692,7 @@ dependencies = [
 
 [[package]]
 name = "fill-test"
-version = "8.2.76-fenhl.1.riir.4"
+version = "8.2.76-fenhl.1.riir.5"
 dependencies = [
  "collect-mac",
  "itertools",
@@ -3615,7 +3618,7 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
 name = "ootr-build"
-version = "8.2.76-fenhl.1.riir.4"
+version = "8.2.76-fenhl.1.riir.5"
 dependencies = [
  "decompress",
  "futures",
@@ -3630,7 +3633,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-cli"
-version = "8.2.76-fenhl.1.riir.4"
+version = "8.2.76-fenhl.1.riir.5"
 dependencies = [
  "clap",
  "mimalloc",
@@ -3642,7 +3645,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-common"
-version = "8.2.76-fenhl.1.riir.4"
+version = "8.2.76-fenhl.1.riir.5"
 dependencies = [
  "async-trait",
  "gres",
@@ -3657,7 +3660,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-gui"
-version = "8.2.76-fenhl.1.riir.4"
+version = "8.2.76-fenhl.1.riir.5"
 dependencies = [
  "async_zip",
  "dark-light 2.0.0",
@@ -3681,6 +3684,7 @@ dependencies = [
  "serde_json",
  "serde_json_path_to_error",
  "serde_with",
+ "serenity",
  "smart-default",
  "thiserror 2.0.12",
  "tokio",
@@ -3691,7 +3695,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-macros"
-version = "8.2.76-fenhl.1.riir.4"
+version = "8.2.76-fenhl.1.riir.5"
 dependencies = [
  "indexmap 2.9.0",
  "proc-macro2",
@@ -3701,7 +3705,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-python"
-version = "8.2.76-fenhl.1.riir.4"
+version = "8.2.76-fenhl.1.riir.5"
 dependencies = [
  "anyhow",
  "arrayref",
@@ -4395,7 +4399,7 @@ dependencies = [
 
 [[package]]
 name = "rust-n64-test"
-version = "8.2.76-fenhl.1.riir.4"
+version = "8.2.76-fenhl.1.riir.5"
 dependencies = [
  "cbindgen",
 ]
@@ -4508,6 +4512,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "secrecy"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9bd1c54ea06cfd2f6b63219704de0b9b4f72dcc2b8fdef820be6cd799780e91e"
+dependencies = [
+ "serde",
+ "zeroize",
+]
+
+[[package]]
 name = "self_cell"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4526,6 +4540,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5f0e2c6ed6606019b4e29e69dbaba95b11854410e5347d525002456dbbb786b6"
 dependencies = [
  "serde_derive",
+]
+
+[[package]]
+name = "serde_cow"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e7bbbec7196bfde255ab54b65e34087c0849629280028238e67ee25d6a4b7da"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -4621,6 +4644,27 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.101",
+]
+
+[[package]]
+name = "serenity"
+version = "0.12.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d72ec4323681bf9a3cabe40fd080abc2435859b502a1b5aa9bf693f125bfa76"
+dependencies = [
+ "arrayvec",
+ "async-trait",
+ "base64 0.22.1",
+ "bitflags 2.9.0",
+ "futures",
+ "secrecy",
+ "serde",
+ "serde_cow",
+ "serde_json",
+ "time",
+ "tokio",
+ "tracing",
+ "url",
 ]
 
 [[package]]
@@ -5287,6 +5331,7 @@ version = "0.1.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "784e0ac535deb450455cbfa28a6f0df145ea1bb7ae51b821cf5e7927fdcfbdd0"
 dependencies = [
+ "log",
  "pin-project-lite",
  "tracing-attributes",
  "tracing-core",

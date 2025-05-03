@@ -10,7 +10,7 @@ This branch (`riir`) is based on the [`dev-fenhl`](https://github.com/fenhl/OoT-
 
 Differences between `riir` and [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer):
 
-* Additional setup required. For now, it is recommended to run the randomizer via the `test-rs.py` script.
+* Additional setup required: After cloning or pulling this branch, you will need to run `cargo run --package=ootr-build`.
 * Performance improvements.
 * Decompressing the base rom works on all platforms.
 * New experimental GUI, not yet fully featured. Try with `cargo run --release --package=ootr-gui`.

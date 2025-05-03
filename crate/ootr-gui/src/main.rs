@@ -44,6 +44,7 @@ use {
         Size,
         Task,
         Theme,
+        clipboard,
         widget::*,
         window::{
             self,
@@ -61,7 +62,6 @@ use {
         NEVec,
         NonEmptyIterator as _,
     },
-    ootr_macros::translate,
     pyo3::{
         exceptions::*,
         prelude::*,
@@ -72,13 +72,18 @@ use {
     },
     serde_json::json,
     serde_json_inner as _, // `preserve_order` feature required to correctly display presets
+    serenity::utils::MessageBuilder,
     smart_default::SmartDefault,
     tokio::task::spawn_blocking,
     wheel::{
         fs,
         traits::IoResultExt as _,
     },
-    ootr_common::Generator,
+    ootr_common::{
+        Generator,
+        RollError,
+    },
+    ootr_macros::translate,
     crate::{
         lang::Language::{
             self,
@@ -158,6 +163,7 @@ enum Message {
     CloseRequested(window::Id),
     CommandError(Arc<Error>),
     CopyPreset(String),
+    CopyRollDebugInfo(window::Id),
     CustomizeSettings,
     DeletePreset(String),
     DismissError,
@@ -174,7 +180,7 @@ enum Message {
     Generate,
     GenerateError {
         window: window::Id,
-        error: Arc<ootr_common::RollError>,
+        error: Arc<RollError>,
     },
     Init {
         icon: window::Icon,
@@ -261,7 +267,7 @@ enum WindowState {
         display: String,
     },
     Seed(Seed),
-    RollError(Arc<ootr_common::RollError>),
+    RollError(Arc<RollError>),
 }
 
 #[derive(Debug, Clone)]
@@ -604,6 +610,24 @@ impl Gui {
                     Err(Error::TooManyCopies)
                 })
             }
+            Message::CopyRollDebugInfo(window) => if let Some(WindowState::RollError(e)) = self.windows.get(&window) {
+                let mut builder = MessageBuilder::default();
+                builder.push_line(format!("error in OoTR version {}{} while trying to generate a seed:", env!("CARGO_PKG_VERSION"), {
+                    #[cfg(debug_assertions)] { " (debug)" }
+                    #[cfg(not(debug_assertions))] { "" }
+                }));
+                builder.push_line_safe(e.to_string());
+                if_chain! {
+                    if let RollError::Python(ref e) = **e;
+                    if let Some(traceback) = Python::with_gil(|py| e.traceback(py).and_then(|traceback| traceback.format().ok()));
+                    then {
+                        builder.push_codeblock_safe(traceback, Some("python-traceback"));
+                    } else {
+                        builder.push_codeblock_safe(format!("{e:?}"), Some("rust"));
+                    }
+                }
+                return clipboard::write(builder.build())
+            },
             Message::CustomizeSettings => self.selected_preset = None,
             Message::DeletePreset(name) => {
                 self.custom_presets.remove(&name);
@@ -1309,10 +1333,14 @@ impl Gui {
                     English => "Error rolling seed";
                 }).size(24))
                 .push(Text::new(e.to_string()))
-                .push(Button::new(translate! {
-                    self.language;
-                    English => "Dismiss";
-                }).on_press(Message::DismissError))
+                .push(Row::new()
+                    .push(Button::new(translate! {
+                        self.language;
+                        English => "Copy Debug Info";
+                    }).on_press(Message::CopyRollDebugInfo(window)))
+                    //TODO Retry button
+                    .spacing(8)
+                )
                 .spacing(8)
                 .padding(8)
                 .into(),
