@@ -258,6 +258,7 @@ enum WindowState {
     },
     Generator {
         progress: Percent,
+        display: String,
     },
     Seed(Seed),
     RollError(Arc<ootr_common::RollError>),
@@ -677,6 +678,7 @@ impl Gui {
                 let generator = Arc::new(Generator::new(settings_base));
                 self.windows.insert(seed_window_id, WindowState::Generator {
                     progress: Percent::default(),
+                    display: format!("Starting seed generator"),
                 });
                 return window_open_task.map(move |window| Message::RunGenerator { window, generator: Arc::clone(&generator) })
             }
@@ -737,8 +739,9 @@ impl Gui {
                 return cmd(future::ok(Message::EditPreset(copy_name)))
             }
             Message::RunGenerator { window, generator } => if let Some(window_state) = self.windows.get_mut(&window) {
-                if let WindowState::Generator { progress } = window_state {
+                if let WindowState::Generator { progress, display } = window_state {
                     *progress = generator.progress();
+                    *display = generator.to_string();
                     return cmd(async move {
                         Ok(match Arc::into_inner(generator).expect("generator used multiple times").run().await {
                             Ok(Ok(seed)) => Message::Done { window, seed },
@@ -1263,13 +1266,13 @@ impl Gui {
                     ).height(Length::Fill))
                     .into()
             }
-            Some(WindowState::Generator { progress }) => Column::new()
+            Some(WindowState::Generator { progress, display }) => Column::new()
                 .push(Text::new(translate! {
                     self.language;
                     English => "Generating Seed…";
                 }).size(24))
                 .push(ProgressBar::new(0.0..=100.0, (*progress).into()))
-                //TODO detailed progress?
+                .push(Text::new(display))
                 .spacing(8)
                 .padding(8)
                 .into(),
