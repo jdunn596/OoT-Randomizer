@@ -194,7 +194,7 @@ async fn main() -> Result<(), Error> {
 
     fs::write_json(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/generated/patch_symbols.json"), patch_symbols).await?;
 
-    let patched_rom_path = root_dir.join("roms").join("base.z64");
+    let patched_rom_path = root_dir.join("roms").join("patched.z64");
     let mut patched_rom = fs::read(&patched_rom_path).await?;
     fix_crc(&mut patched_rom);
     fs::write(patched_rom_path, &patched_rom).await?;
