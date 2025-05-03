@@ -180,6 +180,7 @@ enum Message {
     Generate,
     GenerateError {
         window: window::Id,
+        settings_base: settings::Preset,
         error: Arc<RollError>,
     },
     Init {
@@ -208,6 +209,7 @@ enum Message {
         copy_name: String,
         value: settings::Preset,
     },
+    RetrySeed(window::Id),
     RunGenerator {
         window: window::Id,
         generator: Arc<Generator>,
@@ -263,11 +265,15 @@ enum WindowState {
         active_tab: String,
     },
     Generator {
+        settings_base: settings::Preset,
         progress: Percent,
         display: String,
     },
     Seed(Seed),
-    RollError(Arc<RollError>),
+    RollError {
+        settings_base: settings::Preset,
+        error: Arc<RollError>,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -430,7 +436,7 @@ impl Gui {
                 self.language;
                 English => format!("Seed");
             },
-            Some(WindowState::RollError(_)) => translate! {
+            Some(WindowState::RollError { .. }) => translate! {
                 self.language;
                 English => format!("Seed Error");
             },
@@ -570,7 +576,7 @@ impl Gui {
                     WindowState::Seed(seed) => if let Some(msg) = seed.before_close_message(window, window) {
                         return cmd(future::ok(msg))
                     },
-                    WindowState::RollError(_) => {}
+                    WindowState::RollError { .. } => {}
                 }
                 self.windows.remove(&window);
                 return window::close(window)
@@ -610,20 +616,20 @@ impl Gui {
                     Err(Error::TooManyCopies)
                 })
             }
-            Message::CopyRollDebugInfo(window) => if let Some(WindowState::RollError(e)) = self.windows.get(&window) {
+            Message::CopyRollDebugInfo(window) => if let Some(WindowState::RollError { error, .. }) = self.windows.get(&window) {
                 let mut builder = MessageBuilder::default();
                 builder.push_line(format!("error in OoTR version {}{} while trying to generate a seed:", env!("CARGO_PKG_VERSION"), {
                     #[cfg(debug_assertions)] { " (debug)" }
                     #[cfg(not(debug_assertions))] { "" }
                 }));
-                builder.push_line_safe(e.to_string());
+                builder.push_line_safe(error.to_string());
                 if_chain! {
-                    if let RollError::Python(ref e) = **e;
-                    if let Some(traceback) = Python::with_gil(|py| e.traceback(py).and_then(|traceback| traceback.format().ok()));
+                    if let RollError::Python(ref error) = **error;
+                    if let Some(traceback) = Python::with_gil(|py| error.traceback(py).and_then(|traceback| traceback.format().ok()));
                     then {
                         builder.push_codeblock_safe(traceback, Some("python-traceback"));
                     } else {
-                        builder.push_codeblock_safe(format!("{e:?}"), Some("rust"));
+                        builder.push_codeblock_safe(format!("{error:?}"), Some("rust"));
                     }
                 }
                 return clipboard::write(builder.build())
@@ -699,15 +705,16 @@ impl Gui {
                     icon: self.icon.clone(),
                     ..window::Settings::default()
                 });
-                let generator = Arc::new(Generator::new(settings_base));
+                let generator = Arc::new(Generator::new(settings_base.clone()));
                 self.windows.insert(seed_window_id, WindowState::Generator {
                     progress: Percent::default(),
                     display: format!("Starting seed generator"),
+                    settings_base,
                 });
                 return window_open_task.map(move |window| Message::RunGenerator { window, generator: Arc::clone(&generator) })
             }
-            Message::GenerateError { window, error } => if let Some(window_state) = self.windows.get_mut(&window) {
-                *window_state = WindowState::RollError(error);
+            Message::GenerateError { window, settings_base, error } => if let Some(window_state) = self.windows.get_mut(&window) {
+                *window_state = WindowState::RollError { settings_base, error };
             }
             Message::Init { icon, default_presets, custom_presets, settings_mapping } => {
                 self.icon = Some(icon);
@@ -762,14 +769,26 @@ impl Gui {
                 self.custom_presets.insert(copy_name.clone(), value);
                 return cmd(future::ok(Message::EditPreset(copy_name)))
             }
+            Message::RetrySeed(window) => if let Some(window_state) = self.windows.get_mut(&window) {
+                if let WindowState::RollError { settings_base, .. } = window_state {
+                    let generator = Arc::new(Generator::new(settings_base.clone()));
+                    *window_state = WindowState::Generator {
+                        settings_base: settings_base.clone(),
+                        progress: Percent::default(),
+                        display: format!("Starting seed generator"),
+                    };
+                    return cmd(future::ok(Message::RunGenerator { window, generator }))
+                }
+            },
             Message::RunGenerator { window, generator } => if let Some(window_state) = self.windows.get_mut(&window) {
-                if let WindowState::Generator { progress, display } = window_state {
+                if let WindowState::Generator { settings_base, progress, display } = window_state {
                     *progress = generator.progress();
                     *display = generator.to_string();
+                    let settings_base = settings_base.clone();
                     return cmd(async move {
                         Ok(match Arc::into_inner(generator).expect("generator used multiple times").run().await {
                             Ok(Ok(seed)) => Message::Done { window, seed },
-                            Ok(Err(e)) => Message::GenerateError { window, error: Arc::new(e) },
+                            Ok(Err(e)) => Message::GenerateError { window, settings_base, error: Arc::new(e) },
                             Err(generator) => Message::RunGenerator { window, generator: Arc::new(generator) },
                         })
                     })
@@ -1290,7 +1309,7 @@ impl Gui {
                     ).height(Length::Fill))
                     .into()
             }
-            Some(WindowState::Generator { progress, display }) => Column::new()
+            Some(WindowState::Generator { progress, display, .. }) => Column::new()
                 .push(Text::new(translate! {
                     self.language;
                     English => "Generating Seed…";
@@ -1327,18 +1346,21 @@ impl Gui {
                 .spacing(8)
                 .padding(8)
                 .into(),
-            Some(WindowState::RollError(e)) => Column::new()
+            Some(WindowState::RollError { error, .. }) => Column::new()
                 .push(Text::new(translate! {
                     self.language;
                     English => "Error rolling seed";
                 }).size(24))
-                .push(Text::new(e.to_string()))
+                .push(Text::new(error.to_string()))
                 .push(Row::new()
                     .push(Button::new(translate! {
                         self.language;
                         English => "Copy Debug Info";
                     }).on_press(Message::CopyRollDebugInfo(window)))
-                    //TODO Retry button
+                    .push(Button::new(translate! {
+                        self.language;
+                        English => "Retry";
+                    }).on_press(Message::RetrySeed(window)))
                     .spacing(8)
                 )
                 .spacing(8)
