@@ -31,6 +31,7 @@ pyo3 = { version = "0.24", features = [
     "indexmap",
     "py-clone", #TODO remove
 ] }
+renamore = "0.3.2"
 rfd = { version = "0.15", features = ["common-controls-v6"] }
 serde = { version = "1.0.214", features = ["derive"] }
 serde_json = { package = "serde_json_path_to_error", version = "0.1" }

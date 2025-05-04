@@ -106,7 +106,7 @@ use {
 mod lang;
 mod settings;
 
-const MAIN_WINDOW_SIZE: Size = Size { width: 675.0, height: 512.0 };
+const MAIN_WINDOW_SIZE: Size = Size { width: 754.0, height: 512.0 };
 const DEFAULT_PRESET: &str = "Default / Beginner";
 const CUSTOM_PRESETS_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/Presets");
 const CUSTOM_PRESET_SUFFIX: &str = ".custom.json";
@@ -155,8 +155,11 @@ enum Message {
         window_to_check: window::Id,
     },
     BaseRomBrowse,
+    BeginRenamePreset(String),
+    CancelRenamePreset,
     CloseRequested(window::Id),
     CommandError(Arc<Error>),
+    ConfirmRenamePreset,
     CopyPreset(String),
     CopyRollDebugInfo(window::Id),
     CustomizeSettings,
@@ -172,6 +175,7 @@ enum Message {
         setting_name: String,
         new_value: settings::Value,
     },
+    EditRenamePreset(String),
     Generate,
     GenerateError {
         window: window::Id,
@@ -203,6 +207,10 @@ enum Message {
     PresetCopied {
         copy_name: String,
         value: settings::Preset,
+    },
+    PresetRenamed {
+        from: String,
+        to: String,
     },
     RetrySeed(window::Id),
     RunGenerator {
@@ -239,6 +247,7 @@ enum Message {
 struct Gui {
     windows: HashMap<window::Id, WindowState>,
     // global/main window state
+    main_view: MainWindowView,
     error: Option<Arc<Error>>,
     //TODO default to system language if possible, see https://github.com/unicode-org/icu4x/issues/3990
     language: Language,
@@ -248,9 +257,18 @@ struct Gui {
     default_presets: settings::PresetsDefault,
     custom_presets: BTreeMap<String, settings::Preset>,
     settings_mapping: settings::Mapping,
-    #[default(Some(DEFAULT_PRESET.to_owned()))]
-    /// `None` means we're customizing presets.
-    selected_preset: Option<String>,
+}
+
+#[derive(SmartDefault)]
+enum MainWindowView {
+    #[default]
+    Default {
+        #[default(DEFAULT_PRESET.to_owned())]
+        selected_preset: String,
+    },
+    CustomizingPresets {
+        renaming: Option<(String, String)>,
+    },
 }
 
 enum WindowState {
@@ -370,8 +388,9 @@ impl Gui {
         self.presets().find(|(iter_name, _, _)| *iter_name == name).expect("requested preset does not exist").2
     }
 
-    fn selected_preset(&self) -> Cow<'_, settings::Preset> {
-        self.preset(self.selected_preset.as_deref().unwrap())
+    fn selected_preset(&self) -> Option<Cow<'_, settings::Preset>> {
+        let MainWindowView::Default { selected_preset } = &self.main_view else { return None };
+        Some(self.preset(&selected_preset))
     }
 
     fn seed(&self, window: window::Id) -> &Seed {
@@ -528,6 +547,12 @@ impl Gui {
                     })
                 })
             }
+            Message::BeginRenamePreset(preset) => if let MainWindowView::CustomizingPresets { renaming } = &mut self.main_view {
+                *renaming = Some((preset.clone(), preset));
+            },
+            Message::CancelRenamePreset => if let MainWindowView::CustomizingPresets { renaming } = &mut self.main_view {
+                *renaming = None;
+            },
             Message::CloseRequested(window) => {
                 match &self.windows[&window] {
                     WindowState::Main => {
@@ -563,6 +588,18 @@ impl Gui {
                     return window_open_task.map(|_| Message::Nop)
                 }
             }
+            Message::ConfirmRenamePreset => if let MainWindowView::CustomizingPresets { renaming } = &mut self.main_view {
+                if let Some((from, to)) = renaming.take() {
+                    return cmd(async move {
+                        let from_path = custom_preset_path(&from);
+                        let to_path = custom_preset_path(&to);
+                        let from_path_clone = from_path.clone();
+                        let to_path_clone = to_path.clone();
+                        let _was_atomic = spawn_blocking(move || renamore::rename_exclusive_fallback(from_path_clone, to_path_clone)).await?.at2(from_path, to_path)?;
+                        Ok(Message::PresetRenamed { from, to })
+                    })
+                }
+            },
             Message::CopyPreset(name) => {
                 let lang = self.language;
                 let value = self.preset(&name).into_owned();
@@ -603,11 +640,16 @@ impl Gui {
                 }
                 return clipboard::write(builder.build())
             },
-            Message::CustomizeSettings => self.selected_preset = None,
+            Message::CustomizeSettings => self.main_view = MainWindowView::CustomizingPresets { renaming: None },
             Message::DeletePreset(name) => {
                 self.custom_presets.remove(&name);
-                if self.selected_preset.as_ref().is_some_and(|selected_preset| *selected_preset == name) {
-                    self.selected_preset = Some(DEFAULT_PRESET.to_owned());
+                match &mut self.main_view {
+                    MainWindowView::Default { selected_preset } => if *selected_preset == name {
+                        *selected_preset = DEFAULT_PRESET.to_owned();
+                    },
+                    MainWindowView::CustomizingPresets { renaming } => if renaming.as_ref().is_some_and(|(from, _)| *from == name) {
+                        *renaming = None;
+                    },
                 }
                 let mut tasks = Vec::with_capacity(2);
                 if let Some((&window, _)) = self.windows.iter().find(|(_, window_state)| if let WindowState::Preset { preset_name, .. } = window_state { *preset_name == name } else { false }) {
@@ -653,8 +695,11 @@ impl Gui {
                     }
                 }
             },
-            Message::Generate => {
-                let mut settings_base = self.selected_preset().into_owned();
+            Message::EditRenamePreset(new_name) => if let MainWindowView::CustomizingPresets { renaming: Some((_, to)) } = &mut self.main_view {
+                *to = new_name;
+            },
+            Message::Generate => if let Some(settings_base) = self.selected_preset() {
+                let mut settings_base = settings_base.into_owned();
                 settings_base.insert(format!("language"), settings::Value(json!(self.language.setting_value())));
                 if !self.base_rom_path.as_os_str().is_empty() {
                     match self.base_rom_path.to_str() {
@@ -681,7 +726,7 @@ impl Gui {
                     settings_base,
                 });
                 return window_open_task.map(move |window| Message::RunGenerator { window, generator: Arc::clone(&generator) })
-            }
+            },
             Message::GenerateError { window, settings_base, error } => if let Some(window_state) = self.windows.get_mut(&window) {
                 *window_state = WindowState::RollError { settings_base, error };
             }
@@ -737,6 +782,17 @@ impl Gui {
             Message::PresetCopied { copy_name, value } => {
                 self.custom_presets.insert(copy_name.clone(), value);
                 return cmd(future::ok(Message::EditPreset(copy_name)))
+            }
+            Message::PresetRenamed { from, to } => {
+                let settings = self.custom_presets.remove(&from).expect("presets desync");
+                self.custom_presets.insert(to.clone(), settings);
+                if let MainWindowView::CustomizingPresets { renaming } = &mut self.main_view {
+                    *renaming = None;
+                }
+                if let Some(window_state) = self.windows.values_mut().find(|window_state| if let WindowState::Preset { preset_name, .. } = window_state { *preset_name == from } else { false }) {
+                    let WindowState::Preset { preset_name, .. } = window_state else { unreachable!("checked in `find`") };
+                    *preset_name = to;
+                }
             }
             Message::RetrySeed(window) => if let Some(window_state) = self.windows.get_mut(&window) {
                 if let WindowState::RollError { settings_base, .. } = window_state {
@@ -866,7 +922,7 @@ impl Gui {
             Message::SetBaseRomPath(new_path) => self.base_rom_path = new_path,
             Message::SetLanguage(language) => self.language = language,
             Message::SetPalRomPath(new_path) => self.pal_rom_path = new_path,
-            Message::SetPreset(new_preset) => self.selected_preset = Some(new_preset),
+            Message::SetPreset(selected_preset) => self.main_view = MainWindowView::Default { selected_preset },
             Message::SetSettingsTab { window, tab_name } => if let Some(window) = self.windows.get_mut(&window) {
                 if let WindowState::Preset { active_tab, .. } = window {
                     *active_tab = tab_name;
@@ -897,156 +953,186 @@ impl Gui {
                     .spacing(8)
                     .padding(8)
                     .into()
-                } else if let Some(selected_preset) = self.selected_preset.as_deref() {
-                    let mut col = Column::new()
-                    //TODO “Generate from” (dropdown, random seed/set seed/patch file, hide irrelevant GUI elements)
-                    //TODO “Seed” (text field, only if “Generate from set seed”)
-                    .push(Row::new()
-                        .push(translate! {
-                            self.language;
-                            French => "Langue :";
-                            German => "Sprache:";
-                            English => "Language:";
-                        })
-                        .push(PickList::new(all().collect_vec(), Some(self.language), Message::SetLanguage).width(Length::Fill))
-                        .align_y(iced::Alignment::Center)
-                        .spacing(8)
-                    )
-                    .push(Row::new()
-                        .push(if self.language.requires_pal_rom() {
-                            translate! {
-                                self.language;
-                                English => "Base rom (NTSC):";
-                            }
-                        } else {
-                            translate! {
-                                self.language;
-                                English => "Base rom:";
-                            }
-                        })
-                        .push(TextInput::new(if self.has_cached_base_rom() {
-                            translate! {
-                                self.language;
-                                English => "Using cached rom";
-                            }
-                        } else {
-                            translate! {
-                                self.language;
-                                English => "Required";
-                            }
-                        }, &self.base_rom_path.to_string_lossy())
-                            .on_input(|s| Message::SetBaseRomPath(PathBuf::from(s)))
-                            .on_paste(|s| Message::SetBaseRomPath(PathBuf::from(s)))
-                        )
-                        .push(Button::new(translate! {
-                            self.language;
-                            English => "Browse…";
-                        }).on_press(Message::BaseRomBrowse))
-                        .align_y(iced::Alignment::Center)
-                        .spacing(8)
-                    );
-                    if self.language.requires_pal_rom() {
-                        col = col.push(Row::new()
-                            .push(translate! {
-                                self.language;
-                                English => "Base rom (PAL):";
-                            })
-                            .push(TextInput::new(if self.has_cached_pal_rom() {
-                                translate! {
-                                    self.language;
-                                    English => "Using cached rom";
-                                }
-                            } else {
-                                translate! {
-                                    self.language;
-                                    English => "Required";
-                                }
-                            }, &self.pal_rom_path.to_string_lossy())
-                                .on_input(|s| Message::SetPalRomPath(PathBuf::from(s)))
-                                .on_paste(|s| Message::SetPalRomPath(PathBuf::from(s)))
-                            )
-                            .push(Button::new(translate! {
-                                self.language;
-                                English => "Browse…";
-                            }).on_press(Message::PalRomBrowse))
-                            .align_y(iced::Alignment::Center)
-                            .spacing(8)
-                        );
-                    }
-                    col
-                    .push(Row::new()
-                        .push(translate! {
-                            self.language;
-                            German => "Einstellungen:";
-                            English => "Settings:";
-                        })
-                        .push(PickList::<&str, _, _, _, _>::new(self.presets().map(|(name, _, _)| name).collect_vec(), Some(selected_preset), |preset| Message::SetPreset(preset.to_owned())).width(Length::Fill))
-                        .push(Button::new(translate! {
-                            self.language;
-                            English => "Customize";
-                        }).on_press(Message::CustomizeSettings))
-                        .align_y(iced::Alignment::Center)
-                        .spacing(8)
-                    )
-                    //TODO “Cosmetics” (dropdown with “Customize” button)
-                    //TODO “Output type” (dropdown with options depending on world count)
-                    .push({
-                        let disable_reason = if !self.has_cached_base_rom() && self.base_rom_path.as_os_str().is_empty() {
-                            Some(translate! {
-                                self.language;
-                                English => "Please load a base rom";
-                            })
-                        } else if self.language.requires_pal_rom() && !self.has_cached_pal_rom() && self.pal_rom_path.as_os_str().is_empty() {
-                            Some(translate! {
-                                self.language;
-                                English => "Please load a PAL base rom";
-                            })
-                        } else {
-                            None
-                        };
-                        let mut btn = Button::new(Text::new(translate! {
-                            self.language;
-                            English => "Generate!";
-                        }));
-                        if disable_reason.is_none() { btn = btn.on_press(Message::Generate) }
-                        let mut row = Row::new().push(btn);
-                        if let Some(disable_reason) = disable_reason {
-                            row = row.push(disable_reason);
-                        }
-                        row.align_y(iced::Alignment::Center).spacing(8)
-                    }) //TODO keep button enabled but style as disabled if prerequisites to generate seed not met (e.g. generate from patch file but no patch file) so an error can be shown on click or next to it
-                    .spacing(8)
-                    .padding(8)
-                    .into()
                 } else {
-                    Scrollable::new(
-                        Row::new()
-                            .push(Column::from_vec(self.presets().map(|(name, is_custom, _)| Row::new()
-                                .push(Button::new(translate! {
+                    match &self.main_view {
+                        MainWindowView::Default { selected_preset } => {
+                            let mut col = Column::new()
+                            //TODO “Generate from” (dropdown, random seed/set seed/patch file, hide irrelevant GUI elements)
+                            //TODO “Seed” (text field, only if “Generate from set seed”)
+                            .push(Row::new()
+                                .push(translate! {
                                     self.language;
-                                    English => "Select";
-                                }).on_press(Message::SetPreset(name.to_owned())))
-                                .push(Button::new(translate! {
-                                    self.language;
-                                    English => "Copy";
-                                }).on_press(Message::CopyPreset(name.to_owned())))
-                                .push(Button::new(translate! {
-                                    self.language;
-                                    English => "Edit";
-                                }).on_press_maybe(is_custom.then(|| Message::EditPreset(name.to_owned()))))
-                                //TODO rename button? (and/or allow renaming the preset when editing it)
-                                .push(Button::new(translate! {
-                                    self.language;
-                                    English => "Delete";
-                                }).on_press_maybe(is_custom.then(|| Message::AskDeletePreset(name.to_owned()))))
-                                .push(name)
+                                    French => "Langue :";
+                                    German => "Sprache:";
+                                    English => "Language:";
+                                })
+                                .push(PickList::new(all().collect_vec(), Some(self.language), Message::SetLanguage).width(Length::Fill))
                                 .align_y(iced::Alignment::Center)
                                 .spacing(8)
-                                .into()
-                            ).collect()).spacing(8).padding(8).width(Length::Fill))
-                            .push(Space::with_width(Length::Shrink)) // to avoid overlap with the scrollbar
-                            .spacing(16)
-                    ).height(Length::Fill).into()
+                            )
+                            .push(Row::new()
+                                .push(if self.language.requires_pal_rom() {
+                                    translate! {
+                                        self.language;
+                                        English => "Base rom (NTSC):";
+                                    }
+                                } else {
+                                    translate! {
+                                        self.language;
+                                        English => "Base rom:";
+                                    }
+                                })
+                                .push(TextInput::new(if self.has_cached_base_rom() {
+                                    translate! {
+                                        self.language;
+                                        English => "Using cached rom";
+                                    }
+                                } else {
+                                    translate! {
+                                        self.language;
+                                        English => "Required";
+                                    }
+                                }, &self.base_rom_path.to_string_lossy())
+                                    .on_input(|s| Message::SetBaseRomPath(PathBuf::from(s)))
+                                    .on_paste(|s| Message::SetBaseRomPath(PathBuf::from(s)))
+                                )
+                                .push(Button::new(translate! {
+                                    self.language;
+                                    English => "Browse…";
+                                }).on_press(Message::BaseRomBrowse))
+                                .align_y(iced::Alignment::Center)
+                                .spacing(8)
+                            );
+                            if self.language.requires_pal_rom() {
+                                col = col.push(Row::new()
+                                    .push(translate! {
+                                        self.language;
+                                        English => "Base rom (PAL):";
+                                    })
+                                    .push(TextInput::new(if self.has_cached_pal_rom() {
+                                        translate! {
+                                            self.language;
+                                            English => "Using cached rom";
+                                        }
+                                    } else {
+                                        translate! {
+                                            self.language;
+                                            English => "Required";
+                                        }
+                                    }, &self.pal_rom_path.to_string_lossy())
+                                        .on_input(|s| Message::SetPalRomPath(PathBuf::from(s)))
+                                        .on_paste(|s| Message::SetPalRomPath(PathBuf::from(s)))
+                                    )
+                                    .push(Button::new(translate! {
+                                        self.language;
+                                        English => "Browse…";
+                                    }).on_press(Message::PalRomBrowse))
+                                    .align_y(iced::Alignment::Center)
+                                    .spacing(8)
+                                );
+                            }
+                            col
+                            .push(Row::new()
+                                .push(translate! {
+                                    self.language;
+                                    German => "Einstellungen:";
+                                    English => "Settings:";
+                                })
+                                .push(PickList::<&str, _, _, _, _>::new(self.presets().map(|(name, _, _)| name).collect_vec(), Some(&**selected_preset), |preset| Message::SetPreset(preset.to_owned())).width(Length::Fill))
+                                .push(Button::new(translate! {
+                                    self.language;
+                                    English => "Customize";
+                                }).on_press(Message::CustomizeSettings))
+                                .align_y(iced::Alignment::Center)
+                                .spacing(8)
+                            )
+                            //TODO “Cosmetics” (dropdown with “Customize” button)
+                            //TODO “Output type” (dropdown with options depending on world count)
+                            .push({
+                                let disable_reason = if !self.has_cached_base_rom() && self.base_rom_path.as_os_str().is_empty() {
+                                    Some(translate! {
+                                        self.language;
+                                        English => "Please load a base rom";
+                                    })
+                                } else if self.language.requires_pal_rom() && !self.has_cached_pal_rom() && self.pal_rom_path.as_os_str().is_empty() {
+                                    Some(translate! {
+                                        self.language;
+                                        English => "Please load a PAL base rom";
+                                    })
+                                } else {
+                                    None
+                                };
+                                let mut btn = Button::new(Text::new(translate! {
+                                    self.language;
+                                    English => "Generate!";
+                                }));
+                                if disable_reason.is_none() { btn = btn.on_press(Message::Generate) }
+                                let mut row = Row::new().push(btn);
+                                if let Some(disable_reason) = disable_reason {
+                                    row = row.push(disable_reason);
+                                }
+                                row.align_y(iced::Alignment::Center).spacing(8)
+                            }) //TODO keep button enabled but style as disabled if prerequisites to generate seed not met (e.g. generate from patch file but no patch file) so an error can be shown on click or next to it
+                            .spacing(8)
+                            .padding(8)
+                            .into()
+                        }
+                        MainWindowView::CustomizingPresets { renaming } => Scrollable::new(
+                            Row::new()
+                                .push(Column::from_vec(self.presets().map(|(name, is_custom, _)| {
+                                    let mut row = Row::new();
+                                    if_chain! {
+                                        if let Some((from, to)) = renaming;
+                                        if from == name;
+                                        then {
+                                            row = row
+                                                .push(TextInput::new(from, to).on_input(Message::EditRenamePreset).on_submit_maybe((!self.presets().any(|(name, _, _)| name == to)).then_some(Message::ConfirmRenamePreset)))
+                                                .push(Button::new(translate! {
+                                                    self.language;
+                                                    English => "Confirm";
+                                                }).on_press_maybe((!self.presets().any(|(name, _, _)| name == to)).then_some(Message::ConfirmRenamePreset)))
+                                                .push(Button::new(translate! {
+                                                    self.language;
+                                                    English => "Cancel";
+                                                }).on_press(Message::CancelRenamePreset))
+                                            ;
+                                        } else {
+                                            row = row
+                                                .push(Button::new(translate! {
+                                                    self.language;
+                                                    German => "Auswählen";
+                                                    English => "Select";
+                                                }).on_press_maybe(renaming.is_none().then(|| Message::SetPreset(name.to_owned()))))
+                                                .push(Button::new(translate! {
+                                                    self.language;
+                                                    German => "Kopieren";
+                                                    English => "Copy";
+                                                }).on_press(Message::CopyPreset(name.to_owned())))
+                                                .push(Button::new(translate! {
+                                                    self.language;
+                                                    German => "Bearbeiten";
+                                                    English => "Edit";
+                                                }).on_press_maybe(is_custom.then(|| Message::EditPreset(name.to_owned()))))
+                                                .push(Button::new(translate! {
+                                                    self.language;
+                                                    German => "Umbenennen";
+                                                    English => "Rename";
+                                                }).on_press_maybe((renaming.is_none() && is_custom).then(|| Message::BeginRenamePreset(name.to_owned()))))
+                                                .push(Button::new(translate! {
+                                                    self.language;
+                                                    German => "Löschen";
+                                                    English => "Delete";
+                                                }).on_press_maybe(is_custom.then(|| Message::AskDeletePreset(name.to_owned()))))
+                                                .push(name)
+                                            ;
+                                        }
+                                    }
+                                    row.align_y(iced::Alignment::Center).spacing(8).into()
+                                }).collect()).spacing(8).padding(8).width(Length::Fill))
+                                .push(Space::with_width(Length::Shrink)) // to avoid overlap with the scrollbar
+                                .spacing(16)
+                        ).height(Length::Fill).into(),
+                    }
                 }
             }
             Some(WindowState::Preset { preset_name, active_tab }) => {

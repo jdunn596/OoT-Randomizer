@@ -1692,7 +1692,7 @@ dependencies = [
 
 [[package]]
 name = "fill-test"
-version = "8.2.76-fenhl.5.riir.12"
+version = "8.2.76-fenhl.5.riir.13"
 dependencies = [
  "collect-mac",
  "itertools",
@@ -3618,7 +3618,7 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
 name = "ootr-build"
-version = "8.2.76-fenhl.5.riir.12"
+version = "8.2.76-fenhl.5.riir.13"
 dependencies = [
  "decompress",
  "futures",
@@ -3633,7 +3633,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-cli"
-version = "8.2.76-fenhl.5.riir.12"
+version = "8.2.76-fenhl.5.riir.13"
 dependencies = [
  "clap",
  "mimalloc",
@@ -3645,7 +3645,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-common"
-version = "8.2.76-fenhl.5.riir.12"
+version = "8.2.76-fenhl.5.riir.13"
 dependencies = [
  "async-trait",
  "gres",
@@ -3660,7 +3660,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-gui"
-version = "8.2.76-fenhl.5.riir.12"
+version = "8.2.76-fenhl.5.riir.13"
 dependencies = [
  "async_zip",
  "enum-iterator",
@@ -3677,6 +3677,7 @@ dependencies = [
  "ootr-macros",
  "pyo3",
  "pyo3-build-config",
+ "renamore",
  "rfd",
  "serde",
  "serde_json",
@@ -3693,7 +3694,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-macros"
-version = "8.2.76-fenhl.5.riir.12"
+version = "8.2.76-fenhl.5.riir.13"
 dependencies = [
  "indexmap 2.9.0",
  "proc-macro2",
@@ -3703,7 +3704,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-python"
-version = "8.2.76-fenhl.5.riir.12"
+version = "8.2.76-fenhl.5.riir.13"
 dependencies = [
  "anyhow",
  "arrayref",
@@ -4350,6 +4351,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
+name = "renamore"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f5bced8a18df26d088a61a8f314d853ad18705b0aee59b43ccc088ca4bc3670"
+dependencies = [
+ "cc",
+ "tempfile",
+]
+
+[[package]]
 name = "renderdoc-sys"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4397,7 +4408,7 @@ dependencies = [
 
 [[package]]
 name = "rust-n64-test"
-version = "8.2.76-fenhl.5.riir.12"
+version = "8.2.76-fenhl.5.riir.13"
 dependencies = [
  "cbindgen",
 ]
