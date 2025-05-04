@@ -804,10 +804,10 @@ impl Gui {
                 *to = new_name;
             },
             Message::Generate => if let Some(preset_or_plando) = self.selected_preset_or_plando() {
+                let MainWindowView::Default { selected_preset_or_plando } = &self.main_view else { unreachable!("should be Some since self.selected_preset_or_plando() is Some") };
                 let mut settings_base = if let Some(settings_base) = preset_or_plando {
                     settings_base.into_owned()
                 } else {
-                    let MainWindowView::Default { selected_preset_or_plando } = &self.main_view else { unreachable!("should be Some since self.selected_preset_or_plando() is Some") };
                     match plando_path(&selected_preset_or_plando).to_str() {
                         Some(plando_path) => collect![
                             format!("enable_distribution_file") => settings::Value(json!(true)),
@@ -817,6 +817,7 @@ impl Gui {
                     }
                 };
                 settings_base.insert(format!("language"), settings::Value(json!(self.language.setting_value())));
+                settings_base.insert(format!("user_message"), settings::Value(json!(selected_preset_or_plando)));
                 if !self.base_rom_path.as_os_str().is_empty() {
                     match self.base_rom_path.to_str() {
                         Some(base_rom_path) => { settings_base.insert(format!("rom"), settings::Value(json!(base_rom_path.to_owned()))); }
