@@ -20,10 +20,6 @@ use {
         },
         sync::Arc,
     },
-    dark_light::Mode::{
-        Dark,
-        Light,
-    },
     enum_iterator::all,
     futures::{
         future::{
@@ -43,7 +39,6 @@ use {
         Length,
         Size,
         Task,
-        Theme,
         clipboard,
         widget::*,
         window::{
@@ -392,32 +387,6 @@ impl Gui {
             Some(WindowState::Seed(seed)) => seed,
             Some(_) => panic!("attempted to look up seed for non-seed window"),
             None => panic!("attempted to look up seed for unknown window"),
-        }
-    }
-
-    fn theme(&self, _: window::Id) -> Theme {
-        //TODO automatically update on system theme change (https://github.com/gtk-rs/gtk-rs-core/discussions/1278 for GNOME, https://github.com/frewsxcv/rust-dark-light/pull/26 for other platforms)
-        #[cfg(target_os = "linux")] {
-            let settings = gio::Settings::new("org.gnome.desktop.interface");
-            if settings.settings_schema().map_or(false, |schema| schema.has_key("color-scheme")) {
-                match settings.string("color-scheme").as_str() {
-                    "prefer-light" => return Theme::Light,
-                    "prefer-dark" => return Theme::Dark,
-                    _ => {}
-                }
-            }
-        }
-        match dark_light::detect() {
-            Ok(Dark) => Theme::Dark,
-            Ok(Light) => Theme::Light,
-            Ok(dark_light::Mode::Unspecified) => {
-                #[cfg(debug_assertions)] { eprintln!("got unspecified system theme") }
-                Theme::Light
-            }
-            #[cfg_attr(not(debug_assertions), allow(unused))] Err(e) => {
-                #[cfg(debug_assertions)] { eprintln!("error determining system theme: {e} ({e:?})") }
-                Theme::Light
-            }
         }
     }
 
@@ -1377,7 +1346,7 @@ fn main() -> Result<(), Error> {
         } else {
             None
         }))
-        .theme(Gui::theme)
+        .theme(|_, _| wheel::gui::theme())
         .default_font(iced::Font::with_name("DejaVu Sans"))
         .run_with(|| (Gui::default(), cmd(async move {
             let icon = icon::from_file_data(include_bytes!("../../../assets/ootr-arrows.ico"), Some(ImageFormat::Ico))?;
