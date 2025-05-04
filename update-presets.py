@@ -3,12 +3,13 @@
 Usage:
   update-presets.py [options]
   update-presets.py add <preset>
-  update-presets.py list-non-default [--rust] <preset>
+  update-presets.py list-non-default [--rust | --compact] <preset>
   update-presets.py diff <left> <right>
   update-presets.py (-h | --help)
 
 Options:
   -h, --help         show this help message and exit
+  --compact          print settings on a single line
   --defaults         fill in missing settings with their default values
   --from=<rev>       update presets to match the given git commit
   --hook             run noninteractively for git pre-commit hook purposes
@@ -135,6 +136,8 @@ if __name__ == '__main__':
                     continue
                 print_rust_json_setting(name, value, 8)
             print('    ]')
+        elif arguments['--compact']:
+            print(json.dumps(non_default))
         else:
             print(json.dumps(non_default, indent=4))
     elif arguments['diff']:
