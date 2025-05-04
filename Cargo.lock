@@ -1692,7 +1692,7 @@ dependencies = [
 
 [[package]]
 name = "fill-test"
-version = "8.2.76-fenhl.5.riir.13"
+version = "8.2.76-fenhl.5.riir.14"
 dependencies = [
  "collect-mac",
  "itertools",
@@ -3618,7 +3618,7 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
 name = "ootr-build"
-version = "8.2.76-fenhl.5.riir.13"
+version = "8.2.76-fenhl.5.riir.14"
 dependencies = [
  "decompress",
  "futures",
@@ -3633,7 +3633,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-cli"
-version = "8.2.76-fenhl.5.riir.13"
+version = "8.2.76-fenhl.5.riir.14"
 dependencies = [
  "clap",
  "mimalloc",
@@ -3645,7 +3645,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-common"
-version = "8.2.76-fenhl.5.riir.13"
+version = "8.2.76-fenhl.5.riir.14"
 dependencies = [
  "async-trait",
  "gres",
@@ -3660,9 +3660,10 @@ dependencies = [
 
 [[package]]
 name = "ootr-gui"
-version = "8.2.76-fenhl.5.riir.13"
+version = "8.2.76-fenhl.5.riir.14"
 dependencies = [
  "async_zip",
+ "collect-mac",
  "enum-iterator",
  "futures",
  "gres",
@@ -3694,7 +3695,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-macros"
-version = "8.2.76-fenhl.5.riir.13"
+version = "8.2.76-fenhl.5.riir.14"
 dependencies = [
  "indexmap 2.9.0",
  "proc-macro2",
@@ -3704,7 +3705,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-python"
-version = "8.2.76-fenhl.5.riir.13"
+version = "8.2.76-fenhl.5.riir.14"
 dependencies = [
  "anyhow",
  "arrayref",
@@ -4408,7 +4409,7 @@ dependencies = [
 
 [[package]]
 name = "rust-n64-test"
-version = "8.2.76-fenhl.5.riir.13"
+version = "8.2.76-fenhl.5.riir.14"
 dependencies = [
  "cbindgen",
 ]
@@ -5915,7 +5916,7 @@ dependencies = [
 [[package]]
 name = "wheel"
 version = "0.15.0"
-source = "git+https://github.com/fenhl/wheel?branch=main#d1b644fb5ada5d35577edc517d305e7d8bc1a854"
+source = "git+https://github.com/fenhl/wheel?branch=main#6462981cd6605c9ec4e6389748ecbc4d61d83046"
 dependencies = [
  "async-trait",
  "clap",
@@ -5937,7 +5938,7 @@ dependencies = [
 [[package]]
 name = "wheel-derive"
 version = "0.15.0"
-source = "git+https://github.com/fenhl/wheel?branch=main#d1b644fb5ada5d35577edc517d305e7d8bc1a854"
+source = "git+https://github.com/fenhl/wheel?branch=main#6462981cd6605c9ec4e6389748ecbc4d61d83046"
 dependencies = [
  "itertools",
  "proc-macro2",

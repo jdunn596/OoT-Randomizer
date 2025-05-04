@@ -14,6 +14,7 @@ unused_qualifications = "deny"
 warnings = "deny"
 
 [dependencies]
+collect-mac = "0.1.0"
 enum-iterator = "2.1.0"
 futures = "0.3"
 gres = { git = "https://github.com/fenhl/gres", branch = "main" }

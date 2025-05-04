@@ -8,6 +8,7 @@ use {
         borrow::Cow,
         collections::{
             BTreeMap,
+            BTreeSet,
             HashMap,
             HashSet,
         },
@@ -20,6 +21,7 @@ use {
         },
         sync::Arc,
     },
+    collect_mac::collect,
     enum_iterator::all,
     futures::{
         future::{
@@ -110,9 +112,14 @@ const MAIN_WINDOW_SIZE: Size = Size { width: 754.0, height: 512.0 };
 const DEFAULT_PRESET: &str = "Default / Beginner";
 const CUSTOM_PRESETS_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/Presets");
 const CUSTOM_PRESET_SUFFIX: &str = ".custom.json";
+const PLANDO_SUFFIX: &str = ".plando.json";
 
 fn custom_preset_path(name: &str) -> PathBuf {
     Path::new(CUSTOM_PRESETS_PATH).join(format!("{}{CUSTOM_PRESET_SUFFIX}", name.replace('/', "_")))
+}
+
+fn plando_path(name: &str) -> PathBuf {
+    Path::new(CUSTOM_PRESETS_PATH).join(format!("{}{PLANDO_SUFFIX}", name.replace('/', "_")))
 }
 
 fn cmd(future: impl Future<Output = Result<Message, Error>> + Send + 'static) -> Task<Message> {
@@ -144,6 +151,7 @@ enum Error {
 
 #[derive(Debug, Clone /*TODO this requires PyO3's py-clone feature, remove by using on_press_with (requires patch to iced to remove the unconditional Clone bound) */)]
 enum Message {
+    AskDeletePlando(String),
     AskDeletePreset(String),
     AskSavePatches {
         window_to_close: window::Id,
@@ -155,14 +163,16 @@ enum Message {
         window_to_check: window::Id,
     },
     BaseRomBrowse,
+    BeginRenamePlando(String),
     BeginRenamePreset(String),
-    CancelRenamePreset,
+    CancelRenamePresetOrPlando,
     CloseRequested(window::Id),
     CommandError(Arc<Error>),
-    ConfirmRenamePreset,
-    CopyPreset(String),
+    ConfirmRenamePresetOrPlando,
+    CopyPresetOrPlando(String),
     CopyRollDebugInfo(window::Id),
     CustomizeSettings,
+    DeletePlando(String),
     DeletePreset(String),
     DismissError,
     Done {
@@ -175,17 +185,19 @@ enum Message {
         setting_name: String,
         new_value: settings::Value,
     },
-    EditRenamePreset(String),
+    EditRenamePresetOrPlando(String),
     Generate,
     GenerateError {
         window: window::Id,
         settings_base: settings::Preset,
         error: Arc<RollError>,
     },
+    ImportPlando(PathBuf),
     Init {
         icon: window::Icon,
         default_presets: settings::PresetsDefault,
         custom_presets: BTreeMap<String, settings::Preset>,
+        plandos: BTreeSet<String>,
         settings_mapping: settings::Mapping,
     },
     MarkPatchesSaved {
@@ -204,6 +216,14 @@ enum Message {
     },
     Nop,
     PalRomBrowse,
+    PlandoAdded {
+        name: String,
+    },
+    PlandoBrowse,
+    PlandoRenamed {
+        from: String,
+        to: String,
+    },
     PresetCopied {
         copy_name: String,
         value: settings::Preset,
@@ -236,7 +256,7 @@ enum Message {
     SetBaseRomPath(PathBuf),
     SetLanguage(Language),
     SetPalRomPath(PathBuf),
-    SetPreset(String),
+    SetPresetOrPlando(String),
     SetSettingsTab {
         window: window::Id,
         tab_name: String,
@@ -256,6 +276,7 @@ struct Gui {
     icon: Option<window::Icon>,
     default_presets: settings::PresetsDefault,
     custom_presets: BTreeMap<String, settings::Preset>,
+    plandos: BTreeSet<String>,
     settings_mapping: settings::Mapping,
 }
 
@@ -264,10 +285,10 @@ enum MainWindowView {
     #[default]
     Default {
         #[default(DEFAULT_PRESET.to_owned())]
-        selected_preset: String,
+        selected_preset_or_plando: String,
     },
     CustomizingPresets {
-        renaming: Option<(String, String)>,
+        renaming: Option<(bool, String, String)>,
     },
 }
 
@@ -378,19 +399,20 @@ impl Gui {
         Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../ZOOTDEC-PAL.z64")).exists()
     }
 
-    fn presets(&self) -> impl Iterator<Item = (&str, bool, Cow<'_, settings::Preset>)> {
-        iter::once((DEFAULT_PRESET, false, Cow::Owned(HashMap::default())))
-            .chain(self.default_presets.iter().map(|(name, settings)| (&**name, false, Cow::Borrowed(settings))))
-            .chain(self.custom_presets.iter().map(|(name, settings)| (&**name, true, Cow::Borrowed(settings))))
+    fn presets_and_plandos(&self) -> impl Iterator<Item = (&str, bool, Option<Cow<'_, settings::Preset>>)> {
+        iter::once((DEFAULT_PRESET, false, Some(Cow::Owned(HashMap::default()))))
+            .chain(self.default_presets.iter().map(|(name, settings)| (&**name, false, Some(Cow::Borrowed(settings)))))
+            .chain(self.custom_presets.iter().map(|(name, settings)| (&**name, true, Some(Cow::Borrowed(settings)))))
+            .chain(self.plandos.iter().map(|name| (&**name, true, None)))
     }
 
-    fn preset(&self, name: &str) -> Cow<'_, settings::Preset> {
-        self.presets().find(|(iter_name, _, _)| *iter_name == name).expect("requested preset does not exist").2
+    fn preset_or_plando(&self, name: &str) -> Option<Cow<'_, settings::Preset>> {
+        self.presets_and_plandos().find(|(iter_name, _, _)| *iter_name == name).expect("requested preset does not exist").2
     }
 
-    fn selected_preset(&self) -> Option<Cow<'_, settings::Preset>> {
-        let MainWindowView::Default { selected_preset } = &self.main_view else { return None };
-        Some(self.preset(&selected_preset))
+    fn selected_preset_or_plando(&self) -> Option<Option<Cow<'_, settings::Preset>>> {
+        let MainWindowView::Default { selected_preset_or_plando } = &self.main_view else { return None };
+        Some(self.preset_or_plando(&selected_preset_or_plando))
     }
 
     fn seed(&self, window: window::Id) -> &Seed {
@@ -433,6 +455,41 @@ impl Gui {
 
     fn update(&mut self, msg: Message) -> Task<Message> {
         match msg {
+            Message::AskDeletePlando(name) => {
+                let delete_label = translate! {
+                    self.language;
+                    English => "Delete";
+                };
+                let cancel_label = translate! {
+                    self.language;
+                    English => "Cancel";
+                };
+                return cmd(AsyncMessageDialog::default()
+                    .set_level(rfd::MessageLevel::Warning)
+                    .set_title(translate! {
+                        self.language;
+                        English => "Delete Plando";
+                    })
+                    .set_description(translate! {
+                        self.language;
+                        English => format!("Are you sure you want to permanently delete the plando “{name}”?");
+                    })
+                    .set_buttons(rfd::MessageButtons::OkCancelCustom(delete_label.to_owned(), cancel_label.to_owned()))
+                    //TODO set_parent (iced::window::run_with_handle, requires iced to upgrade to raw-window-handle 0.6)
+                    .show()
+                    .map(move |response| Ok(if let rfd::MessageDialogResult::Custom(label) = response {
+                        if label == delete_label {
+                            Message::DeletePlando(name)
+                        } else if label == cancel_label {
+                            Message::Nop
+                        } else {
+                            unreachable!("got {label} from Delete/Cancel dialog")
+                        }
+                    } else {
+                        unreachable!("got non-custom response from dialog with custom labels")
+                    }))
+                )
+            }
             Message::AskDeletePreset(name) => {
                 let delete_label = translate! {
                     self.language;
@@ -547,10 +604,13 @@ impl Gui {
                     })
                 })
             }
-            Message::BeginRenamePreset(preset) => if let MainWindowView::CustomizingPresets { renaming } = &mut self.main_view {
-                *renaming = Some((preset.clone(), preset));
+            Message::BeginRenamePlando(plando) => if let MainWindowView::CustomizingPresets { renaming } = &mut self.main_view {
+                *renaming = Some((true, plando.clone(), plando));
             },
-            Message::CancelRenamePreset => if let MainWindowView::CustomizingPresets { renaming } = &mut self.main_view {
+            Message::BeginRenamePreset(preset) => if let MainWindowView::CustomizingPresets { renaming } = &mut self.main_view {
+                *renaming = Some((false, preset.clone(), preset));
+            },
+            Message::CancelRenamePresetOrPlando => if let MainWindowView::CustomizingPresets { renaming } = &mut self.main_view {
                 *renaming = None;
             },
             Message::CloseRequested(window) => {
@@ -588,39 +648,69 @@ impl Gui {
                     return window_open_task.map(|_| Message::Nop)
                 }
             }
-            Message::ConfirmRenamePreset => if let MainWindowView::CustomizingPresets { renaming } = &mut self.main_view {
-                if let Some((from, to)) = renaming.take() {
+            Message::ConfirmRenamePresetOrPlando => if let MainWindowView::CustomizingPresets { renaming } = &mut self.main_view {
+                if let Some((is_plando, from, to)) = renaming.take() {
                     return cmd(async move {
-                        let from_path = custom_preset_path(&from);
-                        let to_path = custom_preset_path(&to);
-                        let from_path_clone = from_path.clone();
-                        let to_path_clone = to_path.clone();
-                        let _was_atomic = spawn_blocking(move || renamore::rename_exclusive_fallback(from_path_clone, to_path_clone)).await?.at2(from_path, to_path)?;
-                        Ok(Message::PresetRenamed { from, to })
+                        if is_plando {
+                            let from_path = plando_path(&from);
+                            let to_path = plando_path(&to);
+                            let from_path_clone = from_path.clone();
+                            let to_path_clone = to_path.clone();
+                            let _was_atomic = spawn_blocking(move || renamore::rename_exclusive_fallback(from_path_clone, to_path_clone)).await?.at2(from_path, to_path)?;
+                            Ok(Message::PlandoRenamed { from, to })
+                        } else {
+                            let from_path = custom_preset_path(&from);
+                            let to_path = custom_preset_path(&to);
+                            let from_path_clone = from_path.clone();
+                            let to_path_clone = to_path.clone();
+                            let _was_atomic = spawn_blocking(move || renamore::rename_exclusive_fallback(from_path_clone, to_path_clone)).await?.at2(from_path, to_path)?;
+                            Ok(Message::PresetRenamed { from, to })
+                        }
                     })
                 }
             },
-            Message::CopyPreset(name) => {
+            Message::CopyPresetOrPlando(name) => {
                 let lang = self.language;
-                let value = self.preset(&name).into_owned();
-                return cmd(async move {
-                    for copy_idx in 1.. {
-                        let copy_name = translate! {
-                            lang;
-                            English => if copy_idx == 1 {
-                                format!("Copy of {name}")
-                            } else {
-                                format!("Copy {copy_idx} of {name}")
+                if let Some(value) = self.preset_or_plando(&name) {
+                    let value = value.into_owned();
+                    return cmd(async move {
+                        for copy_idx in 1.. {
+                            let copy_name = translate! {
+                                lang;
+                                English => if copy_idx == 1 {
+                                    format!("Copy of {name}")
+                                } else {
+                                    format!("Copy {copy_idx} of {name}")
+                                };
                             };
-                        };
-                        match fs::write_json_new(custom_preset_path(&copy_name), &value).await {
-                            Ok(()) => return Ok(Message::PresetCopied { copy_name, value }),
-                            Err(wheel::Error::Io { inner, .. }) if inner.kind() == io::ErrorKind::AlreadyExists => {}
-                            Err(e) => return Err(e.into()),
+                            match fs::write_json_new(custom_preset_path(&copy_name), &value).await {
+                                Ok(()) => return Ok(Message::PresetCopied { copy_name, value }),
+                                Err(wheel::Error::Io { inner, .. }) if inner.kind() == io::ErrorKind::AlreadyExists => {}
+                                Err(e) => return Err(e.into()),
+                            }
                         }
-                    }
-                    Err(Error::TooManyCopies)
+                        Err(Error::TooManyCopies)
+                    })
+                } else {
+                    return cmd(async move {
+                        for copy_idx in 1.. {
+                            let copy_name = translate! {
+                                lang;
+                                English => if copy_idx == 1 {
+                                    format!("Copy of {name}")
+                                } else {
+                                    format!("Copy {copy_idx} of {name}")
+                                };
+                            };
+                            match fs::copy_new(plando_path(&name), plando_path(&copy_name)).await {
+                                Ok(_) => return Ok(Message::PlandoAdded { name: copy_name }),
+                                Err(wheel::Error::Io { inner, .. }) if inner.kind() == io::ErrorKind::AlreadyExists => {}
+                                Err(e) => return Err(e.into()),
+                            }
+                        }
+                        Err(Error::TooManyCopies)
                 })
+                }
             }
             Message::CopyRollDebugInfo(window) => if let Some(WindowState::RollError { error, .. }) = self.windows.get(&window) {
                 let mut builder = MessageBuilder::default();
@@ -641,13 +731,28 @@ impl Gui {
                 return clipboard::write(builder.build())
             },
             Message::CustomizeSettings => self.main_view = MainWindowView::CustomizingPresets { renaming: None },
+            Message::DeletePlando(name) => {
+                self.plandos.remove(&name);
+                match &mut self.main_view {
+                    MainWindowView::Default { selected_preset_or_plando } => if *selected_preset_or_plando == name {
+                        *selected_preset_or_plando = DEFAULT_PRESET.to_owned();
+                    },
+                    MainWindowView::CustomizingPresets { renaming } => if renaming.as_ref().is_some_and(|(_, from, _)| *from == name) {
+                        *renaming = None;
+                    },
+                }
+                return cmd(async move {
+                    fs::remove_file(plando_path(&name)).await?;
+                    Ok(Message::Nop)
+                })
+            }
             Message::DeletePreset(name) => {
                 self.custom_presets.remove(&name);
                 match &mut self.main_view {
-                    MainWindowView::Default { selected_preset } => if *selected_preset == name {
-                        *selected_preset = DEFAULT_PRESET.to_owned();
+                    MainWindowView::Default { selected_preset_or_plando } => if *selected_preset_or_plando == name {
+                        *selected_preset_or_plando = DEFAULT_PRESET.to_owned();
                     },
-                    MainWindowView::CustomizingPresets { renaming } => if renaming.as_ref().is_some_and(|(from, _)| *from == name) {
+                    MainWindowView::CustomizingPresets { renaming } => if renaming.as_ref().is_some_and(|(_, from, _)| *from == name) {
                         *renaming = None;
                     },
                 }
@@ -695,11 +800,22 @@ impl Gui {
                     }
                 }
             },
-            Message::EditRenamePreset(new_name) => if let MainWindowView::CustomizingPresets { renaming: Some((_, to)) } = &mut self.main_view {
+            Message::EditRenamePresetOrPlando(new_name) => if let MainWindowView::CustomizingPresets { renaming: Some((_, _, to)) } = &mut self.main_view {
                 *to = new_name;
             },
-            Message::Generate => if let Some(settings_base) = self.selected_preset() {
-                let mut settings_base = settings_base.into_owned();
+            Message::Generate => if let Some(preset_or_plando) = self.selected_preset_or_plando() {
+                let mut settings_base = if let Some(settings_base) = preset_or_plando {
+                    settings_base.into_owned()
+                } else {
+                    let MainWindowView::Default { selected_preset_or_plando } = &self.main_view else { unreachable!("should be Some since self.selected_preset_or_plando() is Some") };
+                    match plando_path(&selected_preset_or_plando).to_str() {
+                        Some(plando_path) => collect![
+                            format!("enable_distribution_file") => settings::Value(json!(true)),
+                            format!("distribution_file") => settings::Value(json!(plando_path.to_owned())),
+                        ],
+                        None => return cmd(future::err(Error::Utf8)),
+                    }
+                };
                 settings_base.insert(format!("language"), settings::Value(json!(self.language.setting_value())));
                 if !self.base_rom_path.as_os_str().is_empty() {
                     match self.base_rom_path.to_str() {
@@ -730,10 +846,33 @@ impl Gui {
             Message::GenerateError { window, settings_base, error } => if let Some(window_state) = self.windows.get_mut(&window) {
                 *window_state = WindowState::RollError { settings_base, error };
             }
-            Message::Init { icon, default_presets, custom_presets, settings_mapping } => {
+            Message::ImportPlando(path) => if let Some(name) = path.file_stem() {
+                let lang = self.language;
+                let name = name.to_string_lossy().to_string();
+                return cmd(async move {
+                    for copy_idx in 1.. {
+                        let name = translate! {
+                            lang;
+                            English => if copy_idx == 1 {
+                                name.clone()
+                            } else {
+                                format!("{name} {copy_idx}")
+                            };
+                        };
+                        match fs::copy_new(&path, plando_path(&name)).await {
+                            Ok(_) => return Ok(Message::PlandoAdded { name }),
+                            Err(wheel::Error::Io { inner, .. }) if inner.kind() == io::ErrorKind::AlreadyExists => {}
+                            Err(e) => return Err(e.into()),
+                        }
+                    }
+                    Err(Error::TooManyCopies)
+                })
+            }
+            Message::Init { icon, default_presets, custom_presets, plandos, settings_mapping } => {
                 self.icon = Some(icon);
                 self.default_presets = default_presets;
                 self.custom_presets = custom_presets;
+                self.plandos = plandos;
                 self.settings_mapping = settings_mapping;
                 let (main_window_id, window_open_task) = window::open(window::Settings {
                     size: MAIN_WINDOW_SIZE,
@@ -778,6 +917,32 @@ impl Gui {
                         Message::Nop
                     })
                 })
+            }
+            Message::PlandoAdded { name } => {
+                self.plandos.insert(name);
+            }
+            Message::PlandoBrowse => {
+                let lang = self.language;
+                return cmd(async move {
+                    Ok(if let Some(file) = AsyncFileDialog::default()
+                        .add_filter(translate! {
+                            lang;
+                            English => "Plandomizer";
+                        }, &["json"])
+                        .pick_file().await
+                    {
+                        Message::ImportPlando(file.path().to_owned())
+                    } else {
+                        Message::Nop
+                    })
+                })
+            }
+            Message::PlandoRenamed { from, to } => {
+                self.plandos.remove(&from);
+                self.plandos.insert(to.clone());
+                if let MainWindowView::CustomizingPresets { renaming } = &mut self.main_view {
+                    *renaming = None;
+                }
             }
             Message::PresetCopied { copy_name, value } => {
                 self.custom_presets.insert(copy_name.clone(), value);
@@ -922,7 +1087,7 @@ impl Gui {
             Message::SetBaseRomPath(new_path) => self.base_rom_path = new_path,
             Message::SetLanguage(language) => self.language = language,
             Message::SetPalRomPath(new_path) => self.pal_rom_path = new_path,
-            Message::SetPreset(selected_preset) => self.main_view = MainWindowView::Default { selected_preset },
+            Message::SetPresetOrPlando(selected_preset_or_plando) => self.main_view = MainWindowView::Default { selected_preset_or_plando },
             Message::SetSettingsTab { window, tab_name } => if let Some(window) = self.windows.get_mut(&window) {
                 if let WindowState::Preset { active_tab, .. } = window {
                     *active_tab = tab_name;
@@ -955,7 +1120,7 @@ impl Gui {
                     .into()
                 } else {
                     match &self.main_view {
-                        MainWindowView::Default { selected_preset } => {
+                        MainWindowView::Default { selected_preset_or_plando } => {
                             let mut col = Column::new()
                             //TODO “Generate from” (dropdown, random seed/set seed/patch file, hide irrelevant GUI elements)
                             //TODO “Seed” (text field, only if “Generate from set seed”)
@@ -1038,7 +1203,7 @@ impl Gui {
                                     German => "Einstellungen:";
                                     English => "Settings:";
                                 })
-                                .push(PickList::<&str, _, _, _, _>::new(self.presets().map(|(name, _, _)| name).collect_vec(), Some(&**selected_preset), |preset| Message::SetPreset(preset.to_owned())).width(Length::Fill))
+                                .push(PickList::<&str, _, _, _, _>::new(self.presets_and_plandos().map(|(name, _, _)| name).collect_vec(), Some(&**selected_preset_or_plando), |preset| Message::SetPresetOrPlando(preset.to_owned())).width(Length::Fill))
                                 .push(Button::new(translate! {
                                     self.language;
                                     English => "Customize";
@@ -1079,56 +1244,78 @@ impl Gui {
                         }
                         MainWindowView::CustomizingPresets { renaming } => Scrollable::new(
                             Row::new()
-                                .push(Column::from_vec(self.presets().map(|(name, is_custom, _)| {
-                                    let mut row = Row::new();
-                                    if_chain! {
-                                        if let Some((from, to)) = renaming;
-                                        if from == name;
-                                        then {
-                                            row = row
-                                                .push(TextInput::new(from, to).on_input(Message::EditRenamePreset).on_submit_maybe((!self.presets().any(|(name, _, _)| name == to)).then_some(Message::ConfirmRenamePreset)))
-                                                .push(Button::new(translate! {
-                                                    self.language;
-                                                    English => "Confirm";
-                                                }).on_press_maybe((!self.presets().any(|(name, _, _)| name == to)).then_some(Message::ConfirmRenamePreset)))
-                                                .push(Button::new(translate! {
-                                                    self.language;
-                                                    English => "Cancel";
-                                                }).on_press(Message::CancelRenamePreset))
-                                            ;
-                                        } else {
-                                            row = row
-                                                .push(Button::new(translate! {
-                                                    self.language;
-                                                    German => "Auswählen";
-                                                    English => "Select";
-                                                }).on_press_maybe(renaming.is_none().then(|| Message::SetPreset(name.to_owned()))))
-                                                .push(Button::new(translate! {
-                                                    self.language;
-                                                    German => "Kopieren";
-                                                    English => "Copy";
-                                                }).on_press(Message::CopyPreset(name.to_owned())))
-                                                .push(Button::new(translate! {
-                                                    self.language;
-                                                    German => "Bearbeiten";
-                                                    English => "Edit";
-                                                }).on_press_maybe(is_custom.then(|| Message::EditPreset(name.to_owned()))))
-                                                .push(Button::new(translate! {
-                                                    self.language;
-                                                    German => "Umbenennen";
-                                                    English => "Rename";
-                                                }).on_press_maybe((renaming.is_none() && is_custom).then(|| Message::BeginRenamePreset(name.to_owned()))))
-                                                .push(Button::new(translate! {
-                                                    self.language;
-                                                    German => "Löschen";
-                                                    English => "Delete";
-                                                }).on_press_maybe(is_custom.then(|| Message::AskDeletePreset(name.to_owned()))))
-                                                .push(name)
-                                            ;
+                                .push(
+                                    Column::new()
+                                    .push(Row::new()
+                                        //TODO button to import from settings string
+                                        .push(Button::new(translate! {
+                                            self.language;
+                                            English => "Import Plando";
+                                        }).on_press(Message::PlandoBrowse))
+                                        .spacing(8)
+                                    )
+                                    .extend(self.presets_and_plandos().map(|(name, is_custom, settings_base)| {
+                                        let mut row = Row::new();
+                                        if_chain! {
+                                            if let Some((_, from, to)) = renaming;
+                                            if from == name;
+                                            then {
+                                                row = row
+                                                    .push(TextInput::new(from, to).on_input(Message::EditRenamePresetOrPlando).on_submit_maybe((!self.presets_and_plandos().any(|(name, _, _)| name == to)).then_some(Message::ConfirmRenamePresetOrPlando)))
+                                                    .push(Button::new(translate! {
+                                                        self.language;
+                                                        English => "Confirm";
+                                                    }).on_press_maybe((!self.presets_and_plandos().any(|(name, _, _)| name == to)).then_some(Message::ConfirmRenamePresetOrPlando)))
+                                                    .push(Button::new(translate! {
+                                                        self.language;
+                                                        English => "Cancel";
+                                                    }).on_press(Message::CancelRenamePresetOrPlando))
+                                                ;
+                                            } else {
+                                                row = row
+                                                    .push(Button::new(translate! {
+                                                        self.language;
+                                                        German => "Auswählen";
+                                                        English => "Select";
+                                                    }).on_press_maybe(renaming.is_none().then(|| Message::SetPresetOrPlando(name.to_owned()))))
+                                                    .push(Button::new(translate! {
+                                                        self.language;
+                                                        German => "Kopieren";
+                                                        English => "Copy";
+                                                    }).on_press(Message::CopyPresetOrPlando(name.to_owned())))
+                                                    .push(Button::new(translate! {
+                                                        self.language;
+                                                        German => "Bearbeiten";
+                                                        English => "Edit";
+                                                    }).on_press_maybe((is_custom && settings_base.is_some()).then(|| Message::EditPreset(name.to_owned())))) //TODO support editing plandos (text area + button to edit with external editor)
+                                                    .push(Button::new(translate! {
+                                                        self.language;
+                                                        German => "Umbenennen";
+                                                        English => "Rename";
+                                                    }).on_press_maybe((renaming.is_none() && is_custom).then(|| if settings_base.is_some() {
+                                                        Message::BeginRenamePreset(name.to_owned())
+                                                    } else {
+                                                        Message::BeginRenamePlando(name.to_owned())
+                                                    })))
+                                                    .push(Button::new(translate! {
+                                                        self.language;
+                                                        German => "Löschen";
+                                                        English => "Delete";
+                                                    }).on_press_maybe(is_custom.then(|| if settings_base.is_some() {
+                                                        Message::AskDeletePreset(name.to_owned())
+                                                    } else {
+                                                        Message::AskDeletePlando(name.to_owned())
+                                                    })))
+                                                    .push(name)
+                                                ;
+                                            }
                                         }
-                                    }
-                                    row.align_y(iced::Alignment::Center).spacing(8).into()
-                                }).collect()).spacing(8).padding(8).width(Length::Fill))
+                                        row.align_y(iced::Alignment::Center).spacing(8).into()
+                                    }))
+                                    .spacing(8)
+                                    .padding(8)
+                                    .width(Length::Fill)
+                                )
                                 .push(Space::with_width(Length::Shrink)) // to avoid overlap with the scrollbar
                                 .spacing(16)
                         ).height(Length::Fill).into(),
@@ -1136,7 +1323,7 @@ impl Gui {
                 }
             }
             Some(WindowState::Preset { preset_name, active_tab }) => {
-                let preset = self.preset(preset_name);
+                let preset = self.preset_or_plando(preset_name).expect("preset window for a plando");
                 let mut disabled_tabs = HashSet::new();
                 let mut disabled_sections = HashSet::new();
                 let mut disabled_settings = HashSet::new();
@@ -1461,8 +1648,19 @@ fn main() -> Result<(), Error> {
                     })
                 })
                 .try_collect().await?;
+            let plandos = fs::read_dir(CUSTOM_PRESETS_PATH)
+                .err_into::<Error>()
+                .try_filter_map(|entry| async move {
+                    let file_name = entry.file_name().into_string().map_err(|_| Error::Utf8)?;
+                    Ok(if let Some(preset_name) = file_name.strip_suffix(PLANDO_SUFFIX) {
+                        Some(preset_name.replace('_', "/"))
+                    } else {
+                        None
+                    })
+                })
+                .try_collect().await?;
             let settings_mapping = fs::read_json::<settings::Mapping>(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/settings_mapping.json")).await?;
-            Ok(Message::Init { icon, default_presets, custom_presets, settings_mapping })
+            Ok(Message::Init { icon, default_presets, custom_presets, plandos, settings_mapping })
         })))?;
     Ok(())
 }
