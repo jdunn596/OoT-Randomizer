@@ -4072,6 +4072,8 @@
         ],
         "starting_inventory": [
             "ocarina",
+            "farores_wind",
+            "lens",
             "zeldas_letter"
         ],
         "starting_songs": [],
