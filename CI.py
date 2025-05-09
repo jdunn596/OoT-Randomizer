@@ -113,6 +113,22 @@ def check_hell_mode_tricks(fix_errors: bool = False) -> None:
             print(file=file)
 
 
+def check_preset_names(fix_errors: bool = False) -> None:
+    # Check to make sure the user_message setting for each preset matches its name.
+    with open(data_path('presets_default.json'), encoding='utf-8') as f:
+        presets = json.load(f)
+
+    for preset_name, preset in presets.items():
+        if preset['user_message'] != preset_name:
+            error(f'user_message setting does not match name of preset {preset_name}', True)
+            preset['user_message'] = preset_name
+
+    if fix_errors:
+        with open(data_path('presets_default.json'), 'w', encoding='utf-8', newline='') as file:
+            json.dump(presets, file, indent=4)
+            print(file=file)
+
+
 def check_preset_spoilers(fix_errors: bool = False) -> None:
     # Check to make sure spoiler logs are enabled for all presets.
     with open(data_path('presets_default.json'), encoding='utf-8') as f:
@@ -261,6 +277,7 @@ def run_ci_checks() -> NoReturn:
         check_hell_mode_tricks(args.fix)
         check_code_style(args.fix)
         check_presets_formatting(args.fix)
+        check_preset_names(args.fix)
         check_preset_spoilers(args.fix)
         check_message_duplicates()
 
