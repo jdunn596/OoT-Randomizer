@@ -3,6 +3,7 @@ use {
         collections::HashMap,
         fmt,
         num::NonZero,
+        path::PathBuf,
     },
     async_trait::async_trait,
     gres::{
@@ -13,10 +14,14 @@ use {
     nonempty_collections::NEVec,
     pyo3::{
         prelude::*,
-        types::PyDict,
+        types::*,
     },
     serde_json::json,
-    tokio::task::spawn_blocking,
+    tokio::{
+        io::AsyncWriteExt as _,
+        task::spawn_blocking,
+    },
+    wheel::traits::IoResultExt as _,
 };
 
 pub mod settings;
@@ -35,6 +40,15 @@ impl From<nonempty_collections::Error> for RollError {
     fn from(e: nonempty_collections::Error) -> Self {
         Self::Empty(e)
     }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum PatchError {
+    #[error(transparent)] Python(#[from] PyErr),
+    #[error(transparent)] Task(#[from] tokio::task::JoinError),
+    #[error(transparent)] Wheel(#[from] wheel::Error),
+    #[error("world number out of range")]
+    WorldIdx,
 }
 
 /// The main entry point of the randomizer.
@@ -140,4 +154,31 @@ impl Task<Result<Seed, RollError>> for Generator {
 pub struct Seed {
     pub patches: NEVec<Vec<u8>>,
     pub spoiler_log: String,
+}
+
+impl Seed {
+    pub fn write_uncompressed_rom(&self, world: NonZero<u8>, base_rom_path: PathBuf) -> Result<Vec<u8>, PatchError> {
+        Python::with_gil(|py| {
+            let rom = py.import("Rom")?.call_method1("Rom", (base_rom_path,))?;
+            py.import("N64Patch")?.call_method1("apply_patch_data", (&rom, self.patches.get(usize::from(world.get() - 1)).ok_or(PatchError::WorldIdx)?, false /*TODO option to repatch cosmetics */))?;
+            Ok(rom.getattr("buffer")?.get_item(PySlice::full(py))?.extract()?)
+        })
+    }
+
+    pub async fn write_compressed_rom(&self, world: NonZero<u8>, base_rom_path: PathBuf, out_path: PathBuf) -> Result<(), PatchError> {
+        let uncompressed_rom = self.write_uncompressed_rom(world, base_rom_path)?; //TODO spawn_blocking?
+        let uncompressed_file = tempfile::Builder::new().prefix("ootr_").suffix(".n64").tempfile().at_unknown()?;
+        tokio::fs::File::from_std(uncompressed_file.reopen().at(&uncompressed_file)?).write_all(&uncompressed_rom).await.at(&uncompressed_file)?;
+        let uncompressed_file = uncompressed_file.into_temp_path();
+        {
+            let uncompressed_path = uncompressed_file.to_path_buf();
+            spawn_blocking(move || Python::with_gil(|py| {
+                py.import("Main")?.call_method1("compress_rom", (uncompressed_path, out_path))?;
+                Ok::<_, PatchError>(())
+            })).await??;
+        }
+        let uncompressed_path = uncompressed_file.to_path_buf();
+        uncompressed_file.close().at(uncompressed_path)?;
+        Ok(())
+    }
 }

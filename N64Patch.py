@@ -199,6 +199,10 @@ def apply_patch_file(rom: Rom, settings: Settings, sub_file: Optional[str] = Non
     else:
         with open(file, 'rb') as stream:
             patch_data = stream.read()
+
+    apply_patch_data(rom, patch_data, settings.repatch_cosmetics)
+
+def apply_patch_data(rom: Rom, patch_data: bytes, repatch_cosmetics: bool) -> None:
     patch_data = BigStream(bytearray(zlib.decompress(patch_data)))
 
     # make sure the header is correct
@@ -278,7 +282,7 @@ def apply_patch_file(rom: Rom, settings: Settings, sub_file: Optional[str] = Non
                 data += [b ^ key]
 
         # Save the new data to rom
-        if settings.repatch_cosmetics:
+        if repatch_cosmetics:
             rom.write_bytes_restrictive(block_start, block_size, data)
         else:
             rom.write_bytes(block_start, data)
