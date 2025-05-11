@@ -1289,7 +1289,9 @@ class World:
                     for region in jabu_reward_regions
                     if region is not None
                     for exit in region.exits
-                    if exit.connected_region is not None and exit.connected_region.dungeon != 'Jabu Jabus Belly' and exit.connected_region.name not in already_checked
+                    if exit.connected_region is not None
+                    and (exit.connected_region.dungeon is None or exit.connected_region.dungeon.name != 'Jabu Jabus Belly')
+                    and exit.connected_region.name not in already_checked
                 }
         self.cached_bigocto_location = location
         return location

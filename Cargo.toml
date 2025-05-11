@@ -4,7 +4,7 @@ default-members = ["crate/ootr-cli"]
 resolver = "2"
 
 [workspace.package]
-version = "8.2.76-fenhl.6.riir.16"
+version = "8.2.76-fenhl.9.riir.17"
 edition = "2024"
 
 [workspace.lints.rust]
