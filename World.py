@@ -6,7 +6,7 @@ import os
 import random
 from collections import OrderedDict, defaultdict
 from collections.abc import Iterable, Iterator
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from Dungeon import Dungeon
 from Entrance import Entrance
@@ -27,6 +27,9 @@ from SettingsList import SettingInfos, get_settings_from_section
 from Spoiler import Spoiler
 from State import State
 from Utils import data_path, read_logic_file
+
+if TYPE_CHECKING:
+    from types import EllipsisType
 
 
 class World:
@@ -55,7 +58,7 @@ class World:
         self.barren_dungeon: int = 0
         self.woth_dungeon: int = 0
         self.randomized_list: list[str] = []
-        self.cached_bigocto_location: Optional[Location] = None
+        self.cached_bigocto_location: Optional[EllipsisType | Location] = ...
 
         self.parser: Rule_AST_Transformer = Rule_AST_Transformer(self)
         self.event_items: set[str] = set()
@@ -1232,7 +1235,7 @@ class World:
         )
 
     def bigocto_location(self) -> Optional[Location]:
-        if self.cached_bigocto_location is not None:
+        if self.cached_bigocto_location is not ...:
             return self.cached_bigocto_location
         # Find an item location behind the Jabu boss door by searching regions breadth-first without going back into Jabu proper
         if self.settings.logic_rules == 'glitched':
