@@ -1243,7 +1243,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
         )):
             if reward in world.settings.bridge_rewards_specific:
                 flags |= 1 << idx
-        world.write_int16(count_symbol, flags)
+        rom.write_int16(count_symbol, flags)
 
     if world.settings.triforce_hunt:
         rom.write_int16(rom.sym('TRIFORCE_PIECES_REQUIRED'), world.triforce_goal)
@@ -1289,7 +1289,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
         )):
             if reward in world.settings.ganon_bosskey_rewards_specific:
                 flags |= 1 << idx
-        world.write_int16(count_symbol, flags)
+        rom.write_int16(count_symbol, flags)
     else:
         rom.write_byte(symbol, 0)
         rom.write_int16(count_symbol, 0)
@@ -1328,7 +1328,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
         )):
             if reward in world.settings.lacs_rewards_specific:
                 flags |= 1 << idx
-        world.write_int16(count_symbol, flags)
+        rom.write_int16(count_symbol, flags)
     else:
         rom.write_int32(symbol, 0)
 

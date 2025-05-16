@@ -2101,6 +2101,7 @@ def build_ganon_boss_key_string(world: World) -> str:
                 elts.append(f'the {natjoin(med.removesuffix(" Medallion") for med in meds)} Medallions')
             item_req_string = natjoin(elts)
             count = len(world.settings.ganon_bosskey_rewards_specific)
+            bk_location_string = f"automatically granted once {item_req_string} {'is' if count == 1 else 'are'} retrieved"
         elif world.shuffle_ganon_bosskey in ('stones', 'medallions', 'dungeons', 'tokens', 'hearts'):
             count, singular, plural = {
                 'stones':     (world.settings.ganon_bosskey_stones,     "#Spiritual Stone#",              "#Spiritual Stones#"),
