@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-TOOLCHAIN = 'nightly-2025-05-05' # good: 2025-05-05, bad: 2025-05-06
+TOOLCHAIN = 'nightly-2025-05-05' # good: 2025-05-05, bad: 2025-05-06/07
 
 subprocess.run(['rustup', 'toolchain', 'install', TOOLCHAIN], check=True)
 subprocess.run(['rustup', 'component', 'add', 'rust-src', '--toolchain', TOOLCHAIN], check=True)
