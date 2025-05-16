@@ -3,6 +3,7 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, Optional, Any
 
 from Item import Item, ItemInfo
+from ItemList import REWARD_COLORS
 from RulesCommon import escape_name
 
 if TYPE_CHECKING:
@@ -15,12 +16,21 @@ Triforce_Piece: int = ItemInfo.solver_ids['Triforce_Piece']
 Triforce: int = ItemInfo.solver_ids['Triforce']
 Rutos_Letter: int = ItemInfo.solver_ids['Rutos_Letter']
 Piece_of_Heart: int = ItemInfo.solver_ids['Piece_of_Heart']
+Gold_Skulltula_Token: int = ItemInfo.solver_ids['Gold_Skulltula_Token']
+Shadow_Medallion: int = ItemInfo.solver_ids['Shadow_Medallion']
+Spirit_Medallion: int = ItemInfo.solver_ids['Spirit_Medallion']
+Light_Arrows: int = ItemInfo.solver_ids['Light_Arrows']
 
 Ocarina_A_Button: int = ItemInfo.solver_ids['Ocarina_A_Button']
 Ocarina_C_left_Button: int = ItemInfo.solver_ids['Ocarina_C_left_Button']
 Ocarina_C_up_Button: int = ItemInfo.solver_ids['Ocarina_C_up_Button']
 Ocarina_C_down_Button: int = ItemInfo.solver_ids['Ocarina_C_down_Button']
 Ocarina_C_right_Button: int = ItemInfo.solver_ids['Ocarina_C_right_Button']
+
+DUNGEON_REWARDS: dict[str, int] = {
+    reward: ItemInfo.solver_ids[reward.replace(' ', '_')]
+    for reward in REWARD_COLORS
+}
 
 class State:
     def __init__(self, parent: World) -> None:
@@ -95,12 +105,54 @@ class State:
     def has_stones(self, count: int) -> bool:
         return self.count_distinct(ItemInfo.stone_ids) >= count
 
-
     def has_dungeon_rewards(self, count: int) -> bool:
         return self.count_distinct(ItemInfo.medallion_ids) + self.count_distinct(ItemInfo.stone_ids) >= count
 
     def has_ocarina_buttons(self, count: int) -> bool:
         return self.count_distinct(ItemInfo.ocarina_buttons_ids) >= count
+
+    def can_build_rainbow_bridge(self) -> bool:
+        return (
+            (self.world.settings.bridge == 'open') or
+            (self.world.settings.bridge == 'vanilla' and self.has(Shadow_Medallion) and self.has(Spirit_Medallion) and self.has(Light_Arrows)) or
+            (self.world.settings.bridge == 'stones' and self.has_stones(self.world.settings.bridge_stones)) or
+            (self.world.settings.bridge == 'medallions' and self.has_medallions(self.world.settings.bridge_medallions)) or
+            (self.world.settings.bridge == 'dungeons' and self.has_dungeon_rewards(self.world.settings.bridge_rewards)) or
+            (self.world.settings.bridge == 'specific_rewards' and self.has_all_of(DUNGEON_REWARDS[reward] for reward in self.world.settings.bridge_rewards_specific)) or
+            (self.world.settings.bridge == 'tokens' and self.has(Gold_Skulltula_Token, self.world.settings.bridge_tokens)) or
+            (self.world.settings.bridge == 'hearts' and self.has_hearts(self.world.settings.bridge_hearts))
+        )
+
+    def can_trigger_lacs(self) -> bool:
+        return (
+            (self.world.settings.lacs_condition == 'vanilla' and self.has(Shadow_Medallion) and self.has(Spirit_Medallion)) or
+            (self.world.settings.lacs_condition == 'stones' and self.has_stones(self.world.settings.lacs_stones)) or
+            (self.world.settings.lacs_condition == 'medallions' and self.has_medallions(self.world.settings.lacs_medallions)) or
+            (self.world.settings.lacs_condition == 'dungeons' and self.has_dungeon_rewards(self.world.settings.lacs_rewards)) or
+            (self.world.settings.lacs_condition == 'specific_rewards' and self.has_all_of(DUNGEON_REWARDS[reward] for reward in self.world.settings.lacs_rewards_specific)) or
+            (self.world.settings.lacs_condition == 'tokens' and self.has(Gold_Skulltula_Token, self.world.settings.lacs_tokens)) or
+            (self.world.settings.lacs_condition == 'hearts' and self.has_hearts(self.world.settings.lacs_hearts))
+        )
+
+    def can_receive_ganon_bosskey(self) -> bool:
+        return (
+            (self.world.shuffle_ganon_bosskey == 'stones' and self.has_stones(self.world.settings.ganon_bosskey_stones)) or
+            (self.world.shuffle_ganon_bosskey == 'medallions' and self.has_medallions(self.world.settings.ganon_bosskey_medallions)) or
+            (self.world.shuffle_ganon_bosskey == 'dungeons' and self.has_dungeon_rewards(self.world.settings.ganon_bosskey_rewards)) or
+            (self.world.shuffle_ganon_bosskey == 'specific_rewards' and self.has_all_of(DUNGEON_REWARDS[reward] for reward in self.world.settings.ganon_bosskey_rewards_specific)) or
+            (self.world.shuffle_ganon_bosskey == 'tokens' and self.has(Gold_Skulltula_Token, self.world.settings.ganon_bosskey_tokens)) or
+            (self.world.shuffle_ganon_bosskey == 'hearts' and self.has_hearts(self.world.settings.ganon_bosskey_hearts))
+        ) or (
+            self.world.shuffle_ganon_bosskey == 'triforce' and self.has(Triforce_Piece, self.world.triforce_goal_per_world)
+        ) or (
+            self.world.shuffle_ganon_bosskey != 'stones' and
+            self.world.shuffle_ganon_bosskey != 'medallions' and
+            self.world.shuffle_ganon_bosskey != 'dungeons' and
+            self.world.shuffle_ganon_bosskey != 'specific_rewards' and
+            self.world.shuffle_ganon_bosskey != 'tokens' and
+            self.world.shuffle_ganon_bosskey != 'hearts' and
+            self.world.shuffle_ganon_bosskey != 'triforce'
+        )
 
     # TODO: Store the item's solver id in the goal
     def has_item_goal(self, item_goal: dict[str, Any]) -> bool:

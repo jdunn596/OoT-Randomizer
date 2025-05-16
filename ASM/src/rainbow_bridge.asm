@@ -20,6 +20,9 @@ rainbow_bridge:
     li        at, 6
     beq       t2, at, @@hearts
 
+    li        at, 7
+    beq       t2, at, @@specific_rewards
+
 @@open:
     li        at, 0
     jr        ra
@@ -170,3 +173,19 @@ rainbow_bridge:
 @@return:
     jr        ra
     and       t2, v0, at
+
+@@specific_rewards:
+    li        at, 0x003F ; medallions
+    and       t2, v0, at
+    li        at, 0x1C0000 ; stones
+    and       t7, v0, at
+    srl       t7, t7, 0xC ; shift stones to be immediately above meds
+    or        t2, t2, t7
+    lhu       t8, RAINBOW_BRIDGE_COUNT
+    and       t7, t2, t8
+    beq       t7, t8, @@return_specific_rewards
+    li        t2, 0
+    li        t2, 0xFFFFFFFF
+@@return_specific_rewards:
+    jr        ra
+    nop

@@ -1206,7 +1206,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
     # Set up Rainbow Bridge conditions
     symbol = rom.sym('RAINBOW_BRIDGE_CONDITION')
     count_symbol = rom.sym('RAINBOW_BRIDGE_COUNT')
-    if world.settings.bridge == 'open':
+    if world.settings.bridge == 'open' or (world.settings.bridge == 'specific_rewards' and len(world.settings.bridge_rewards_specific) == 0):
         rom.write_int32(symbol, 0)
         save_context.write_bits(0xEDC, 0x20)  # "Rainbow Bridge Built by Sages"
     elif world.settings.bridge == 'medallions':
@@ -1226,6 +1226,23 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
     elif world.settings.bridge == 'hearts':
         rom.write_int32(symbol, 6)
         rom.write_int16(count_symbol, world.settings.bridge_hearts * 0x10)
+    elif world.settings.bridge == 'specific_rewards':
+        rom.write_int32(symbol, 7)
+        flags = 0
+        for idx, reward in enumerate((
+            'Forest Medallion',
+            'Fire Medallion',
+            'Water Medallion',
+            'Spirit Medallion',
+            'Shadow Medallion',
+            'Light Medallion',
+            'Kokiri Emerald',
+            'Goron Ruby',
+            'Zora Sapphire',
+        )):
+            if reward in world.settings.bridge_rewards_specific:
+                flags |= 1 << idx
+        rom.write_int16(count_symbol, flags)
 
     if world.settings.triforce_hunt:
         rom.write_int16(rom.sym('TRIFORCE_PIECES_REQUIRED'), world.triforce_goal)
@@ -1255,6 +1272,23 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
     elif world.shuffle_ganon_bosskey == 'hearts':
         rom.write_byte(symbol, 5)
         rom.write_int16(count_symbol, world.settings.ganon_bosskey_hearts * 0x10)
+    elif world.shuffle_ganon_bosskey == 'specific_rewards':
+        rom.write_byte(symbol, 6)
+        flags = 0
+        for idx, reward in enumerate((
+            'Forest Medallion',
+            'Fire Medallion',
+            'Water Medallion',
+            'Spirit Medallion',
+            'Shadow Medallion',
+            'Light Medallion',
+            'Kokiri Emerald',
+            'Goron Ruby',
+            'Zora Sapphire',
+        )):
+            if reward in world.settings.ganon_bosskey_rewards_specific:
+                flags |= 1 << idx
+        rom.write_int16(count_symbol, flags)
     else:
         rom.write_byte(symbol, 0)
         rom.write_int16(count_symbol, 0)
@@ -1277,6 +1311,23 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
     elif world.settings.lacs_condition == 'hearts':
         rom.write_int32(symbol, 5)
         rom.write_int16(count_symbol, world.settings.lacs_hearts * 0x10)
+    elif world.settings.lacs_condition == 'specific_rewards':
+        rom.write_int32(symbol, 6)
+        flags = 0
+        for idx, reward in enumerate((
+            'Forest Medallion',
+            'Fire Medallion',
+            'Water Medallion',
+            'Spirit Medallion',
+            'Shadow Medallion',
+            'Light Medallion',
+            'Kokiri Emerald',
+            'Goron Ruby',
+            'Zora Sapphire',
+        )):
+            if reward in world.settings.lacs_rewards_specific:
+                flags |= 1 << idx
+        rom.write_int16(count_symbol, flags)
     else:
         rom.write_int32(symbol, 0)
 

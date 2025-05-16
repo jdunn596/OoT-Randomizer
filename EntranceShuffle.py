@@ -497,7 +497,7 @@ def shuffle_random_entrances(worlds: list[World]) -> None:
                         and any(pool not in ('Boss', 'Dungeon') for pool in world.mix_entrance_pools)
                     )
                 ):
-                    wincons -= {'dungeons', 'stones', 'medallions'}
+                    wincons -= {'dungeons', 'specific_rewards', 'stones', 'medallions'}
                 if (
                     world.settings.reachable_locations == 'all'
                     or ('tokens' in wincons and world.settings.tokensanity in ('off', 'dungeons'))
@@ -514,6 +514,7 @@ def shuffle_random_entrances(worlds: list[World]) -> None:
                     and (
                         world.settings.reachable_locations == 'all'
                         or 'dungeons' in wincons
+                        or 'specific_rewards' in wincons #TODO check if the reward in the dungeon is required
                         or ('stones' in wincons and 'medallions' in wincons)
                         or ('tokens' in wincons and world.settings.tokensanity in ('off', 'overworld'))
                     )
@@ -527,6 +528,7 @@ def shuffle_random_entrances(worlds: list[World]) -> None:
                     and (
                         world.settings.reachable_locations == 'all'
                         or 'dungeons' in wincons
+                        or 'specific_rewards' in wincons #TODO check if the reward in the dungeon is required
                         or ('stones' in wincons and 'medallions' in wincons)
                         or ('tokens' in wincons and world.settings.tokensanity != 'all')
                     )

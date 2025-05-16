@@ -61,6 +61,10 @@ void give_sage_gifts() {
                 if (z64_file.energy_capacity >= GANON_BOSS_KEY_CONDITION_COUNT)
                     give_boss_key = true;
                 break;
+            case 6: // Specific Rewards
+                if ((((z64_file.quest_items & 0x0000003F) | ((z64_file.quest_items & 0x001C0000) >> 0xC)) & GANON_BOSS_KEY_CONDITION_COUNT) == GANON_BOSS_KEY_CONDITION_COUNT)
+                    give_boss_key = true;
+                break;
         }
 
         if (give_boss_key) {
