@@ -1460,7 +1460,8 @@ def get_important_check_hint(spoiler: Spoiler, world: World, checked: set[str]) 
                 or (location.item.type == 'GanonBossKey' and not (world.shuffle_ganon_bosskey == 'vanilla'
                     or world.shuffle_ganon_bosskey == 'dungeon' or world.shuffle_ganon_bosskey == 'on_lacs'
                     or world.shuffle_ganon_bosskey == 'stones' or world.shuffle_ganon_bosskey == 'medallions'
-                    or world.shuffle_ganon_bosskey == 'dungeons' or world.shuffle_ganon_bosskey == 'tokens'))):
+                    or world.shuffle_ganon_bosskey == 'dungeons' or world.shuffle_ganon_bosskey == 'specific_rewards'
+                    or world.shuffle_ganon_bosskey == 'tokens' or world.shuffle_ganon_bosskey == 'hearts'))):
                 item_count = item_count + 1
 
     checked.add(hint_loc + ' Important Check')
@@ -2008,18 +2009,35 @@ def build_boss_string(reward: str, color: str, world: World) -> str:
 
 
 def build_bridge_reqs_string(world: World) -> str:
-    if world.settings.bridge == 'open':
+    if world.settings.bridge == 'open' or (world.settings.bridge == 'specific_rewards' and len(world.settings.bridge_rewards_specific) == 0):
         string = "The awakened ones will have #already created a bridge# to the castle where the evil dwells."
     else:
         if world.settings.bridge == 'vanilla':
             item_req_string = "the #Shadow and Spirit Medallions# as well as the #Light Arrows#"
+        elif world.settings.bridge == 'specific_rewards' and len(world.settings.bridge_rewards_specific) < 9:
+            stones = [item for item in REWARD_COLORS if item in ('Kokiri Emerald', 'Goron Ruby', 'Zora Sapphire') and item in world.settings.bridge_rewards_specific]
+            meds = [item for item in REWARD_COLORS if item not in ('Kokiri Emerald', 'Goron Ruby', 'Zora Sapphire') and item in world.settings.bridge_rewards_specific]
+            elts: list[str]
+            if len(stones) == 3:
+                elts = ['all Spiritual Stones']
+            else:
+                elts = [f'the {stone}' for stone in stones]
+            if len(meds) == 6:
+                elts.append()
+            elif len(meds) == 1:
+                elts.append(f'the {meds[0]}')
+            elif len(meds) > 0:
+                elts.append(f'the {natjoin(med.removesuffix(" Medallion") for med in meds)} Medallions')
+            item_req_string = natjoin(elts)
+            count = len(world.settings.bridge_rewards_specific)
         else:
             count, singular, plural = {
-                'stones':     (world.settings.bridge_stones,     "#Spiritual Stone#",              "#Spiritual Stones#"),
-                'medallions': (world.settings.bridge_medallions, "#Medallion#",                    "#Medallions#"),
-                'dungeons':   (world.settings.bridge_rewards,    "#Spiritual Stone or Medallion#", "#Spiritual Stones and Medallions#"),
-                'tokens':     (world.settings.bridge_tokens,     "#Gold Skulltula Token#",         "#Gold Skulltula Tokens#"),
-                'hearts':     (world.settings.bridge_hearts,     "#heart#",                        "#hearts#"),
+                'stones':           (world.settings.bridge_stones,     "#Spiritual Stone#",              "#Spiritual Stones#"),
+                'medallions':       (world.settings.bridge_medallions, "#Medallion#",                    "#Medallions#"),
+                'dungeons':         (world.settings.bridge_rewards,    "#Spiritual Stone or Medallion#", "#Spiritual Stones and Medallions#"),
+                'specific_rewards': (9,                                "#Spiritual Stone or Medallion#", "#Spiritual Stones and Medallions#"),
+                'tokens':           (world.settings.bridge_tokens,     "#Gold Skulltula Token#",         "#Gold Skulltula Tokens#"),
+                'hearts':           (world.settings.bridge_hearts,     "#heart#",                        "#hearts#"),
             }[world.settings.bridge]
             item_req_string = f'{count} {singular if count == 1 else plural}'
         if world.settings.clearer_hints:
@@ -2033,21 +2051,56 @@ def build_ganon_boss_key_string(world: World) -> str:
     string = "\x13\x74" # Boss Key Icon
     if world.shuffle_ganon_bosskey == 'remove':
         string += "And the door to the \x05\x41evil one\x05\x40's chamber will be left #unlocked#."
+    elif world.shuffle_ganon_bosskey == 'on_lacs' and world.settings.lacs_condition == 'specific_rewards' and len(world.settings.bridge_rewards_specific) == 0:
+        string += f"And the \x05\x41evil one\x05\x40's key will be provided by Zelda in the Temple of Time."
     else:
         if world.shuffle_ganon_bosskey == 'on_lacs':
             if world.settings.lacs_condition == 'vanilla':
                 item_req_string = "the #Shadow and Spirit Medallions#"
                 count = 2
+            elif world.settings.lacs_condition == 'specific_rewards' and len(world.settings.bridge_rewards_specific) < 9:
+                stones = [item for item in REWARD_COLORS if item in ('Kokiri Emerald', 'Goron Ruby', 'Zora Sapphire') and item in world.settings.lacs_rewards_specific]
+                meds = [item for item in REWARD_COLORS if item not in ('Kokiri Emerald', 'Goron Ruby', 'Zora Sapphire') and item in world.settings.lacs_rewards_specific]
+                elts: list[str]
+                if len(stones) == 3:
+                    elts = ['all Spiritual Stones']
+                else:
+                    elts = [f'the {stone}' for stone in stones]
+                if len(meds) == 6:
+                    elts.append('all Medallions')
+                elif len(meds) == 1:
+                    elts.append(f'the {meds[0]}')
+                elif len(meds) > 0:
+                    elts.append(f'the {natjoin(med.removesuffix(" Medallion") for med in meds)} Medallions')
+                item_req_string = natjoin(elts)
+                count = len(world.settings.lacs_rewards_specific)
             else:
                 count, singular, plural = {
-                    'stones':     (world.settings.lacs_stones,     "#Spiritual Stone#",              "#Spiritual Stones#"),
-                    'medallions': (world.settings.lacs_medallions, "#Medallion#",                    "#Medallions#"),
-                    'dungeons':   (world.settings.lacs_rewards,    "#Spiritual Stone or Medallion#", "#Spiritual Stones and Medallions#"),
-                    'tokens':     (world.settings.lacs_tokens,     "#Gold Skulltula Token#",         "#Gold Skulltula Tokens#"),
-                    'hearts':     (world.settings.lacs_hearts,     "#heart#",                        "#hearts#"),
+                    'stones':           (world.settings.lacs_stones,     "#Spiritual Stone#",              "#Spiritual Stones#"),
+                    'medallions':       (world.settings.lacs_medallions, "#Medallion#",                    "#Medallions#"),
+                    'dungeons':         (world.settings.lacs_rewards,    "#Spiritual Stone or Medallion#", "#Spiritual Stones and Medallions#"),
+                    'specific_rewards': (9,                              "#Spiritual Stone or Medallion#", "#Spiritual Stones and Medallions#"),
+                    'tokens':           (world.settings.lacs_tokens,     "#Gold Skulltula Token#",         "#Gold Skulltula Tokens#"),
+                    'hearts':           (world.settings.lacs_hearts,     "#heart#",                        "#hearts#"),
                 }[world.settings.lacs_condition]
                 item_req_string = f'{count} {singular if count == 1 else plural}'
             bk_location_string = f"provided by Zelda once {item_req_string} {'is' if count == 1 else 'are'} retrieved"
+        elif world.shuffle_ganon_bosskey == 'specific_rewards':
+            stones = [item for item in REWARD_COLORS if item in ('Kokiri Emerald', 'Goron Ruby', 'Zora Sapphire') and item in world.settings.ganon_bosskey_rewards_specific]
+            meds = [item for item in REWARD_COLORS if item not in ('Kokiri Emerald', 'Goron Ruby', 'Zora Sapphire') and item in world.settings.ganon_bosskey_rewards_specific]
+            elts: list[str]
+            if len(stones) == 3:
+                elts = ['all Spiritual Stones']
+            else:
+                elts = [f'the {stone}' for stone in stones]
+            if len(meds) == 6:
+                elts.append()
+            elif len(meds) == 1:
+                elts.append(f'the {meds[0]}')
+            elif len(meds) > 0:
+                elts.append(f'the {natjoin(med.removesuffix(" Medallion") for med in meds)} Medallions')
+            item_req_string = natjoin(elts)
+            count = len(world.settings.ganon_bosskey_rewards_specific)
         elif world.shuffle_ganon_bosskey in ('stones', 'medallions', 'dungeons', 'tokens', 'hearts'):
             count, singular, plural = {
                 'stones':     (world.settings.ganon_bosskey_stones,     "#Spiritual Stone#",              "#Spiritual Stones#"),

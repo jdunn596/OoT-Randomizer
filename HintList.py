@@ -175,43 +175,55 @@ def get_upgrade_hint_list(world: World, locations: list[str]) -> list[Hint]:
 # TODO: Make these properties of World or Settings.
 def stones_required_by_settings(world: World) -> int:
     stones = 0
-    if world.settings.bridge == 'stones' and not world.shuffle_special_dungeon_entrances:
+    if world.settings.bridge == 'stones' and not world.shuffle_special_dungeon_entrances and not world.settings.shuffle_ganon_tower:
         stones = max(stones, world.settings.bridge_stones)
     if world.shuffle_ganon_bosskey == 'on_lacs' and world.settings.lacs_condition == 'stones':
         stones = max(stones, world.settings.lacs_stones)
     if world.shuffle_ganon_bosskey == 'stones':
         stones = max(stones, world.settings.ganon_bosskey_stones)
-    if world.settings.bridge == 'dungeons' and not world.shuffle_special_dungeon_entrances:
+    if world.settings.bridge == 'dungeons' and not world.shuffle_special_dungeon_entrances and not world.settings.shuffle_ganon_tower:
         stones = max(stones, world.settings.bridge_rewards - 6)
     if world.shuffle_ganon_bosskey == 'on_lacs' and world.settings.lacs_condition == 'dungeons':
         stones = max(stones, world.settings.lacs_rewards - 6)
     if world.shuffle_ganon_bosskey == 'dungeons':
         stones = max(stones, world.settings.ganon_bosskey_rewards - 6)
+    if world.settings.bridge == 'specific_rewards' and not world.shuffle_special_dungeon_entrances and not world.settings.shuffle_ganon_tower:
+        stones = max(stones, sum(1 for reward in world.settings.bridge_rewards_specific if reward in ('Kokiri Emerald', 'Goron Ruby', 'Zora Sapphire')))
+    if world.shuffle_ganon_bosskey == 'on_lacs' and world.settings.lacs_condition == 'specific_rewards':
+        stones = max(stones, sum(1 for reward in world.settings.lacs_rewards_specific if reward in ('Kokiri Emerald', 'Goron Ruby', 'Zora Sapphire')))
+    if world.shuffle_ganon_bosskey == 'specific_rewards':
+        stones = max(stones, sum(1 for reward in world.settings.ganon_bosskey_rewards_specific if reward in ('Kokiri Emerald', 'Goron Ruby', 'Zora Sapphire')))
 
     return stones
 
 
 def medallions_required_by_settings(world: World) -> int:
     medallions = 0
-    if world.settings.bridge == 'medallions' and not world.shuffle_special_dungeon_entrances:
+    if world.settings.bridge == 'medallions' and not world.shuffle_special_dungeon_entrances and not world.settings.shuffle_ganon_tower:
         medallions = max(medallions, world.settings.bridge_medallions)
     if world.shuffle_ganon_bosskey == 'on_lacs' and world.settings.lacs_condition == 'medallions':
         medallions = max(medallions, world.settings.lacs_medallions)
     if world.shuffle_ganon_bosskey == 'medallions':
         medallions = max(medallions, world.settings.ganon_bosskey_medallions)
-    if world.settings.bridge == 'dungeons' and not world.shuffle_special_dungeon_entrances:
+    if world.settings.bridge == 'dungeons' and not world.shuffle_special_dungeon_entrances and not world.settings.shuffle_ganon_tower:
         medallions = max(medallions, max(world.settings.bridge_rewards - 3, 0))
     if world.shuffle_ganon_bosskey == 'on_lacs' and world.settings.lacs_condition == 'dungeons':
         medallions = max(medallions, max(world.settings.lacs_rewards - 3, 0))
     if world.shuffle_ganon_bosskey == 'dungeons':
         medallions = max(medallions, max(world.settings.ganon_bosskey_rewards - 3, 0))
+    if world.settings.bridge == 'specific_rewards' and not world.shuffle_special_dungeon_entrances and not world.settings.shuffle_ganon_tower:
+        medallions = max(medallions, sum(1 for reward in world.settings.bridge_rewards_specific if reward not in ('Kokiri Emerald', 'Goron Ruby', 'Zora Sapphire')))
+    if world.shuffle_ganon_bosskey == 'on_lacs' and world.settings.lacs_condition == 'specific_rewards':
+        medallions = max(medallions, sum(1 for reward in world.settings.lacs_rewards_specific if reward not in ('Kokiri Emerald', 'Goron Ruby', 'Zora Sapphire')))
+    if world.shuffle_ganon_bosskey == 'specific_rewards':
+        medallions = max(medallions, sum(1 for reward in world.settings.ganon_bosskey_rewards_specific if reward not in ('Kokiri Emerald', 'Goron Ruby', 'Zora Sapphire')))
 
     return medallions
 
 
 def tokens_required_by_settings(world: World) -> int:
     tokens = 0
-    if world.settings.bridge == 'tokens' and not world.shuffle_special_dungeon_entrances:
+    if world.settings.bridge == 'tokens' and not world.shuffle_special_dungeon_entrances and not world.settings.shuffle_ganon_tower:
         tokens = max(tokens, world.settings.bridge_tokens)
     if world.shuffle_ganon_bosskey == 'on_lacs' and world.settings.lacs_condition == 'tokens':
         tokens = max(tokens, world.settings.lacs_tokens)
@@ -248,6 +260,8 @@ def rainbow_bridge_hint_kind(world: World) -> str:
         return 'always' if world.settings.bridge_medallions > 1 else 'sometimes'
     elif world.settings.bridge == 'dungeons':
         return 'always' if world.settings.bridge_rewards > 2 else 'sometimes' if world.settings.bridge_rewards > 1 else 'never'
+    elif world.settings.bridge == 'specific_rewards':
+        return 'always' if len(world.settings.bridge_rewards_specific) > 1 else 'sometimes'
     elif world.settings.bridge == 'tokens':
         return 'always' if world.settings.bridge_tokens > 20 else 'sometimes' if world.settings.bridge_tokens > 10 else 'never'
     elif world.settings.bridge == 'hearts':

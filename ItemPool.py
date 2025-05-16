@@ -1020,7 +1020,7 @@ def get_pool_core(world: World) -> tuple[list[str], dict[str, Item]]:
     if world.shuffle_ganon_bosskey == 'on_lacs':
         placed_items['ToT Light Arrows Cutscene'] = ItemFactory('Boss Key (Ganons Castle)', world)
 
-    if world.shuffle_ganon_bosskey in ('stones', 'medallions', 'dungeons', 'tokens', 'hearts', 'triforce'):
+    if world.shuffle_ganon_bosskey in ('stones', 'medallions', 'dungeons', 'specific_rewards', 'tokens', 'hearts', 'triforce'):
         placed_items['Gift from Sages'] = ItemFactory('Boss Key (Ganons Castle)', world)
         pool.extend(get_junk_item())
     else:

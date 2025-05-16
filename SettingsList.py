@@ -797,7 +797,7 @@ class SettingInfos:
             'randomize_key': 'randomize_settings',
         },
         disable        = {
-            True:  {'settings': ['shuffle_ganon_bosskey', 'ganon_bosskey_stones', 'ganon_bosskey_medallions', 'ganon_bosskey_rewards', 'ganon_bosskey_tokens', 'ganon_bosskey_hearts']},
+            True:  {'settings': ['shuffle_ganon_bosskey', 'ganon_bosskey_stones', 'ganon_bosskey_medallions', 'ganon_bosskey_rewards', 'ganon_bosskey_rewards_specific', 'ganon_bosskey_tokens', 'ganon_bosskey_hearts']},
             False: {'settings': ['triforce_hunt_mode', 'triforce_count_per_world', 'triforce_goal_per_world']},
         },
     )
@@ -849,12 +849,13 @@ class SettingInfos:
         gui_text       = 'LACS Condition',
         default        = 'vanilla',
         choices        = {
-            'vanilla':    "Vanilla",
-            'stones':     "Stones",
-            'medallions': "Medallions",
-            'dungeons':   "Dungeon Rewards",
-            'tokens':     "Tokens",
-            'hearts':     "Hearts",
+            'vanilla':           "Vanilla",
+            'stones':            "Stones",
+            'medallions':        "Medallions",
+            'dungeons':          "Dungeon Rewards",
+            'specfific_rewards': "Specific Dungeon Rewards",
+            'tokens':            "Tokens",
+            'hearts':            "Hearts",
         },
         gui_tooltip    = '''\
             Sets the condition for the Light Arrow Cutscene
@@ -864,25 +865,21 @@ class SettingInfos:
             'Stones': A configurable amount of Spiritual Stones.
             'Medallions': A configurable amount of Medallions.
             'Dungeon Rewards': A configurable amount of Dungeon Rewards.
+            'Specific Dungeon Rewards': The selected Dungeon Rewards.
             'Tokens': A configurable amount of Gold Skulltula Tokens.
             'Hearts': A configurable amount of hearts.
         ''',
         shared         = True,
         disable        = {
-            '!stones':     {'settings': ['lacs_stones']},
-            '!medallions': {'settings': ['lacs_medallions']},
-            '!dungeons':   {'settings': ['lacs_rewards']},
-            '!tokens':     {'settings': ['lacs_tokens']},
-            '!hearts':     {'settings': ['lacs_hearts']},
+            '!stones':           {'settings': ['lacs_stones']},
+            '!medallions':       {'settings': ['lacs_medallions']},
+            '!dungeons':         {'settings': ['lacs_rewards']},
+            '!specific_rewards': {'settings': ['lacs_rewards_specific']},
+            '!tokens':           {'settings': ['lacs_tokens']},
+            '!hearts':           {'settings': ['lacs_hearts']},
         },
         gui_params     = {
             'optional': True,
-            'distribution': [
-                ('vanilla',    1),
-                ('medallions', 1),
-                ('stones',     1),
-                ('dungeons',   1),
-            ],
         },
     )
 
@@ -938,6 +935,31 @@ class SettingInfos:
         },
     )
 
+    lacs_rewards_specific = MultipleSelect(
+        gui_text        = "Dungeon Rewards Required for LACS",
+        choices         = {
+            'Kokiri Emerald': 'Kokiri Emerald',
+            'Goron Ruby': 'Goron Ruby',
+            'Zora Sapphire': 'Zora Sapphire',
+            'Light Medallion': 'Light Medallion',
+            'Forest Medallion': 'Forest Medallion',
+            'Fire Medallion': 'Fire Medallion',
+            'Water Medallion': 'Water Medallion',
+            'Shadow Medallion': 'Shadow Medallion',
+            'Spirit Medallion': 'Spirit Medallion',
+        },
+        default        = [],
+        gui_params     = {
+            'optional':           True,
+            "hide_when_disabled": True,
+        },
+        gui_tooltip    = '''\
+            Select which dungeon rewards are required
+            to trigger the Light Arrow Cutscene.
+        ''',
+        shared          = True,
+    )
+
     lacs_tokens = Scale(
         gui_text         = "Gold Skulltula Tokens Required for LACS",
         default          = 100,
@@ -978,14 +1000,15 @@ class SettingInfos:
         gui_text       = 'Rainbow Bridge Requirement',
         default        = 'medallions',
         choices        = {
-            'open':       'Always Open',
-            'vanilla':    'Vanilla Requirements',
-            'stones':     'Spiritual Stones',
-            'medallions': 'Medallions',
-            'dungeons':   'Dungeon Rewards',
-            'tokens':     'Gold Skulltula Tokens',
-            'hearts':     'Hearts',
-            'random':     'Random'
+            'open':             'Always Open',
+            'vanilla':          'Vanilla Requirements',
+            'stones':           'Spiritual Stones',
+            'medallions':       'Medallions',
+            'dungeons':         'Dungeon Rewards',
+            'specific_rewards': 'Specific Dungeon Rewards',
+            'tokens':           'Gold Skulltula Tokens',
+            'hearts':           'Hearts',
+            'random':           'Random'
         },
         gui_tooltip    = '''\
             'Always Open': Rainbow Bridge is always present.
@@ -993,17 +1016,19 @@ class SettingInfos:
             'Spiritual Stones': A configurable amount of Spiritual Stones.
             'Medallions': A configurable amount of Medallions.
             'Dungeon Rewards': A configurable amount of Dungeon Rewards.
+            'Specific Dungeon Rewards': The selected Dungeon Rewards.
             'Gold Skulltula Tokens': A configurable amount of Gold Skulltula Tokens.
             'Hearts': A configurable amount of hearts.
             'Random': A random Rainbow Bridge requirement excluding Gold Skulltula Tokens.
         ''',
         shared         = True,
         disable        = {
-            '!stones':     {'settings': ['bridge_stones']},
-            '!medallions': {'settings': ['bridge_medallions']},
-            '!dungeons':   {'settings': ['bridge_rewards']},
-            '!tokens':     {'settings': ['bridge_tokens']},
-            '!hearts':     {'settings': ['bridge_hearts']},
+            '!stones':           {'settings': ['bridge_stones']},
+            '!medallions':       {'settings': ['bridge_medallions']},
+            '!dungeons':         {'settings': ['bridge_rewards']},
+            '!specific_rewards': {'settings': ['bridge_rewards_specific']},
+            '!tokens':           {'settings': ['bridge_tokens']},
+            '!hearts':           {'settings': ['bridge_hearts']},
         },
         gui_params     = {
             'randomize_key': 'randomize_settings',
@@ -1067,6 +1092,31 @@ class SettingInfos:
             "hide_when_disabled": True,
             'distribution':       [(9, 1)],
         },
+    )
+
+    bridge_rewards_specific = MultipleSelect(
+        gui_text        = "Dungeon Rewards Required for Bridge",
+        choices         = {
+            'Kokiri Emerald': 'Kokiri Emerald',
+            'Goron Ruby': 'Goron Ruby',
+            'Zora Sapphire': 'Zora Sapphire',
+            'Light Medallion': 'Light Medallion',
+            'Forest Medallion': 'Forest Medallion',
+            'Fire Medallion': 'Fire Medallion',
+            'Water Medallion': 'Water Medallion',
+            'Shadow Medallion': 'Shadow Medallion',
+            'Spirit Medallion': 'Spirit Medallion',
+        },
+        default        = [],
+        gui_params     = {
+            "randomize_key":      "randomize_settings",
+            "hide_when_disabled": True,
+        },
+        gui_tooltip    = '''\
+            Select which dungeon rewards are required
+            to spawn the rainbow bridge.
+        ''',
+        shared          = True,
     )
 
     bridge_tokens = Scale(
@@ -1137,19 +1187,20 @@ class SettingInfos:
         default          = 'dungeon',
         disabled_default = 'vanilla',
         choices          = {
-            'remove':          "Remove (Keysy)",
-            'vanilla':         "Vanilla Location",
-            'dungeon':         "Own Dungeon",
-            'regional':        "Regional",
-            'overworld':       "Overworld Only",
-            'any_dungeon':     "Any Dungeon",
-            'keysanity':       "Anywhere (Keysanity)",
-            'on_lacs':         "Light Arrow Cutscene",
-            'stones':          "Stones",
-            'medallions':      "Medallions",
-            'dungeons':        "Dungeon Rewards",
-            'tokens':          "Tokens",
-            'hearts':          "Hearts",
+            'remove':           "Remove (Keysy)",
+            'vanilla':          "Vanilla Location",
+            'dungeon':          "Own Dungeon",
+            'regional':         "Regional",
+            'overworld':        "Overworld Only",
+            'any_dungeon':      "Any Dungeon",
+            'keysanity':        "Anywhere (Keysanity)",
+            'on_lacs':          "Light Arrow Cutscene",
+            'stones':           "Stones",
+            'medallions':       "Medallions",
+            'dungeons':         "Dungeon Rewards",
+            'specific_rewards': "Specific Dungeon Rewards",
+            'tokens':           "Tokens",
+            'hearts':           "Hearts",
         },
         gui_tooltip      = '''\
             'Remove': Ganon's Castle Boss Key is removed
@@ -1186,6 +1237,9 @@ class SettingInfos:
             'Dungeon Rewards': Ganon's Castle Boss Key will be awarded
             when reaching the target number of Dungeon Rewards.
 
+            'Specific Dungeon Rewards': Ganon's Castle Boss Key will
+            be awarded when the selected Dungeon Rewards are collected.
+
             'Tokens': Ganon's Castle Boss Key will be awarded
             when reaching the target number of Gold Skulltula Tokens.
 
@@ -1194,11 +1248,12 @@ class SettingInfos:
         ''',
         shared           = True,
         disable          = {
-            '!stones':      {'settings': ['ganon_bosskey_stones']},
-            '!medallions':  {'settings': ['ganon_bosskey_medallions']},
-            '!dungeons':    {'settings': ['ganon_bosskey_rewards']},
-            '!tokens':      {'settings': ['ganon_bosskey_tokens']},
-            '!hearts':      {'settings': ['ganon_bosskey_hearts']},
+            '!stones':           {'settings': ['ganon_bosskey_stones']},
+            '!medallions':       {'settings': ['ganon_bosskey_medallions']},
+            '!dungeons':         {'settings': ['ganon_bosskey_rewards']},
+            '!specific_rewards': {'settings': ['ganon_bosskey_rewards_specific']},
+            '!tokens':           {'settings': ['ganon_bosskey_tokens']},
+            '!hearts':           {'settings': ['ganon_bosskey_hearts']},
         },
         gui_params       = {
             'randomize_key': 'randomize_settings',
@@ -1262,6 +1317,31 @@ class SettingInfos:
             "hide_when_disabled": True,
             'distribution':       [(9, 1)],
         },
+    )
+
+    ganon_bosskey_rewards_specific = MultipleSelect(
+        gui_text        = "Dungeon Rewards Required for Ganon's BK",
+        choices         = {
+            'Kokiri Emerald': 'Kokiri Emerald',
+            'Goron Ruby': 'Goron Ruby',
+            'Zora Sapphire': 'Zora Sapphire',
+            'Light Medallion': 'Light Medallion',
+            'Forest Medallion': 'Forest Medallion',
+            'Fire Medallion': 'Fire Medallion',
+            'Water Medallion': 'Water Medallion',
+            'Shadow Medallion': 'Shadow Medallion',
+            'Spirit Medallion': 'Spirit Medallion',
+        },
+        default        = [],
+        gui_params     = {
+            "randomize_key":      "randomize_settings",
+            "hide_when_disabled": True,
+        },
+        gui_tooltip    = '''\
+            Select which dungeon rewards are required
+            to receive Ganon's Castle Boss Key.
+        ''',
+        shared          = True,
     )
 
     ganon_bosskey_tokens = Scale(
@@ -2316,7 +2396,7 @@ class SettingInfos:
         disable        = {
             False: {'settings': [
                 'triforce_hunt', 'triforce_count_per_world', 'triforce_goal_per_world',
-                'shuffle_ganon_bosskey', 'ganon_bosskey_medallions', 'ganon_bosskey_stones', 'ganon_bosskey_rewards', 'ganon_bosskey_tokens', 'ganon_bosskey_hearts',
+                'shuffle_ganon_bosskey', 'ganon_bosskey_medallions', 'ganon_bosskey_stones', 'ganon_bosskey_rewards', 'ganon_bosskey_rewards_specific', 'ganon_bosskey_tokens', 'ganon_bosskey_hearts',
                 'shuffle_bosskeys', 'shuffle_smallkeys', 'shuffle_hideoutkeys', 'shuffle_tcgkeys', 'key_rings_choice', 'key_rings', 'keyring_give_bk', 'shuffle_silver_rupees', 'silver_rupee_pouches_choice', 'silver_rupee_pouches', 'shuffle_mapcompass',
                 'one_item_per_dungeon',
                 'shuffle_song_items', 'shopsanity', 'special_deal_price_distribution', 'special_deal_price_min', 'special_deal_price_max', 'tokensanity', 'shuffle_scrubs', 'shuffle_child_trade', 'shuffle_freestanding_items', 'shuffle_pots', 'shuffle_empty_pots', 'shuffle_crates', 'shuffle_empty_crates', 'shuffle_cows', 'shuffle_beehives', 'shuffle_wonderitems', 'shuffle_kokiri_sword', 'shuffle_ocarinas', 'shuffle_gerudo_card', 'shuffle_beans', 'shuffle_expensive_merchants', 'shuffle_frog_song_rupees', 'shuffle_individual_ocarina_notes', 'shuffle_loach_reward', 'shuffle_base_item_pool',

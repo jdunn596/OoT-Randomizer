@@ -14,10 +14,10 @@ The starting address of the auto-tracker context is listed at address `0x8040_00
 |`0x18`|`CFG_DUNGEON_INFO_REWARD_NEED_ALTAR`|1|`0x04`|`1` if the reward info should only be displayed for rewards whose Temple of Time altar text boxes have been read.|
 |`0x1C`|`CFG_DUNGEON_REWARDS`|1|`0x0E`|A byte representing the medallion or stone for each dungeon. Dungeons without rewards are listed as `0xFF`, and one reward is chosen arbitrarily if the dungeon has multiple rewards. For more complete data, use `CFG_DUNGEON_REWARD_AREAS` instead.|
 |`0x2A`|`CFG_DUNGEON_IS_MQ`|1|`0x0E`|A byte set to `1` for each dungeon in Master Quest mode.|
-|`0x38`|`RAINBOW_BRIDGE_CONDITION`|2|`0x04`|The condition for spawning the rainbow bridge. `0` = open, `1` = medallions, `2` = dungeon rewards, `3` = stones, `4` = vanilla, `5` = tokens, `6` = hearts.|
-|`0x3C`|`LACS_CONDITION`|2|`0x04`|The condition for triggering the light arrow cutscene. `0` = vanilla, `1` = medallions, `2` = dungeons, `3` = stones, `4` = tokens, `5` = hearts.|
-|`0x40`|`RAINBOW_BRIDGE_COUNT`|2|`0x02`|The number of items (of the kind defined in `RAINBOW_BRIDGE_CONDITION`) required to spawn the rainbow bridge.|
-|`0x42`|`LACS_CONDITION_COUNT`|2|`0x02`|The number of items (of the kind defined in `LACS_CONDITION`) required to trigger the light arrow cutscene.|
+|`0x38`|`RAINBOW_BRIDGE_CONDITION`|2|`0x04`|The condition for spawning the rainbow bridge. `0` = open, `1` = medallions, `2` = dungeon rewards, `3` = stones, `4` = vanilla, `5` = tokens, `6` = hearts, `7` = specific dungeon rewards.|
+|`0x3C`|`LACS_CONDITION`|2|`0x04`|The condition for triggering the light arrow cutscene. `0` = vanilla, `1` = medallions, `2` = dungeons, `3` = stones, `4` = tokens, `5` = hearts, `6` = specific dungeon rewards.|
+|`0x40`|`RAINBOW_BRIDGE_COUNT`|2|`0x02`|The number of items (of the kind defined in `RAINBOW_BRIDGE_CONDITION`) required to spawn the rainbow bridge. For `RAINBOW_BRIDGE_CONDITION = 7` (specific dungeon rewards), this is a bitfield specifying the rewards, see Patches.py for details.|
+|`0x42`|`LACS_CONDITION_COUNT`|2|`0x02`|The number of items (of the kind defined in `LACS_CONDITION`) required to trigger the light arrow cutscene. For `LACS_CONDITION = 6` (specific dungeon rewards), this is a bitfield specifying the rewards, see Patches.py for details.|
 |`0x44`|`TRIFORCE_HUNT_ENABLED`|2|`0x02`|`1` if Triforce hunt is enabled.|
 |`0x46`|`TRIFORCE_PIECES_REQUIRED`|2|`0x02`|In Triforce hunt, the total number of Triforce pieces (across all worlds) required to win the game.|
 |`0x48`|`SPECIAL_DEAL_COUNTS`|2|`0x08`|A byte representing the number of special deal slots in each shop, in the following order: KF Shop, Market Bazaar, Market Potion Shop, Market Bombchu Shop, Kak Bazaar, Kak Potion Shop, GC Shop, ZD Shop.|
