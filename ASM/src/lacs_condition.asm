@@ -161,17 +161,17 @@ lacs_condition_check:
     nop
 
 @@specific_rewards:
-    li        at, 0x003F ; medallions
-    and       t2, v0, at
-    li        at, 0x1C0000 ; stones
-    and       t4, v0, at
-    srl       t4, t4, 0xC ; shift stones to be immediately above meds
-    or        t2, t2, t4
-    lhu       t3, LACS_CONDITION_COUNT
-    and       t4, t2, t3
-    beq       t4, t3, @@return_specific_rewards
-    li        v1, 0
-    li        v1, 1
+    li      at, 0x003F ; medallions
+    and     t2, v0, at
+    li      at, 0x1C0000 ; stones
+    and     t4, v0, at
+    srl     t4, t4, 0xC ; shift stones to be immediately above meds
+    or      t2, t2, t4
+    lhu     t3, LACS_CONDITION_COUNT
+    and     t4, t2, t3
+    beq     t4, t3, @@return_specific_rewards
+    li      v1, 0
+    li      v1, 1
 @@return_specific_rewards:
-    jr        ra
-    nop
+    jr      ra
+    li      at, 0
