@@ -12,7 +12,7 @@ pub(crate) fn module(py: Python<'_>) -> PyResult<Bound<'_, PyModule>> {
     let riir = riir.parse::<NonZeroU8>()?;
     let m = PyModule::new(py, "version")?;
     m.add("supplementary_version", riir.get())?;
-    m.add("branch_identifier", 0xff_u8)?;
+    m.add("branch_identifier", 0xae_u8)?; // https://wiki.ootrandomizer.com/index.php?title=Branch_identifiers
     m.add("branch_url", "https://github.com/fenhl/OoT-Randomizer/tree/riir1")?;
     m.add("base_version", format!("{major}.{minor}.{patch}"))?;
     m.add("__version__", format!("{major}.{minor}.{patch} Fenhl-{fenhl} riir-{riir}"))?;
