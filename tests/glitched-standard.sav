@@ -6,7 +6,7 @@
     "logic_rules": "glitched",
     "open_deku": true,
     "open_forest": true,
-    "open_door_of_time": true,
+    "open_door_of_time": "open",
     "zora_fountain": "open",
     "gerudo_fortress": "fast",
     "bridge": "open",

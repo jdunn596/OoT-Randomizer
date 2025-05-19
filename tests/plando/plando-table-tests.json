@@ -32,7 +32,7 @@
     "open_deku":                               false,
     "open_forest":                             true,
     "open_kakariko":                           "open",
-    "open_door_of_time":                       false,
+    "open_door_of_time":                       "sot",
     "zora_fountain":                           "closed",
     "gerudo_fortress":                         "normal",
     "dungeon_shortcuts_choice":                "all",
