@@ -13,7 +13,7 @@
 "open_deku": true,
 "open_forest": true,
 "open_kakariko": "closed",
-"open_door_of_time": false,
+"open_door_of_time": "sot",
 "zora_fountain": "closed",
 "gerudo_fortress": "fast",
 "bridge": "medallions",
