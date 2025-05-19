@@ -822,10 +822,10 @@ class World:
         if not self.settings.triforce_hunt:
             if self.settings.starting_age == 'child':
                 dot_items = [{'name': 'Temple of Time Access', 'quantity': 1, 'minimum': 1, 'hintable': True}]
-                if not self.settings.open_door_of_time:
+                if self.settings.open_door_of_time not in ('open', 'stones'):
                     dot_items.append({'name': 'Song of Time', 'quantity': 2 if self.settings.shuffle_song_items == 'any' and self.settings.item_pool_value == 'plentiful' else 1, 'minimum': 1, 'hintable': True})
                     if self.settings.shuffle_ocarinas:
-                        dot_items.append({'name': 'Ocarina', 'quantity': 3 if self.settings.item_pool_value == 'plentiful' else 2, 'minimum': 1, 'hintable': True})
+                        dot_items.append({'name': 'Ocarina', 'quantity': 3 if self.settings.item_pool_value == 'plentiful' else 2, 'minimum': 2 if self.settings.open_door_of_time in ('oot_sot', 'stones_oot_sot') else 1, 'hintable': True})
                     if self.settings.shuffle_individual_ocarina_notes:
                         notes = str(self.song_notes['Song of Time'])
                         if 'A' in notes:
@@ -839,6 +839,11 @@ class World:
                         if '^' in notes:
                             dot_items.append({'name': 'Ocarina C up Button', 'quantity': 2 if self.settings.item_pool_value == 'plentiful' else 1, 'minimum': 1, 'hintable': True})
                 dot.add_goal(Goal(self, 'Door of Time', 'path of #time#', 'Light Blue', items=dot_items))
+                if self.settings.open_door_of_time in ('stones', 'stones_sot', 'stones_oot_sot'):
+                    dot.add_goal(Goal(self, 'Kokiri Emerald', { 'replace': 'Kokiri Emerald' }, 'Green', items=[{'name': 'Kokiri Emerald', 'quantity': 1, 'minimum': 1, 'hintable': False}]))
+                    dot.add_goal(Goal(self, 'Goron Ruby', { 'replace': 'Goron Ruby' }, 'Red', items=[{'name': 'Goron Ruby', 'quantity': 1, 'minimum': 1, 'hintable': False}]))
+                    dot.add_goal(Goal(self, 'Zora Sapphire', { 'replace': 'Zora Sapphire' }, 'Blue', items=[{'name': 'Zora Sapphire', 'quantity': 1, 'minimum': 1, 'hintable': False}]))
+                    dot.minimum_goals = 3
                 self.goal_categories[dot.name] = dot
 
             # Bridge goals will always be defined as they have the most immediate priority
@@ -847,7 +852,8 @@ class World:
                 # dungeon boss holding the specified reward. Only boss names/paths
                 # are defined for this feature, and it is not extendable via plando.
                 # Goal hint text colors are based on the dungeon reward, not the boss.
-                if (self.settings.bridge_stones > 0 and self.settings.bridge == 'stones') or (self.settings.bridge_rewards > 0 and self.settings.bridge == 'dungeons'):
+                if (((self.settings.bridge_stones > 0 and self.settings.bridge == 'stones') or (self.settings.bridge_rewards > 0 and self.settings.bridge == 'dungeons'))
+                    and (self.settings.starting_age != 'child' or self.settings.open_door_of_time not in ('stones', 'stones_sot', 'stones_oot_sot'))):
                     b.add_goal(Goal(self, 'Kokiri Emerald', { 'replace': 'Kokiri Emerald' }, 'Green', items=[{'name': 'Kokiri Emerald', 'quantity': 1, 'minimum': 1, 'hintable': False}]))
                     b.add_goal(Goal(self, 'Goron Ruby', { 'replace': 'Goron Ruby' }, 'Red', items=[{'name': 'Goron Ruby', 'quantity': 1, 'minimum': 1, 'hintable': False}]))
                     b.add_goal(Goal(self, 'Zora Sapphire', { 'replace': 'Zora Sapphire' }, 'Blue', items=[{'name': 'Zora Sapphire', 'quantity': 1, 'minimum': 1, 'hintable': False}]))
@@ -911,24 +917,26 @@ class World:
             # locations to hint. If duplicate goals are defined for Bridge and
             # all of these goals are accessible without Ganon's Castle access,
             # the GBK category is redundant and not used for hint selection.
-            if ((self.settings.ganon_bosskey_stones > 0
-                    and self.settings.shuffle_ganon_bosskey == 'stones'
-                    and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.ganon_bosskey_stones > self.settings.bridge_stones or self.settings.bridge != 'stones'))
-                or (self.settings.lacs_stones > 0
-                    and self.settings.shuffle_ganon_bosskey == 'on_lacs' and self.settings.lacs_condition == 'stones'
-                    and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.lacs_stones > self.settings.bridge_stones or self.settings.bridge != 'stones'))
-                or (self.settings.ganon_bosskey_rewards > 0
-                    and self.settings.shuffle_ganon_bosskey == 'dungeons'
-                    and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.ganon_bosskey_rewards > self.settings.bridge_medallions or self.settings.bridge != 'medallions')
-                    and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.ganon_bosskey_rewards > self.settings.bridge_stones or self.settings.bridge != 'stones')
-                    and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.ganon_bosskey_rewards > self.settings.bridge_rewards or self.settings.bridge != 'dungeons')
-                    and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.ganon_bosskey_rewards > 2 or self.settings.bridge != 'vanilla'))
-                or (self.settings.lacs_rewards > 0
-                    and self.settings.shuffle_ganon_bosskey == 'on_lacs' and self.settings.lacs_condition == 'dungeons'
-                    and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.lacs_rewards > self.settings.bridge_medallions or self.settings.bridge != 'medallions')
-                    and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.lacs_rewards > self.settings.bridge_stones or self.settings.bridge != 'stones')
-                    and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.lacs_rewards > self.settings.bridge_rewards or self.settings.bridge != 'dungeons')
-                    and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.lacs_rewards > 2 or self.settings.bridge != 'vanilla'))):
+            if ((self.settings.starting_age != 'child' or self.settings.open_door_of_time not in ('stones', 'stones_sot', 'stones_oot_sot'))
+                and (
+                    (self.settings.ganon_bosskey_stones > 0
+                        and self.settings.shuffle_ganon_bosskey == 'stones'
+                        and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.ganon_bosskey_stones > self.settings.bridge_stones or self.settings.bridge != 'stones'))
+                    or (self.settings.lacs_stones > 0
+                        and self.settings.shuffle_ganon_bosskey == 'on_lacs' and self.settings.lacs_condition == 'stones'
+                        and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.lacs_stones > self.settings.bridge_stones or self.settings.bridge != 'stones'))
+                    or (self.settings.ganon_bosskey_rewards > 0
+                        and self.settings.shuffle_ganon_bosskey == 'dungeons'
+                        and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.ganon_bosskey_rewards > self.settings.bridge_medallions or self.settings.bridge != 'medallions')
+                        and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.ganon_bosskey_rewards > self.settings.bridge_stones or self.settings.bridge != 'stones')
+                        and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.ganon_bosskey_rewards > self.settings.bridge_rewards or self.settings.bridge != 'dungeons')
+                        and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.ganon_bosskey_rewards > 2 or self.settings.bridge != 'vanilla'))
+                    or (self.settings.lacs_rewards > 0
+                        and self.settings.shuffle_ganon_bosskey == 'on_lacs' and self.settings.lacs_condition == 'dungeons'
+                        and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.lacs_rewards > self.settings.bridge_medallions or self.settings.bridge != 'medallions')
+                        and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.lacs_rewards > self.settings.bridge_stones or self.settings.bridge != 'stones')
+                        and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.lacs_rewards > self.settings.bridge_rewards or self.settings.bridge != 'dungeons')
+                        and (self.shuffle_special_dungeon_entrances or self.settings.shuffle_ganon_tower or self.settings.lacs_rewards > 2 or self.settings.bridge != 'vanilla')))):
                 gbk.add_goal(Goal(self, 'Kokiri Emerald', { 'replace': 'Kokiri Emerald' }, 'Green', items=[{'name': 'Kokiri Emerald', 'quantity': 1, 'minimum': 1, 'hintable': False}]))
                 gbk.add_goal(Goal(self, 'Goron Ruby', { 'replace': 'Goron Ruby' }, 'Red', items=[{'name': 'Goron Ruby', 'quantity': 1, 'minimum': 1, 'hintable': False}]))
                 gbk.add_goal(Goal(self, 'Zora Sapphire', { 'replace': 'Zora Sapphire' }, 'Blue', items=[{'name': 'Zora Sapphire', 'quantity': 1, 'minimum': 1, 'hintable': False}]))
@@ -1451,6 +1459,9 @@ class World:
                     # The max number of requred Big Poe Bottles is based on the setting
                     dupe_locations = duplicate_item_woth[world_id].get(item.name, [])
                     max_progressive = self.settings.big_poe_count
+                elif item.name == 'Ocarina':
+                    dupe_locations = duplicate_item_woth[world_id].get(item.name, [])
+                    max_progressive = 2 if self.settings.open_door_of_time in ('oot_sot', 'stones_oot_sot') else 1
                 elif item.name == 'Progressive Wallet':
                     dupe_locations = duplicate_item_woth[world_id].get(item.name, [])
                     max_progressive = self.maximum_wallets

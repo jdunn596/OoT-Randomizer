@@ -7,7 +7,7 @@
 "seed": "ENTRANCES",
 "randomize_settings": false,
 "open_forest": "open",
-"open_door_of_time": false,
+"open_door_of_time": "sot",
 "zora_fountain": "closed",
 "gerudo_fortress": "fast",
 "bridge": "medallions",

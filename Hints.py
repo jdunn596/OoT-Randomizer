@@ -1666,7 +1666,7 @@ def build_altar_hints(world: World, messages: list[Message], include_rewards: bo
         child_text += get_hint('Spiritual Stone Text Start', world.settings.clearer_hints).text + '\x04'
         for (reward, color) in boss_rewards_spiritual_stones:
             child_text += build_boss_string(reward, color, world)
-    child_text += get_hint('Child Altar Text End', world.settings.clearer_hints).text
+    child_text += build_dot_reqs_string(world)
     child_text += '\x0B'
     update_message_by_id(messages, 0x707A, get_raw_text(child_text), 0x20)
 
@@ -1711,6 +1711,24 @@ def build_boss_string(reward: str, color: str, world: World) -> str:
         location_text = hint_area.text(world.settings.clearer_hints, preposition=True, world=None if location.world.id == world.id else location.world.id + 1)
         text = GossipText(f"\x08\x13{item_icon}One {location_text}...", [color], prefix='')
     return str(text) + '\x04'
+
+
+def build_dot_reqs_string(world: World) -> str:
+    if world.settings.open_door_of_time == 'open':
+        string = "Ye who may become a Hero...&Go and pull the Master Sword from the Pedestal of Time."
+    elif world.settings.open_door_of_time == 'sot':
+        string = "\x13\x07Ye who may become a Hero...&Stand with the Ocarina and play the Song of Time." # Fairy Ocarina icon
+    elif world.settings.open_door_of_time == 'oot_sot':
+        string = "\x13\x08Ye who may become a Hero... Stand with the Ocarina of Time and play the Song of Time." # Ocarina of Time icon
+    elif world.settings.open_door_of_time == 'stones':
+        string = "Ye who owns 3 Spiritual Stones...&Go and pull the Master Sword from the Pedestal of Time."
+    elif world.settings.open_door_of_time == 'stones_sot':
+        string = "\x13\x07Ye who owns 3 Spiritual Stones...&Stand with the Ocarina and play the Song of Time." # Fairy Ocarina icon
+    elif world.settings.open_door_of_time == 'stones_oot_sot':
+        string = "\x13\x08Ye who owns 3 Spiritual Stones... Stand with the Ocarina of Time and play the Song of Time." # Ocarina of Time icon
+    else:
+        raise NotImplementedError(f'Unknown open_door_of_time option {world.settings.open_door_of_time!r}')
+    return str(GossipText(string, [], prefix=''))
 
 
 def build_bridge_reqs_string(world: World) -> str:
