@@ -63,6 +63,7 @@ __osFree = 0x800CE2B4;
 __osMalloc = 0x800CE060;
 z64_LoadRoom_addr = 0x80080A3C;
 z64_UnloadRoom = 0x80080C98;
+sSetupDL = 0x800f7d50;
 
 OVL_BgMoriBigst_SetupFall = 0x809273d4;
 OVL_BgMoriBigst_SetupDone = 0x809276c0;

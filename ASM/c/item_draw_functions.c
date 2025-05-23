@@ -6,6 +6,7 @@
 #include "color.h"
 #include "rainbow.h"
 #include "sys_matrix.h"
+#include "rainbow.h"
 
 typedef Gfx* (*append_setup_dl_fn)(Gfx* gfx, uint32_t dl_index);
 typedef void (*append_setup_dl_26_to_opa_fn)(z64_gfx_t* gfx);
@@ -23,6 +24,7 @@ typedef Gfx* (*gen_double_tile_fn)(z64_gfx_t* gfx, int32_t tile1, uint32_t x1, u
 static const colorRGBA8_t SMALL_KEY_DEFAULT_PRIM = {.r = 0xFF, .g = 0xFF, .b = 0xFF, .a = 0xFF};
 static const colorRGBA8_t SMALL_KEY_DEFAULT_ENV = {.r = 0x3C, .g = 0x50, .b = 0x5A, .a = 0xFF};
 extern z64_actor_t* curr_drawn_actor;
+extern Gfx sSetupDL[71][6];
 
 void draw_gi_bombchu_and_masks(z64_game_t* game, uint32_t draw_id) {
     z64_gfx_t* gfx = game->common.gfx;
@@ -118,6 +120,13 @@ void draw_gi_silver_rupee_pouch(z64_game_t* game, uint32_t draw_id) {
     gSPDisplayList(gfx->poly_opa.p++, item_draw_table[draw_id].args[5].dlist);  // gGiWalletStringDL
     gSPDisplayList(gfx->poly_opa.p++, item_draw_table[draw_id].args[6].dlist);  // gGiAdultWalletRupeeInnerColorDL
     gSPDisplayList(gfx->poly_opa.p++, item_draw_table[draw_id].args[7].dlist);  // gGiWalletRupeeInnerDL
+}
+void draw_gi_various_xlu0(z64_game_t* game, uint32_t draw_id) {
+    z64_gfx_t* gfx = game->common.gfx;
+
+    append_setup_dl_25_to_xlu(gfx);
+    gSPMatrix(gfx->poly_xlu.p++, append_sys_matrix(gfx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
+    gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[0].dlist);
 }
 
 void draw_gi_various_xlu01(z64_game_t* game, uint32_t draw_id) {
@@ -734,13 +743,13 @@ void draw_gi_magic_meter(z64_game_t* game, uint32_t draw_id) {
     z64_gfx_t *gfx = game->common.gfx;
 
     // Magic
-    colorRGBA8_t prim_color = item_draw_table[draw_id].args[5].color;
+    colorRGBA8_t prim_color = item_draw_table[draw_id].args[4].color;
     if (CFG_CORRECT_MODEL_COLORS) {
         prim_color.r = CFG_MAGIC_COLOR.r;
         prim_color.g = CFG_MAGIC_COLOR.g;
         prim_color.b = CFG_MAGIC_COLOR.b;
     }
-    colorRGBA8_t env_color = item_draw_table[draw_id].args[6].color;
+    colorRGBA8_t env_color = item_draw_table[draw_id].args[5].color;
 
     uint8_t alpha = 0x80;
     if (curr_drawn_actor != NULL && curr_drawn_actor->actor_id == 21) {// En_Item00
@@ -749,71 +758,106 @@ void draw_gi_magic_meter(z64_game_t* game, uint32_t draw_id) {
         }
     }
 
+    // Rainbow smoke effect
+    colorRGBA8_t rainbow_color;
+    rainbow_color.a = 0xFF;
+    rainbow_color.color = get_rainbow_color(game->gameplay_frames, 10);
+    z64_xyzf_t translation = { .x = 0.0, .y = -35.0f, .z = 0.0f };
+    z64_xyzf_t scale = { .x = .0125f, .y = .0075f, .z = .01f };
+    draw_gi_flame(&gfx->poly_xlu, game, rainbow_color, rainbow_color, translation, scale);
+
+    // Parchment
+    append_setup_dl_25_to_xlu(gfx);
+    gSPMatrix(gfx->poly_xlu.p++, append_sys_matrix(gfx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
+    gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[2].dlist);
+
     // Writing
     append_setup_dl_25_to_xlu(gfx);
     gSPMatrix(gfx->poly_xlu.p++, append_sys_matrix(gfx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
-    gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[4].dlist);
-    // Shine
-    append_setup_dl_25_to_xlu(gfx);
-    gSPMatrix(gfx->poly_xlu.p++, append_sys_matrix(gfx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
-    gDPSetPrimColor(gfx->poly_xlu.p++, 0, 0x80, prim_color.r, prim_color.g, prim_color.b, alpha);
-    gDPSetEnvColor(gfx->poly_xlu.p++, env_color.r, env_color.g, env_color.b, env_color.a);
-    gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[2].dlist);
+    gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[3].dlist);
+
     // Jar
     append_setup_dl_25_to_xlu(gfx);
     gSPMatrix(gfx->poly_xlu.p++, append_sys_matrix(gfx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
     gDPSetPrimColor(gfx->poly_xlu.p++, 0, 0x80, prim_color.r, prim_color.g, prim_color.b, alpha);
     gDPSetEnvColor(gfx->poly_xlu.p++, env_color.r, env_color.g, env_color.b, env_color.a);
     gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[0].dlist);
+
     // Label
     append_setup_dl_25_to_xlu(gfx);
     gSPMatrix(gfx->poly_xlu.p++, append_sys_matrix(gfx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
     gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[1].dlist);
-    // Parchment
-    append_setup_dl_25_to_opa(gfx);
-    gSPMatrix(gfx->poly_opa.p++, append_sys_matrix(gfx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
-    gSPDisplayList(gfx->poly_opa.p++, item_draw_table[draw_id].args[3].dlist);
 }
-void draw_gi_flame(z64_game_t *game, colorRGBA8_t prim, colorRGBA8_t env) {
+
+void draw_gi_flame(z64_disp_buf_t* dl, z64_game_t *game, colorRGBA8_t prim, colorRGBA8_t env, z64_xyzf_t translation, z64_xyzf_t scale) {
     z64_gfx_t *gfx = game->common.gfx;
-    static const uint32_t kFlameDlist = 0x52a10;
+    static const uint32_t kFlameDlist = 0x52a10; // Offset of gEffFire1DL in gameplay_keep
+    duplicate_sys_matrix(); // Push the matrix stack. Do this so we can apply the smoke before the rest of the model
+    update_sys_matrix(game->billboard_mtx); // Set the rotation to use the billboard matrix
+    translate_sys_matrix(translation.x, translation.y, translation.z, 1); // Translate by the amount specified
+    scale_sys_matrix(scale.x, scale.y, scale.z, 1); // Scale by the amount specified
+    gSPMatrix(dl->p++, append_sys_matrix(gfx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW); // Apply the matrix
 
-    update_sys_matrix(game->billboard_mtx);
-    translate_sys_matrix(0, -35.0f, -10.0f, 1);
-    scale_sys_matrix(.0125,.0075,.01, 1);
-    gSPMatrix(gfx->poly_xlu.p++, append_sys_matrix(gfx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    // Draw the flame effect
+    gSPDisplayList(dl->p++, sSetupDL[25]);
+    gDPSetEnvColor(dl->p++, env.r, env.g, env.b, 0);
+    gDPSetPrimColor(dl->p++, 0x0, 0x80, prim.r, prim.g, prim.b, 255);
 
-    int16_t redGreen = 20;
-
-    append_setup_dl_25_to_xlu(gfx);
-    gDPSetEnvColor(gfx->poly_xlu.p++, env.r, env.g, env.b, 0);
-    gDPSetPrimColor(gfx->poly_xlu.p++, 0x0, 0x80, prim.r, prim.g, prim.b, 255);
-
-    gSPSegment(gfx->poly_xlu.p++, 0x08,
+    gSPSegment(dl->p++, 0x08,
         gen_double_tile(gfx, G_TX_RENDERTILE, 0, 0, 0x20, 0x40, 1, 0,
             (-game->gameplay_frames & 0x7F) << 2, 0x20, 0x80));
 
-    gSPDisplayList(gfx->poly_xlu.p++, 0x04000000 | kFlameDlist);
+    gSPDisplayList(dl->p++, 0x04000000 | kFlameDlist);
+    pop_sys_matrix(); // Pop the matrix stack
+}
 
+/*  void draw_gi_opa_with_rainbow_flame(z64_game_t* game, uint32_t draw_id) {
+    draw_gi_various_xlu01(game, draw_id);
+    colorRGBA8_t rainbow_color;
+    rainbow_color.a = 0xFF;
+    rainbow_color.color = get_rainbow_color(game->gameplay_frames, 10);
+
+    z64_xyzf_t translation = { .x = 0, .y = -35.0f, .z = -10.0f };
+    z64_xyzf_t scale = { .x = .0125f, .y = .0075f, .z = .01f };
+    draw_gi_flame(game, rainbow_color, rainbow_color, translation, scale);
+}
+*/
+
+void draw_gi_xlu_with_flame(z64_game_t* game, uint32_t draw_id) {
+    z64_gfx_t *gfx = game->common.gfx;
+
+    z64_xyzf_t translation = { .x = 0, .y = -35.0f, .z = 0.0f };
+    z64_xyzf_t scale = { .x = .0125f, .y = .0075f, .z = .01f };
+    draw_gi_flame(&gfx->poly_xlu, game, item_draw_table[draw_id].args[1].color, item_draw_table[draw_id].args[2].color, translation, scale);
+
+    draw_gi_various_xlu0(game, draw_id);
+}
+
+void draw_gi_deku_nut_with_flame(z64_game_t* game, uint32_t draw_id) {
+    z64_gfx_t *gfx = game->common.gfx;
+
+    z64_xyzf_t translation = { .x = 0, .y = -35.0f, .z = -10.0f };
+    z64_xyzf_t scale = { .x = .0125f, .y = .0075f, .z = .01f };
+    draw_gi_flame(&gfx->poly_xlu, game, item_draw_table[draw_id].args[1].color, item_draw_table[draw_id].args[2].color, translation, scale);
+
+    draw_gi_deku_nut(game, draw_id);
 }
 
 void draw_gi_opa_with_flame(z64_game_t* game, uint32_t draw_id) {
-
+    z64_gfx_t *gfx = game->common.gfx;
+    z64_xyzf_t translation = { .x = 0, .y = -35.0f, .z = 0.0f };
+    z64_xyzf_t scale = { .x = .0125f, .y = .0075f, .z = .01f };
     draw_gi_various_opa0(game, draw_id);
-    draw_gi_flame(game, item_draw_table[draw_id].args[1].color, item_draw_table[draw_id].args[2].color);
+    draw_gi_flame(&gfx->poly_xlu, game, item_draw_table[draw_id].args[1].color, item_draw_table[draw_id].args[2].color, translation, scale);
 }
 
 void draw_gi_opa_with_rainbow_flame(z64_game_t* game, uint32_t draw_id) {
+    z64_gfx_t *gfx = game->common.gfx;
+    z64_xyzf_t translation = { .x = 0, .y = -35.0f, .z = 0.0f };
+    z64_xyzf_t scale = { .x = .0125f, .y = .0075f, .z = .01f };
     draw_gi_various_opa0(game, draw_id);
     colorRGBA8_t rainbow_color;
     rainbow_color.a = 0xFF;
     rainbow_color.color = get_rainbow_color(game->gameplay_frames, 10);
-    draw_gi_flame(game, rainbow_color, rainbow_color);
-}
-
-
-void draw_gi_deku_nut_with_flame(z64_game_t* game, uint32_t draw_id) {
-
-    draw_gi_deku_nut(game, draw_id);
-    draw_gi_flame(game, item_draw_table[draw_id].args[1].color, item_draw_table[draw_id].args[2].color);
+    draw_gi_flame(&gfx->poly_xlu, game, rainbow_color, rainbow_color, translation, scale);
 }
