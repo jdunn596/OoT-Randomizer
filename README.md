@@ -19,6 +19,7 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
 ## Index
 
 * [RealRob's Changelog](#realrob-changelog)
+  * [v138](#v138)
   * [v137](#v137)
   * [v136](#v136)
   * [v135](#v135)
@@ -150,6 +151,9 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
 * [Changelog](#changelog)
 
 ## RealRob Changelog
+### v138
+  * Add Deku Tree Compass Room Withered Deku Baba
+
 ### v137
   * Add missing deku baba enemy drops in BOTW, Deku MQ, DC MQ
 
