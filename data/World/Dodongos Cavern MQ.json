@@ -68,6 +68,7 @@
         "dungeon": "Dodongos Cavern",
         "locations": {
             "Deku Baba Sticks": "has_soul(Deku_Baba) and (is_adult or Kokiri_Sword or Boomerang)",
+            "Dodongos Cavern MQ Staircase Withered Deku Baba": "can_kill_withered_deku_baba",
             "Dodongos Cavern MQ Song of Time Block Room Skullwalltula": "
                 has_soul(Skullwalltula) and
                 ((can_play(Song_of_Time) and (is_adult or can_child_attack)) or

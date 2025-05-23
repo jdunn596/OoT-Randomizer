@@ -19,6 +19,13 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
 ## Index
 
 * [RealRob's Changelog](#realrob-changelog)
+  * [v137](#v137)
+  * [v136](#v136)
+  * [v135](#v135)
+  * [v134](#v134)
+  * [v133](#v133)
+  * [v132](#v132)
+  * [v131](#v131)
   * [v130](#v130)
   * [v129](#v129)
   * [v128](#v128)
@@ -143,6 +150,9 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
 * [Changelog](#changelog)
 
 ## RealRob Changelog
+### v137
+  * Add missing deku baba enemy drops in BOTW, Deku MQ, DC MQ
+
 ### v136
   * Fix BGS/Giants Knife/DD advancement
 
