@@ -326,7 +326,7 @@ def can_reach_hint(worlds: list[World], hint_location: Location, location: Locat
 
     old_item = location.item
     location.item = None
-    search = Search.max_explore([world.state for world in worlds])
+    search = Search.max_explore([world.state for world in worlds], collect_pseudo_starting_items=True)
     location.item = old_item
 
     return (search.spot_access(hint_location)
