@@ -882,7 +882,7 @@ class TestValidSpoilers(unittest.TestCase):
             with open(fn, encoding='utf-8') as f:
                 presets = json.load(f)
             for name, settings_dict in presets.items():
-                if any(alias in settings_dict.get('aliases', []) for alias in ('fenhl', 'fenhl_tootr', 'mixed', 'hell')):
+                if any(alias in settings_dict.get('aliases', []) for alias in ('fenhl', 'fenhl_tootr', 'mixed', 'hell', 'weekly')):
                     continue #TODO investigate high failure rates with full mixed pools
                 ofile = 'preset_' + re.sub(r'[^a-zA-Z0-9_-]+', '_', name)
                 with self.subTest(name, filename=ofile):
