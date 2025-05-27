@@ -530,9 +530,9 @@ class World:
         if (self.settings.starting_age == 'random'
             and ('starting_age' not in dist_keys
              or self.distribution.distribution.src_dict['_settings']['starting_age'] == 'random')):
-            if settings.reachable_locations == 'all' and (
-                (settings.shuffle_song_items == 'vanilla' and settings.open_door_of_time not in ('open', 'stones'))
-                or (settings.shuffle_dungeon_rewards == 'vanilla' and settings.open_door_of_time not in ('open', 'sot', 'oot_sot'))
+            if self.settings.reachable_locations == 'all' and (
+                (self.settings.shuffle_song_items == 'vanilla' and self.settings.open_door_of_time not in ('open', 'stones'))
+                or (self.settings.shuffle_dungeon_rewards == 'vanilla' and self.settings.open_door_of_time not in ('open', 'sot', 'oot_sot'))
             ):
                 # adult is not compatible
                 self.settings.starting_age = 'child'
