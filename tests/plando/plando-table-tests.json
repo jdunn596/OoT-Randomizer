@@ -174,7 +174,7 @@
     "complete_mask_quest":                     false,
     "useful_cutscenes":                        false,
     "fast_chests":                             true,
-    "free_scarecrow":                          false,
+    "scarecrow_behavior":                      "vanilla",
     "fast_bunny_hood":                         true,
     "auto_equip_masks":                        true,
     "plant_beans":                             false,

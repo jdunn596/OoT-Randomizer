@@ -2543,7 +2543,7 @@ class SettingInfos:
             Controls how the prices for Special Deal items in shops are
             selected. For more control, utilize the plandomizer.
 
-            'Vanilla': 'Each item will be sold for the price of the item
+            'Vanilla': Each item will be sold for the price of the item
             that appears in its slot in the vanilla game.
 
             'Weighted': Shop prices will be biased towards slightly below
@@ -3935,12 +3935,22 @@ class SettingInfos:
         shared         = True,
     )
 
-    free_scarecrow = Checkbutton(
-        gui_text       = "Free Scarecrow's Song",
+    scarecrow_behavior = Combobox(
+        gui_text       = 'Scarecrow Behavior',
+        default        = 'vanilla',
+        choices        = {
+            'vanilla':   'Vanilla',
+            'fast':   'Fast',
+            'free':  'Free',
+        },
         gui_tooltip    = '''\
-            Pulling out the Ocarina near a
-            spot at which Pierre can spawn will
-            do so, without needing the song.
+            "Fast" will require setting the same song
+            both as child and adult, but pulling out
+            the Ocarina near a spot at which Pierre can
+            spawn will do so, without needing the song.
+
+            "Free" removes both the need to set the song first
+            and to play the song to summon Pierre.
         ''',
         shared         = True,
     )
@@ -4493,9 +4503,9 @@ class SettingInfos:
             typically more difficult than top row
             songs.
 
-            "Top Row Songs": Randomizes Zelda's
-            Lullaby, Epona's Song, Saria's Song, Sun's
-            Song, Song of Time, and Song of Storms.
+            "Top Row Songs": Randomizes Zelda's Lullaby,
+            Epona's Song, Saria's Song, Sun's Song,
+            Song of Time, and Song of Storms.
 
             "Warp Songs": Randomizes Minuet of Forest,
             Bolero of Fire, Serenade of Water, Requiem

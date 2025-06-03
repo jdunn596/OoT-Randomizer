@@ -22,8 +22,6 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
 * New settings and options:
   * More options for “Open Door of Time” setting ([#2423](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2423))
   * New “Shuffle 100 Skulltula Reward” setting ([#2325](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2325))
-  * New “Frogs Ocarina Game” option for the “Randomize Ocarina Song Notes” setting ([#2064](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2064))
-  * New “Special Deal Prices”, “Minimum Special Deal Price”, and “Maximum Special Deal Price” settings replacing “Shopsanity Prices” ([#2037](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2037))
   * New plando-only “Chest, Pot, Crate, & Beehive Appearance Does Not Match Contents” setting which makes each chest etc. randomly choose any appearance except the correct one ([#1950](https://github.com/OoTRandomizer/OoT-Randomizer/pull/1950))
   * New “Vanilla Locations” option for the “Shuffle Songs” setting ([#1882](https://github.com/OoTRandomizer/OoT-Randomizer/pull/1882))
   * New “Bosses” option for the “Mix Entrance Pools” setting (based on [#1820](https://github.com/OoTRandomizer/OoT-Randomizer/pull/1820))
@@ -83,6 +81,7 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
   * Gold skulltula tokens can be on excluded locations if there are no checks requiring them (such as in SAWS)
   * The GUI tweaks made by [`Dev-R`](https://github.com/Roman971/OoT-Randomizer) are further adjusted to balance consistency with [main `Dev`](https://github.com/OoTRandomizer/OoT-Randomizer) and ease of use.
   * The Lens of Truth can be in a foolish area if Treasure Chest Game keys are shuffled and all relevant “lensless” tricks are enabled.
+  * Updated settings preset for the Standard Weeklies which now use the `boss_goal_names` hint distribution option.
 * Bug fixes:
   * Potentially fix a bug causing an item to turn into a Gerudo mask when picked up at the same time a Triforce piece is received from the network ([#2406](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2406))
   * Fix Dual and Dual Always hints hinting locations in precompleted dungeons ([#2397](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2397))

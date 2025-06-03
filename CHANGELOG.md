@@ -1,6 +1,16 @@
 # Dev
 
 ## New Settings and Options
+* New settings for more control over special deal prices.
+* The `Randomize Ocarina Melodies` setting has a new option to randomize the Frogs 2 melody.
+* The `Free Scarecrow's Song` setting has been renamed to `Scarecrow Behavior`, with a new `Fast` option.
+
+## Bug fixes
+* The Deku Shield pot in the Spirit Temple is no longer shuffled when both `Fix Broken Drops` and `Include Empty Pots` are off.
+
+# 8.3
+
+## New Settings and Options
 * New options `Custom (count)` and `Custom (%)` for the `Ice Traps` setting.
 * New hidden `plandomized_locations` setting to allow presets to place specific items at specific locations.
 * New setting to speed up the boat ride in the Shadow Temple.
