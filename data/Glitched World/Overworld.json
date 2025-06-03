@@ -232,7 +232,7 @@
             "Bonooru": "is_child and Ocarina and has_all_notes_for_song(Scarecrow_Song)"
         },
         "locations": {
-            "Pierre": "is_adult and Bonooru and not free_scarecrow",
+            "Pierre": "is_adult and Bonooru and scarecrow_behavior != 'free'",
             "LH Underwater Item": "is_child and can_dive",
             "LH Sun": "
                 is_adult and
