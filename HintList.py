@@ -736,6 +736,8 @@ hintTable: dict[str, tuple[list[str] | str, Optional[str], str | list[str]]] = {
     'LH Child and Adult Fishing':                                  ("catching the #biggest fish# as child and as an adult reward you with...^", None, 'dual_exclude'),
     'Fire Temple Pierre and Hammer':                               ("a #scarecrow and a flare dancer# atop the Fire Temple guard...^", None, 'dual_exclude'),
 
+    'Jabu Jabus Belly Boomerang Checks':                           ("in the #belly of a deity# the boomerang unlocks...^", "inside #Jabu Jabu#'s Belly the boomerang unlocks...^", 'dual_exclude'),
+
     'ZD Trade Prescription':                                       ("a #royal recipe requires#", "showing the #Prescription to King Zora# rewards", 'exclude'),
 
     'KF Kokiri Sword Chest':                                       ("the #hidden treasure of the Kokiri# is", None, 'exclude'),
@@ -1893,6 +1895,8 @@ multiTable: dict[str, list[str]] = {
     'Dancing Darunia and Skull Kid':                            ['GC Darunias Joy', 'LW Skull Kid'],
     'LH Child and Adult Fishing':                               ['LH Child Fishing', 'LH Adult Fishing'],
     'Fire Temple Pierre and Hammer':                            ['Fire Temple Scarecrow Chest', 'Fire Temple Megaton Hammer Chest'],
+
+    'Jabu Jabus Belly Boomerang Checks':                        ['Jabu Jabus Belly Map Chest', 'Jabu Jabus Belly Compass Chest'],
 }
 
 # TODO: Make these a type of some sort instead of a dict.
