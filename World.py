@@ -323,7 +323,6 @@ class World:
         self.dungeon_rewards_hinted: bool = settings.shuffle_mapcompass != 'remove' if settings.enhance_map_compass else 'altar' in settings.misc_hints
         self.misc_hint_items: dict[str, str] = {hint_type: self.hint_dist_user.get('misc_hint_items', {}).get(hint_type, data['default_item']) for hint_type, data in misc_item_hint_table.items()}
         self.misc_hint_locations: dict[str, str] = {hint_type: self.hint_dist_user.get('misc_hint_locations', {}).get(hint_type, data['item_location']) for hint_type, data in misc_location_hint_table.items()}
-
         self.state: State = State(self)
 
         # Allows us to cut down on checking whether some items are required
@@ -491,7 +490,6 @@ class World:
             dist_keys = self.distribution.distribution.src_dict['_settings'].keys()
         if self.settings.randomize_settings:
             setting_info = SettingInfos.setting_infos['randomize_settings']
-            self.randomized_list.extend(setting_info.disable[True]['settings'])
             for section in setting_info.disable[True]['sections']:
                 self.randomized_list.extend(get_settings_from_section(section))
                 # Remove settings specified in the distribution
