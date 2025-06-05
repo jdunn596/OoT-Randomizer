@@ -861,3 +861,17 @@ void draw_gi_opa_with_rainbow_flame(z64_game_t* game, uint32_t draw_id) {
     rainbow_color.color = get_rainbow_color(game->gameplay_frames, 10);
     draw_gi_flame(&gfx->poly_xlu, game, rainbow_color, rainbow_color, translation, scale);
 }
+
+void draw_ice_trap(z64_game_t* game, uint32_t draw_id) {
+    z64_gfx_t* gfx = game->common.gfx;
+    static const float scale = 0.5f;
+
+    translate_sys_matrix(0, -25.f, 0, 1);
+    scale_sys_matrix(scale, scale, scale, 1);
+    append_setup_dl_25_to_xlu(gfx);
+    gSPSegment(gfx->poly_xlu.p++, 0x08,
+               gen_double_tile(gfx, G_TX_RENDERTILE, 0, (0 - game->common.state_frames) % 128, 32, 32, 1, 0, (game->common.state_frames * -2) % 128, 32, 32));
+    gSPMatrix(gfx->poly_xlu.p++, append_sys_matrix(gfx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    gDPSetEnvColor(gfx->poly_xlu.p++, 0, 50, 100, 255);
+    gSPDisplayList(gfx->poly_xlu.p++, item_draw_table[draw_id].args[0].dlist);
+}

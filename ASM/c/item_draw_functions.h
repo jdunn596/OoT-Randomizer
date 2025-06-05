@@ -57,5 +57,6 @@ void draw_gi_opa_with_flame(z64_game_t *game, uint32_t draw_id);
 void draw_gi_xlu_with_flame(z64_game_t *game, uint32_t draw_id);
 void draw_gi_deku_nut_with_flame(z64_game_t* game, uint32_t draw_id);
 void draw_gi_opa_with_rainbow_flame(z64_game_t* game, uint32_t draw_id);
+void draw_ice_trap(z64_game_t* game, uint32_t draw_id);
 
 #endif

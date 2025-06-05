@@ -178,19 +178,23 @@ item_draw_table_entry_t item_draw_table[] = {
     [0x9F] = { draw_gi_magic_meter,         { 0x06000000, 0x060007B0, 0x06000FD8, 0x060009F8, 0x06001438, 0x286428FF, 0x000000FF } },  // Magic Meter Scroll
     [0xA0] = { draw_gi_xlu_with_flame,      { 0x060004D0, 0xC0C0C0FF, 0xC0C0C0FF } }, // Deku Stick Upgrade w/ Smoke Effect
     [0xA1] = { draw_gi_deku_nut_with_flame, { 0x06000E90, 0xC0C0C0FF, 0xC0C0C0FF } }, // Deku Nut Upgrade w/ Smoke Effect
-    //[0xA2] = { draw_gi_magic_meter,         { 0x06000000, 0x06000CC0, 0x06000F08, 0x060014E8, 0x286428FF, 0x000000FF } },  // Magic Meter Scroll 2
-    [0xA2] = { draw_gi_various_opa0,        { 0x06001140 }}, // Fishie rod
-    [0xA3] = { draw_gi_various_opa0,        { 0x06001160 }}, // Fishie
-    [0xA4] = { draw_gi_small_keys,         { 0x060017C0, 0x94E97BFF, 0x2CCF1AFF } }, // Small Key Ring (Forest)
-    [0xA5] = { draw_gi_small_keys,         { 0x060017C0, 0xFD9884FF, 0xED1612FF } }, // Small Key Ring (Fire)
-    [0xA6] = { draw_gi_small_keys,         { 0x060017C0, 0x4C9DEEFF, 0x077AEEFF } }, // Small Key Ring (Water)
-    [0xA7] = { draw_gi_small_keys,         { 0x060017C0, 0xFACD8FFF, 0xF5B433FF } }, // Small Key Ring (Spirit)
-    [0xA8] = { draw_gi_small_keys,         { 0x060017C0, 0x9454ebFF, 0x7A18DDFF } }, // Small Key Ring (Shadow)
-    [0xA9] = { draw_gi_small_keys,         { 0x060017C0, 0xFAD1FAFF, 0xE9B3EFFF } }, // Small Key Ring (Well)
-    [0xAA] = { draw_gi_small_keys,         { 0x060017C0, 0xFEFB9CFF, 0xE3E312FF } }, // Small Key Ring (GTG)
-    [0xAB] = { draw_gi_small_keys,         { 0x060017C0, 0xFFFFFFFF, 0x8c8c8cFF } }, // Small Key Ring (Thieves)
-    [0xAC] = { draw_gi_small_keys,         { 0x060017C0, 0x6E7467FF, 0x262724FF } }, // Small Key Ring (Ganon)
-    [0xAD] = { draw_gi_small_keys,         { 0x060017C0, 0xC79B42FF, 0x9F7937FF } }, // Small Key Ring (Treasure Chest Game)
+
+    [0xA2] = { draw_gi_magic_meter,         { 0x06000000, 0x06000CC0, 0x06000F08, 0x060014E8, 0x286428FF, 0x000000FF } },  // Magic Meter Scroll 2
+    [0xA3] = { draw_ice_trap,               { 0x04034380 } }, // Ice trap
+
+        //[0xA2] = { draw_gi_magic_meter,         { 0x06000000, 0x06000CC0, 0x06000F08, 0x060014E8, 0x286428FF, 0x000000FF } },  // Magic Meter Scroll 2
+    [0xA4] = { draw_gi_various_opa0,        { 0x06001140 }}, // Fishie rod
+    [0xA5] = { draw_gi_various_opa0,        { 0x06001160 }}, // Fishie
+    [0xA6] = { draw_gi_small_keys,         { 0x060017C0, 0x94E97BFF, 0x2CCF1AFF } }, // Small Key Ring (Forest)
+    [0xA7] = { draw_gi_small_keys,         { 0x060017C0, 0xFD9884FF, 0xED1612FF } }, // Small Key Ring (Fire)
+    [0xA8] = { draw_gi_small_keys,         { 0x060017C0, 0x4C9DEEFF, 0x077AEEFF } }, // Small Key Ring (Water)
+    [0xA9] = { draw_gi_small_keys,         { 0x060017C0, 0xFACD8FFF, 0xF5B433FF } }, // Small Key Ring (Spirit)
+    [0xAA] = { draw_gi_small_keys,         { 0x060017C0, 0x9454ebFF, 0x7A18DDFF } }, // Small Key Ring (Shadow)
+    [0xAB] = { draw_gi_small_keys,         { 0x060017C0, 0xFAD1FAFF, 0xE9B3EFFF } }, // Small Key Ring (Well)
+    [0xAC] = { draw_gi_small_keys,         { 0x060017C0, 0xFEFB9CFF, 0xE3E312FF } }, // Small Key Ring (GTG)
+    [0xAD] = { draw_gi_small_keys,         { 0x060017C0, 0xFFFFFFFF, 0x8c8c8cFF } }, // Small Key Ring (Thieves)
+    [0xAE] = { draw_gi_small_keys,         { 0x060017C0, 0x6E7467FF, 0x262724FF } }, // Small Key Ring (Ganon)
+    [0xAF] = { draw_gi_small_keys,         { 0x060017C0, 0xC79B42FF, 0x9F7937FF } }, // Small Key Ring (Treasure Chest Game)
 };
 
 void base_draw_gi_model(z64_game_t* game, uint32_t draw_id) {

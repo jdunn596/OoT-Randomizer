@@ -154,7 +154,7 @@ item_row_t item_table[GI_RANDO_MAX] = {
     [GI_DEKU_NUT_UPGRADE_30]                                    = ITEM_ROW(0x53,       BROWN_CHEST, 0x9A, -1, 0x00A7, 0x00BB, 0xA2, no_upgrade, no_effect, -1, -1, NULL), // Deku Nut Upgrade (30)
     [GI_DEKU_NUT_UPGRADE_40]                                    = ITEM_ROW(0x53,       BROWN_CHEST, 0x9B, -1, 0x00A8, 0x00BB, 0xA2, no_upgrade, no_effect, -1, -1, NULL), // Deku Nut Upgrade (40)
     [GI_BULLET_BAG_50]                                          = ITEM_ROW(0x53,      GILDED_CHEST, 0x49, -1, 0x006C, 0x017B, 0x73, no_upgrade, no_effect, -1, -1, NULL), // Bullet Bag (50)
-    [GI_ICE_TRAP]                                               = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9002, 0x0000, 0x00, no_upgrade, ice_trap_effect, -1, -1, NULL), // Ice Trap
+    [GI_ICE_TRAP]                                               = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9002, 0x0000, 0xA4, no_upgrade, ice_trap_effect, -1, -1, NULL), // Ice Trap
 
     [GI_CAPPED_PIECE_OF_HEART]                                  = ITEM_ROW(0x3E, HEART_CHEST_SMALL, 0x41, -1, 0x90C2, 0x00BD, 0x14, no_upgrade, full_heal, -1, -1, NULL), // Capped Piece of Heart
     [GI_CAPPED_HEART_CONTAINER]                                 = ITEM_ROW(0x3E, HEART_CHEST_SMALL, 0x41, -1, 0x90C6, 0x00BD, 0x13, no_upgrade, full_heal, -1, -1, NULL), // Capped Heart Container
@@ -245,21 +245,21 @@ item_row_t item_table[GI_RANDO_MAX] = {
     [GI_MAGIC_BEAN_PACK]                                        = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9048, 0x00F3, 0x3E, no_upgrade, give_bean_pack,      -1, -1, NULL), // Magic Bean Pack
     [GI_TRIFORCE_PIECE]                                         = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9003, 0x0193, 0x76, no_upgrade, give_triforce_piece, -1, -1, NULL), // Triforce piece
 
-    [GI_SMALL_KEY_RING_FOREST_TEMPLE]                           = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xA5, no_upgrade, give_small_key_ring, FOREST_ID, 1, resolve_text_keyrings), // Forest Temple Small Key Ring
-    [GI_SMALL_KEY_RING_FIRE_TEMPLE]                             = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xA6, no_upgrade, give_small_key_ring, FIRE_ID,   1, resolve_text_keyrings), // Fire Temple Small Key Ring
-    [GI_SMALL_KEY_RING_WATER_TEMPLE]                            = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xA7, no_upgrade, give_small_key_ring, WATER_ID,  1, resolve_text_keyrings), // Water Temple Small Key Ring
-    [GI_SMALL_KEY_RING_SPIRIT_TEMPLE]                           = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xA8, no_upgrade, give_small_key_ring, SPIRIT_ID, 1, resolve_text_keyrings), // Spirit Temple Small Key Ring
-    [GI_SMALL_KEY_RING_SHADOW_TEMPLE]                           = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xA9, no_upgrade, give_small_key_ring, SHADOW_ID, 1, resolve_text_keyrings), // Shadow Temple Small Key Ring
-    [GI_SMALL_KEY_RING_BOTTOM_OF_THE_WELL]                      = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xAA, no_upgrade, give_small_key_ring, BOTW_ID,   0, resolve_text_keyrings), // Bottom of the Well Small Key Ring
-    [GI_SMALL_KEY_RING_GERUDO_TRAINING]                         = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xAB, no_upgrade, give_small_key_ring, GTG_ID,    0, resolve_text_keyrings), // Gerudo Training Small Key Ring
-    [GI_SMALL_KEY_RING_THIEVES_HIDEOUT]                         = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xAC, no_upgrade, give_small_key_ring, FORT_ID,   0, resolve_text_keyrings), // Thieves' Hideout Small Key Ring
-    [GI_SMALL_KEY_RING_GANONS_CASTLE]                           = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xAD, no_upgrade, give_small_key_ring, CASTLE_ID, 0, resolve_text_keyrings), // Ganon's Castle Small Key Ring
+    [GI_SMALL_KEY_RING_FOREST_TEMPLE]                           = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xA7, no_upgrade, give_small_key_ring, FOREST_ID, 1, resolve_text_keyrings), // Forest Temple Small Key Ring
+    [GI_SMALL_KEY_RING_FIRE_TEMPLE]                             = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xA8, no_upgrade, give_small_key_ring, FIRE_ID,   1, resolve_text_keyrings), // Fire Temple Small Key Ring
+    [GI_SMALL_KEY_RING_WATER_TEMPLE]                            = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xA9, no_upgrade, give_small_key_ring, WATER_ID,  1, resolve_text_keyrings), // Water Temple Small Key Ring
+    [GI_SMALL_KEY_RING_SPIRIT_TEMPLE]                           = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xAA, no_upgrade, give_small_key_ring, SPIRIT_ID, 1, resolve_text_keyrings), // Spirit Temple Small Key Ring
+    [GI_SMALL_KEY_RING_SHADOW_TEMPLE]                           = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xAB, no_upgrade, give_small_key_ring, SHADOW_ID, 1, resolve_text_keyrings), // Shadow Temple Small Key Ring
+    [GI_SMALL_KEY_RING_BOTTOM_OF_THE_WELL]                      = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xAC, no_upgrade, give_small_key_ring, BOTW_ID,   0, resolve_text_keyrings), // Bottom of the Well Small Key Ring
+    [GI_SMALL_KEY_RING_GERUDO_TRAINING]                         = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xAD, no_upgrade, give_small_key_ring, GTG_ID,    0, resolve_text_keyrings), // Gerudo Training Small Key Ring
+    [GI_SMALL_KEY_RING_THIEVES_HIDEOUT]                         = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xAE, no_upgrade, give_small_key_ring, FORT_ID,   0, resolve_text_keyrings), // Thieves' Hideout Small Key Ring
+    [GI_SMALL_KEY_RING_GANONS_CASTLE]                           = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xAF, no_upgrade, give_small_key_ring, CASTLE_ID, 0, resolve_text_keyrings), // Ganon's Castle Small Key Ring
 
     [GI_BOMBCHU_BAG_20]                                         = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9019, 0x0197, 0x7E, no_upgrade, give_bombchus, 20, -1, NULL), // Bombchu Bag (20)
     [GI_BOMBCHU_BAG_10]                                         = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9019, 0x0197, 0x7E, no_upgrade, give_bombchus, 10, -1, NULL), // Bombchu Bag (10)
     [GI_BOMBCHU_BAG_5]                                          = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9019, 0x0197, 0x7E, no_upgrade, give_bombchus,  5, -1, NULL), // Bombchu Bag (5)
 
-    [GI_SMALL_KEY_RING_TREASURE_CHEST_GAME]                     = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xAE, no_upgrade, give_small_key_ring, TCG_ID, 0, resolve_text_keyrings), // Treasure Chest Game Small Key Ring
+    [GI_SMALL_KEY_RING_TREASURE_CHEST_GAME]                     = ITEM_ROW(0x53,      SILVER_CHEST, 0x41, -1, 0x9200, 0x0195, 0xB0, no_upgrade, give_small_key_ring, TCG_ID, 0, resolve_text_keyrings), // Treasure Chest Game Small Key Ring
 
     [GI_SILVER_RUPEE_DODONGOS_CAVERN_STAIRCASE]                 = ITEM_ROW(0x4D,      SILVER_CHEST, 0x85, -1, 0x901B, 0x0198, 0x72, no_upgrade, give_silver_rupee, DODONGO_ID, 0x00, resolve_text_silver_rupees), // Silver Rupee (Dodongos Cavern Staircase)
     [GI_SILVER_RUPEE_ICE_CAVERN_SPINNING_SCYTHE]                = ITEM_ROW(0x4D,      SILVER_CHEST, 0x85, -1, 0x901C, 0x0198, 0x72, no_upgrade, give_silver_rupee, ICE_ID,     0x01, resolve_text_silver_rupees), // Silver Rupee (Ice Cavern Spinning Scythe)
@@ -418,14 +418,14 @@ item_row_t item_table[GI_RANDO_MAX] = {
     [GI_SOUL_REGIONAL_LLR]                                      = ITEM_ROW(0x53,        GOLD_CHEST,  0x41, -1, 0x9343, 0x01B5, 0x63, no_upgrade, give_regional_enemy_soul, 20, -1, NULL),
     [GI_SOUL_REGIONAL_GROTTOS]                                  = ITEM_ROW(0x53,        GOLD_CHEST,  0x41, -1, 0x9344, 0x01B5, 0x63, no_upgrade, give_regional_enemy_soul, 21, -1, NULL),
 
-    [GI_FISHING_ROD]                                            = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9500, 0x01B7, 0xA3, no_upgrade, give_fishing_rod, -1, -1, NULL), // Fishing Rod
-    [GI_FISH_CHILD_6LB]                                         = ITEM_ROW(0x53,       BROWN_CHEST, 0x41, -1, 0x9501, 0x01B8, 0xA4, no_upgrade, give_fish,        6, 1, NULL), // Fish (child, 6 lb)
-    [GI_FISH_CHILD_8LB]                                         = ITEM_ROW(0x53,       BROWN_CHEST, 0x41, -1, 0x9502, 0x01B8, 0xA4, no_upgrade, give_fish,        8, 1, NULL), // Fish (child, 8 lb)
-    [GI_FISH_CHILD_10LB]                                        = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9503, 0x01B8, 0xA4, no_upgrade, give_fish,        10, 1, NULL), // Fish (child, 10 lb)
-    [GI_FISH_ADULT_10LB]                                        = ITEM_ROW(0x53,       BROWN_CHEST, 0x41, -1, 0x9504, 0x01B8, 0xA4, no_upgrade, give_fish,        10, 0, NULL), // Fish (adult, 10 lb)
-    [GI_FISH_ADULT_12LB]                                        = ITEM_ROW(0x53,       BROWN_CHEST, 0x41, -1, 0x9505, 0x01B8, 0xA4, no_upgrade, give_fish,        12, 0, NULL), // Fish (adult, 12 lb)
-    [GI_FISH_ADULT_16LB]                                        = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9506, 0x01B8, 0xA4, no_upgrade, give_fish,        16, 0, NULL), // Fish (adult, 16 lb)
-    [GI_FISH_LOACH]                                             = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9507, 0x01B8, 0xA4, no_upgrade, give_fish,        30, 0, NULL), // Hylian Loach
+    [GI_FISHING_ROD]                                            = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9500, 0x01B7, 0xA5, no_upgrade, give_fishing_rod, -1, -1, NULL), // Fishing Rod
+    [GI_FISH_CHILD_6LB]                                         = ITEM_ROW(0x53,       BROWN_CHEST, 0x41, -1, 0x9501, 0x01B8, 0xA6, no_upgrade, give_fish,        6, 1, NULL), // Fish (child, 6 lb)
+    [GI_FISH_CHILD_8LB]                                         = ITEM_ROW(0x53,       BROWN_CHEST, 0x41, -1, 0x9502, 0x01B8, 0xA6, no_upgrade, give_fish,        8, 1, NULL), // Fish (child, 8 lb)
+    [GI_FISH_CHILD_10LB]                                        = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9503, 0x01B8, 0xA6, no_upgrade, give_fish,        10, 1, NULL), // Fish (child, 10 lb)
+    [GI_FISH_ADULT_10LB]                                        = ITEM_ROW(0x53,       BROWN_CHEST, 0x41, -1, 0x9504, 0x01B8, 0xA6, no_upgrade, give_fish,        10, 0, NULL), // Fish (adult, 10 lb)
+    [GI_FISH_ADULT_12LB]                                        = ITEM_ROW(0x53,       BROWN_CHEST, 0x41, -1, 0x9505, 0x01B8, 0xA6, no_upgrade, give_fish,        12, 0, NULL), // Fish (adult, 12 lb)
+    [GI_FISH_ADULT_16LB]                                        = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9506, 0x01B8, 0xA6, no_upgrade, give_fish,        16, 0, NULL), // Fish (adult, 16 lb)
+    [GI_FISH_LOACH]                                             = ITEM_ROW(0x53,      GILDED_CHEST, 0x41, -1, 0x9507, 0x01B8, 0xA6, no_upgrade, give_fish,        30, 0, NULL), // Hylian Loach
 };
 
 /*  Determine which message to display based on the number of silver rupees collected.

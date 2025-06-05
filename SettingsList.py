@@ -3766,19 +3766,21 @@ class SettingInfos:
     misc_hints = MultipleSelect(
         gui_text        = 'Misc. Hints',
         choices         = {
-            'altar':       'Temple of Time Altar',
-            'dampe_diary': "Dampé's Diary (Hookshot)",
-            'ganondorf':   'Ganondorf (Light Arrows)',
-            'warp_songs_and_owls':  'Warp Songs and Owls',
-            '10_skulltulas':  'House of Skulltula: 10',
-            '20_skulltulas':  'House of Skulltula: 20',
-            '30_skulltulas':  'House of Skulltula: 30',
-            '40_skulltulas':  'House of Skulltula: 40',
-            '50_skulltulas':  'House of Skulltula: 50',
-            'frogs2':         'Frogs Ocarina Game',
-            'mask_shop':  'Shuffled Mask Shop',
-            'unique_merchants':  'Unique Merchants',
-            'big_poes':  'Market Big Poes',
+            'altar':               'Temple of Time Altar',
+            'dampe_diary':         "Dampé's Diary (Hookshot)",
+            'ganondorf':           'Ganondorf (Light Arrows)',
+            'warp_songs_and_owls': 'Warp Songs and Owls',
+            '10_skulltulas':       'House of Skulltula: 10',
+            '20_skulltulas':       'House of Skulltula: 20',
+            '30_skulltulas':       'House of Skulltula: 30',
+            '40_skulltulas':       'House of Skulltula: 40',
+            '50_skulltulas':       'House of Skulltula: 50',
+            'frogs2':              'Frogs Ocarina Game',
+            'mask_shop':           'Shuffled Mask Shop',
+            'unique_merchants':    'Unique Merchants',
+            'big_poes':            'Market Big Poes',
+            'skull_mask':          'Deku Theater Skull Mask',
+            'mask_of_truth':       'Deku Theater Mask of Truth',
         },
         gui_tooltip    = '''\
             This setting adds some hints at locations
@@ -3835,6 +3837,9 @@ class SettingInfos:
 
             The Poe collector will tell the reward for selling
             him Big Poes.
+
+            The sign in Deku Theater will tell the reward for showing
+            the Skull Mask and/or the Mask of Truth.
         ''',
         shared         = True,
         default        = ['altar', 'ganondorf', 'warp_songs_and_owls'],
