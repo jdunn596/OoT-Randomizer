@@ -4,9 +4,15 @@
 * New settings for more control over special deal prices.
 * The `Randomize Ocarina Melodies` setting has a new option to randomize the Frogs 2 melody.
 * The `Free Scarecrow's Song` setting has been renamed to `Scarecrow Behavior`, with a new `Fast` option.
+* New options `Deku Theater Skull Mask` and `Deku Theater Mask of Truth` for the `Misc. Hints` setting.
 
 ## Bug fixes
 * The Deku Shield pot in the Spirit Temple is no longer shuffled when both `Fix Broken Drops` and `Include Empty Pots` are off.
+* For consistency with other location types, excluded pot/crate/beehive/wonderitem/etc. locations no longer behave as if their shuffle setting was off.
+
+## Other changes
+* Big poe souls can now be collected while riding Epona.
+* Ice traps have a new item model that's displayed instead of nothing after being picked up.
 
 # 8.3
 

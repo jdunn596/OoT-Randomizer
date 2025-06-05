@@ -236,7 +236,7 @@ def tokens_required_by_settings(world: World) -> int:
 # Hints required under certain settings
 conditional_always: dict[str, Callable[[World], bool]] = {
     'Market 10 Big Poes':           lambda world: world.settings.big_poe_count > 3 and 'big_poes' not in world.settings.misc_hints,
-    'Deku Theater Mask of Truth':   lambda world: not world.settings.complete_mask_quest and 'Mask of Truth' not in world.settings.shuffle_child_trade,
+    'Deku Theater Mask of Truth':   lambda world: not world.settings.complete_mask_quest and 'Mask of Truth' not in world.settings.shuffle_child_trade and 'mask_of_truth' not in world.settings.misc_hints,
     'Song from Ocarina of Time':    lambda world: stones_required_by_settings(world) < 2,
     'HF Ocarina of Time Item':      lambda world: stones_required_by_settings(world) < 2,
     'Sheik in Kakariko':            lambda world: medallions_required_by_settings(world) < 5,
@@ -735,6 +735,8 @@ hintTable: dict[str, tuple[list[str] | str, Optional[str], str | list[str]]] = {
     'Dancing Darunia and Skull Kid':                               ("a #music-loving Goron and skull kid# give you...^", None, 'dual_exclude'),
     'LH Child and Adult Fishing':                                  ("catching the #biggest fish# as child and as an adult reward you with...^", None, 'dual_exclude'),
     'Fire Temple Pierre and Hammer':                               ("a #scarecrow and a flare dancer# atop the Fire Temple guard...^", None, 'dual_exclude'),
+
+    'Jabu Jabus Belly Boomerang Checks':                           ("in the #belly of a deity# the boomerang unlocks...^", "inside #Jabu Jabu#'s Belly the boomerang unlocks...^", 'dual_exclude'),
 
     'ZD Trade Prescription':                                       ("a #royal recipe requires#", "showing the #Prescription to King Zora# rewards", 'exclude'),
 
@@ -1893,6 +1895,8 @@ multiTable: dict[str, list[str]] = {
     'Dancing Darunia and Skull Kid':                            ['GC Darunias Joy', 'LW Skull Kid'],
     'LH Child and Adult Fishing':                               ['LH Child Fishing', 'LH Adult Fishing'],
     'Fire Temple Pierre and Hammer':                            ['Fire Temple Scarecrow Chest', 'Fire Temple Megaton Hammer Chest'],
+
+    'Jabu Jabus Belly Boomerang Checks':                        ['Jabu Jabus Belly Map Chest', 'Jabu Jabus Belly Compass Chest'],
 }
 
 # TODO: Make these a type of some sort instead of a dict.
@@ -1947,6 +1951,7 @@ misc_location_hint_table: dict[str, dict[str, Any]] = {
         'item_location': 'Kak 10 Gold Skulltula Reward',
         'location_text': "Yeaaarrgh! I'm cursed!! Please save me by destroying \x05\x4110 Spiders of the Curse\x05\x40 and I will give you \x05\x42{item}\x05\x40.",
         'location_fallback': "Yeaaarrgh! I'm cursed!!",
+        'text_style': 0x23,
     },
     '20_skulltulas': {
         'id': 0x9005,
@@ -1954,6 +1959,7 @@ misc_location_hint_table: dict[str, dict[str, Any]] = {
         'item_location': 'Kak 20 Gold Skulltula Reward',
         'location_text': "Yeaaarrgh! I'm cursed!! Please save me by destroying \x05\x4120 Spiders of the Curse\x05\x40 and I will give you \x05\x42{item}\x05\x40.",
         'location_fallback': "Yeaaarrgh! I'm cursed!!",
+        'text_style': 0x23,
     },
     '30_skulltulas': {
         'id': 0x9006,
@@ -1961,6 +1967,7 @@ misc_location_hint_table: dict[str, dict[str, Any]] = {
         'item_location': 'Kak 30 Gold Skulltula Reward',
         'location_text': "Yeaaarrgh! I'm cursed!! Please save me by destroying \x05\x4130 Spiders of the Curse\x05\x40 and I will give you \x05\x42{item}\x05\x40.",
         'location_fallback': "Yeaaarrgh! I'm cursed!!",
+        'text_style': 0x23,
     },
     '40_skulltulas': {
         'id': 0x9007,
@@ -1968,6 +1975,7 @@ misc_location_hint_table: dict[str, dict[str, Any]] = {
         'item_location': 'Kak 40 Gold Skulltula Reward',
         'location_text': "Yeaaarrgh! I'm cursed!! Please save me by destroying \x05\x4140 Spiders of the Curse\x05\x40 and I will give you \x05\x42{item}\x05\x40.",
         'location_fallback': "Yeaaarrgh! I'm cursed!!",
+        'text_style': 0x23,
     },
     '50_skulltulas': {
         'id': 0x9008,
@@ -1975,6 +1983,7 @@ misc_location_hint_table: dict[str, dict[str, Any]] = {
         'item_location': 'Kak 50 Gold Skulltula Reward',
         'location_text': "Yeaaarrgh! I'm cursed!! Please save me by destroying \x05\x4150 Spiders of the Curse\x05\x40 and I will give you \x05\x42{item}\x05\x40.",
         'location_fallback': "Yeaaarrgh! I'm cursed!!",
+        'text_style': 0x23,
     },
     '100_skulltulas': {
         'id': 0x9009,
@@ -1989,6 +1998,21 @@ misc_location_hint_table: dict[str, dict[str, Any]] = {
         'item_location': 'ZR Frogs Ocarina Game',
         'location_text': "Some frogs holding \x05\x42{item}\x05\x40 are looking at you from underwater...",
         'location_fallback': "Some frogs are looking at you from underwater...",
+        'text_style': 0x23,
+    },
+    'skull_mask': {
+        'id': 0x0344,
+        'hint_location': 'Deku Theater Skull Mask Hint',
+        'item_location': 'Deku Theater Skull Mask',
+        'location_text': 'Wearing the \x05\x41Skull Mask\x05\x40 will reward you with \x05\x42{item}\x05\x40.',
+        'text_style': 0x13,
+    },
+    'mask_of_truth': {
+        'id': 0x0344,
+        'hint_location': 'Deku Theater Mask of Truth Hint',
+        'item_location': 'Deku Theater Mask of Truth',
+        'location_text': 'Wearing the \x05\x41Mask of Truth\x05\x40 will reward you with \x05\x42{item}\x05\x40.',
+        'text_style': 0x13,
     },
     'big_poes': {
         'id': 0x70F5,
@@ -1996,6 +2020,19 @@ misc_location_hint_table: dict[str, dict[str, Any]] = {
         'item_location': 'Market 10 Big Poes',
         'location_text': "\x08Hey, young man. What's happening \x01today? Do you want\x01\x05\x41{item}\x05\x40?\x04\x1AIf you earn \x05\x41{poe_points} points\x05\x40, you'll\x01be a happy man! Heh heh.\x04\x08Your card now has \x05\x45\x1E\x01 \x05\x40points.\x01Come back again!\x01Heh heh heh!\x02",
         'location_fallback': "\x08Hey, young man. What's happening \x01today? If you have a \x05\x41Poe\x05\x40, I will \x01buy it.\x04\x1AIf you earn \x05\x41{poe_points} points\x05\x40, you'll\x01be a happy man! Heh heh.\x04\x08Your card now has \x05\x45\x1E\x01 \x05\x40points.\x01Come back again!\x01Heh heh heh!\x02",
+        'text_style': 0x03,
+    },
+}
+
+# Adds capability for dual misc hints. Only used when neither or both hints are enabled, uses corresponding misc_location_hint_table entries if only one is enabled.
+# 'location_text' is the text for the dual hint where item_1 is the item from item_location_0 and item_2 is the item from item_location_1.
+# 'location_fallback' is the text to handle if neither misc hint is turned on.
+misc_dual_hint_table: dict[str, dict[str, Any]] = {
+    ('skull_mask', 'mask_of_truth'): {
+        'id': 0x0344,
+        'location_text': '\x01Wearing the \x05\x41Skull Mask\x05\x40 will reward you with \x05\x42{item_1}\x05\x40.\x04Wearing the \x05\x41Mask of Truth\x05\x40 will reward you with \x05\x42{item_2}\x05\x40.',
+        'location_fallback': '\x05\x42\x06\x3dForest Stage\x04\x01\x05\x40\x06\x14We are waiting to see your\x01\x06\x32beautiful face!\x01\x06\x28Win fabulous prizes!',
+        'text_style': 0x13,
     },
 }
 
