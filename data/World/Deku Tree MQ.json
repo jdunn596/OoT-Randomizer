@@ -15,8 +15,8 @@
             "Deku Tree MQ Slingshot Room Crate 2": "can_break_crate",
             "Deku Tree MQ Lobby Lower Withered Deku Baba": "can_kill_withered_deku_baba",
             "Deku Tree MQ Lobby Upper Withered Deku Baba": "can_kill_withered_deku_baba",
-            "Deku Tree MQ Lobby Upper Deku Baba 1": "can_kill_withered_deku_baba",
-            "Deku Tree MQ Lobby Upper Deku Baba 2": "can_kill_withered_deku_baba",
+            "Deku Tree MQ Lobby Upper Deku Baba 1": "can_kill_deku_baba",
+            "Deku Tree MQ Lobby Upper Deku Baba 2": "can_kill_deku_baba",
             "Deku Tree MQ Lobby Lower Keese": "can_kill_keese_stationary",
             "Deku Tree MQ Lobby Upper Keese": "can_kill_keese_stationary",
             "Deku Tree MQ Lobby Vines Skullwalltula": "
