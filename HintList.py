@@ -1991,6 +1991,7 @@ misc_location_hint_table: dict[str, dict[str, Any]] = {
         'item_location': 'Kak 100 Gold Skulltula Reward',
         'location_text': "Yeaaarrgh! I'm cursed!! Please save me by destroying \x05\x41100 Spiders of the Curse\x05\x40 and I will give you \x05\x42{item}\x05\x40.",
         'location_fallback': "Yeaaarrgh! I'm cursed!!",
+        'text_style': 0x23,
     },
     'frogs2': {
         'id': 0x022E,
