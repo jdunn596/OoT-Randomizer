@@ -3965,14 +3965,14 @@
         "custom_ice_trap_count": 100,
         "ice_trap_appearance": "anything"
     },
-    "Standard Weekly (2025-05-10)": {
+    "Standard Weekly (2025-06-07)": {
         "aliases": [
             "Standard Weekly (Latest)",
             "weekly"
         ],
         "language": "english",
         "show_seed_info": true,
-        "user_message": "Standard Weekly (2025-05-10)",
+        "user_message": "Standard Weekly (2025-06-07)",
         "world_count": 1,
         "create_spoiler": true,
         "password_lock": false,
@@ -3989,7 +3989,7 @@
         "lacs_rewards_specific": [],
         "lacs_tokens": 100,
         "lacs_hearts": 20,
-        "bridge": "medallions",
+        "bridge": "dungeons",
         "bridge_medallions": 6,
         "bridge_stones": 3,
         "bridge_rewards": 9,
@@ -4005,7 +4005,7 @@
         "ganon_bosskey_rewards_specific": [],
         "ganon_bosskey_tokens": 100,
         "ganon_bosskey_hearts": 20,
-        "open_deku": true,
+        "open_deku": false,
         "open_forest": true,
         "require_gohma": false,
         "open_kakariko": "open",
@@ -4018,17 +4018,20 @@
         "mq_dungeons_mode": "vanilla",
         "mq_dungeons_specific": [],
         "mq_dungeons_count": 0,
-        "empty_dungeons_mode": "none",
+        "empty_dungeons_mode": "rewards",
         "empty_dungeons_specific": [],
-        "empty_dungeons_rewards": [],
+        "empty_dungeons_rewards": [
+            "Shadow Medallion",
+            "Spirit Medallion"
+        ],
         "empty_dungeons_count": 2,
         "empty_dungeons_count_include_ganon": false,
         "shuffle_interior_entrances": "off",
         "shuffle_hideout_entrances": "off",
         "shuffle_gerudo_fortress_heart_piece": "remove",
         "shuffle_grotto_entrances": false,
-        "shuffle_dungeon_entrances": "simple",
-        "shuffle_bosses": "full",
+        "shuffle_dungeon_entrances": "off",
+        "shuffle_bosses": "off",
         "shuffle_ganon_tower": false,
         "shuffle_overworld_entrances": false,
         "mix_entrance_pools": [],
@@ -4111,22 +4114,18 @@
             "logic_lens_bongo",
             "logic_lens_spirit",
             "logic_lens_gtg",
-            "logic_lens_castle",
-            "logic_dc_scarecrow_gs",
-            "logic_deku_b1_webs_with_bow"
+            "logic_lens_castle"
         ],
         "starting_equipment": [
             "deku_shield"
         ],
         "starting_inventory": [
             "ocarina",
-            "farores_wind",
-            "lens",
             "zeldas_letter"
         ],
         "starting_songs": [],
         "start_with_consumables": true,
-        "start_with_rupees": true,
+        "start_with_rupees": false,
         "starting_hearts": 3,
         "skip_reward_from_rauru": true,
         "no_escape_sequence": true,
@@ -4153,7 +4152,9 @@
         "hint_dist": "weekly",
         "item_hints": [],
         "hint_dist_user": {},
-        "plandomized_locations": {},
+        "plandomized_locations": {
+            "ToT Reward from Rauru": "Light Medallion"
+        },
         "misc_hints": [
             "altar",
             "ganondorf",
