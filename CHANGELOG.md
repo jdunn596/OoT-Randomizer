@@ -5,6 +5,7 @@
 * The `Randomize Ocarina Melodies` setting has a new option to randomize the Frogs 2 melody.
 * The `Free Scarecrow's Song` setting has been renamed to `Scarecrow Behavior`, with a new `Fast` option.
 * New options `Deku Theater Skull Mask` and `Deku Theater Mask of Truth` for the `Misc. Hints` setting.
+* New setting `Shuffle 100 Skulltula Reward` along with a new `House of Skulltula: 100` option for the `Misc. Hints` setting.
 
 ## Bug fixes
 * The Deku Shield pot in the Spirit Temple is no longer shuffled when both `Fix Broken Drops` and `Include Empty Pots` are off.
