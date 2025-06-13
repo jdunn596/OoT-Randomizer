@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Optional
 from urllib.error import URLError, HTTPError
 
 from HintList import Hint, get_hint, get_multi, get_hint_group, get_upgrade_hint_list, hint_exclusions, \
-    misc_item_hint_table, misc_location_hint_table
+    misc_item_hint_table, misc_location_hint_table, misc_dual_hint_table
 from rs.hints import HintArea
 from Item import Item, make_event_item
 from ItemList import REWARD_COLORS
