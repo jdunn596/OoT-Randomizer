@@ -128,10 +128,10 @@ for _ in range(arguments['--seeds']):
             base_name = rom_path.stem.rstrip('-comp')
             if base_name.endswith(f'W{arguments["--worlds"]}P{world_id}'):
                 base_name = base_name[:-2]
+            spoiler_path = rom_path.parent / f'{base_name}_Spoiler.json'
+            with spoiler_path.open(encoding='utf-8') as spoiler_f:
+                spoiler = json.load(spoiler_f)
             if seed is None:
-                spoiler_path = rom_path.parent / f'{base_name}_Spoiler.json'
-                with spoiler_path.open(encoding='utf-8') as spoiler_f:
-                    spoiler = json.load(spoiler_f)
                 seed = spoiler[':seed']
             rom_paths.append(rom_path)
         if failed:
