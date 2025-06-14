@@ -9,7 +9,7 @@ workspace = true
 [dependencies]
 decompress = { git = "https://github.com/fenhl/OoT_Decompressor", branch = "riir" }
 futures = "0.3.31"
-itermore = { version = "0.7.1", features = ["array_windows"] }
+itermore = { version = "0.7.1", features = ["array_chunks"] }
 lazy-regex = "3.4.1"
 serde = { version = "1.0.219", features = ["derive"] }
 thiserror = "2.0.12"

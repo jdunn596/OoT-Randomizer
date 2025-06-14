@@ -10,7 +10,7 @@ use {
     },
     decompress::fix_crc,
     futures::stream::TryStreamExt as _,
-    itermore::IterArrayWindows as _,
+    itermore::IterArrayChunks as _,
     lazy_regex::regex_captures,
     serde::Serialize,
     tokio::{
@@ -56,8 +56,8 @@ impl Iterator for UnequalChunks<'_> {
                 break None
             }
             if chunk1 != chunk2 {
-                let words1 = chunk1.iter().copied().array_windows().map(|x| u32::from_be_bytes(x)).collect();
-                let words2 = chunk2.iter().copied().array_windows().map(|x| u32::from_be_bytes(x)).collect();
+                let words1 = chunk1.iter().copied().arrays().map(|x| u32::from_be_bytes(x)).collect();
+                let words2 = chunk2.iter().copied().arrays().map(|x| u32::from_be_bytes(x)).collect();
                 break Some((self.addr - CHUNK_SIZE, words1, words2))
             }
         }
