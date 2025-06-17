@@ -189,13 +189,14 @@
             "dampe_diary",
             "ganondorf",
             "warp_songs_and_owls",
-            "10_skulltulas",
-            "20_skulltulas",
             "30_skulltulas",
             "40_skulltulas",
             "50_skulltulas",
+            "100_skulltulas",
             "frogs2",
-            "unique_merchants"
+            "unique_merchants",
+            "big_poes",
+            "mask_of_truth"
         ],
         "correct_chest_appearances": "off",
         "chest_textures_specific": [
@@ -419,7 +420,7 @@
         "big_poe_count": 10,
         "clearer_hints": true,
         "hints": "always",
-        "hint_dist": "chaos",
+        "hint_dist": "chaos_tootr",
         "item_hints": [],
         "hint_dist_user": {},
         "plandomized_locations": {},
@@ -428,13 +429,14 @@
             "dampe_diary",
             "ganondorf",
             "warp_songs_and_owls",
-            "10_skulltulas",
-            "20_skulltulas",
             "30_skulltulas",
             "40_skulltulas",
             "50_skulltulas",
+            "100_skulltulas",
             "frogs2",
-            "unique_merchants"
+            "unique_merchants",
+            "big_poes",
+            "mask_of_truth"
         ],
         "correct_chest_appearances": "off",
         "chest_textures_specific": [
