@@ -50,6 +50,7 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
 * New hint distributions:
   * “Chaos!!! (dev-fenhl)” is like “Chaos!!!” but including hint types not available on [`Dev-R`](https://github.com/Roman971/OoT-Randomizer).
   * “Chaos!!! (dev-fenhl, no goal hints)” is like “Chaos!!! (no goal hints)” but including hint types not available on [`Dev-R`](https://github.com/Roman971/OoT-Randomizer).
+  * “Chaos!!! (TOoTR compat)” is like “Chaos!!!” but without entrance hints and without the Dual hints for the bosses.
   * “Ice%” consists of only Sometimes hints, and replaces the hookshot hint in Dampé's diary with a blue fire arrows hint.
   * “Mixed Pools Tournament” is the hint distribution being used for the upcoming [4th Mixed Pools Tournament](https://midos.house/event/mp/4).
   * “SAWS” is the hint distribution used for the Standard Anti-Weekly Settings presets (see below).
@@ -59,7 +60,7 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
   * “Fenhl's Casual” is my preferred flavor of playing OoTR, with everything shuffled, full entrance randomizer, chaos hints, warp song note shuffle, half damage, no Master Quest, and no tricks enabled. The rainbow bridge requires all dungeon rewards and Ganon's boss key requires all 100 gold skulltula tokens.
   * “Fenhl's Casual (TOoTR compat)” is Fenhl's Casual but with the following changes for compatibility with [TOoTR](https://tootr.mracsys.com/):
     * “Open Door of Time” is set to “Song of Time” instead of “3 Stones + OoT + SoT”
-    * Hint distribution is “Chaos!!!” instead of “Chaos!!! (dev-fenhl)” (lack of support for Triforce Blitz hints)
+    * Hint distribution is “Chaos!!! (TOoTR compat)” instead of “Chaos!!! (dev-fenhl)” ([mracsys/tootr#73](https://github.com/mracsys/tootr/issues/73), [mracsys/tootr#76](https://github.com/mracsys/tootr/issues/76), and lack of support for Triforce Blitz hints)
   * “Vanilla” generates a seed that's as close to the vanilla game as possible with current randomizer features. Unlike the vanilla seed available on <https://ootrandomizer.com/>, this preset uses glitchless logic to produce a useful spoiler log playthrough.
   * “Fast Vanilla” is “Vanilla” but with speed-ups like fast bunny hood, fast chest cutscenes, or “Skip Some Minigame Phases” enabled.
   * “Vanilla (Master Quest)” and “Fast Vanilla (Master Quest)” are “Vanilla” and “Fast Vanilla” but with all dungeons from Master Quest.
@@ -90,6 +91,7 @@ Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [
   * Fix generator crash with bingo hints when all bottles (other than Ruto's letter) are milk bottles ([#2392](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2392))
   * Fix misc. location hints not being counted as always hints for the purpose of Barren and Named Item hints ([#2391](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2391))
   * Blue warps setting time of day even on repeated use is now in logic ([#2304](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2304))
+  * Fix conditions for `Deku Theater Rewards` becoming a Dual Always hint.
 
 Differences between [`Dev-R`](https://github.com/Roman971/OoT-Randomizer) and [`Dev`](https://github.com/OoTRandomizer/OoT-Randomizer):
 

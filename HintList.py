@@ -278,7 +278,7 @@ conditional_entrance_always: dict[str, Callable[[World], bool]] = {
 # Dual hints required under certain settings
 conditional_dual_always: dict[str, Callable[[World], bool]] = {
     'HF Ocarina of Time Retrieval': lambda world: stones_required_by_settings(world) < 2,
-    'Deku Theater Rewards':         lambda world: not world.settings.complete_mask_quest,
+    'Deku Theater Rewards':         lambda world: not world.settings.complete_mask_quest and 'Mask of Truth' not in world.settings.shuffle_child_trade and 'mask_of_truth' not in world.settings.misc_hints,
     'ZR Frogs Rewards':             lambda world: not world.settings.shuffle_frog_song_rupees and 'frogs2' not in world.settings.misc_hints,
 }
 
