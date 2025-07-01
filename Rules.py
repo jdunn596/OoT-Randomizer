@@ -15,7 +15,9 @@ if TYPE_CHECKING:
     from World import World
 
 
-def set_rules(world: World) -> None:
+def set_rules(worlds: Iterable[World], world: World) -> None:
+    from World import triforce_goal
+
     logger = logging.getLogger('')
 
     # ganon can only carry triforce
@@ -60,7 +62,7 @@ def set_rules(world: World) -> None:
             add_item_rule(location, lambda location, item: item.type != 'Shop')
 
         if world.skip_child_zelda and location.name == 'Song from Impa':
-            if world.settings.triforce_hunt and world.total_starting_triforce_count >= world.triforce_goal - world.settings.world_count:
+            if world.settings.triforce_hunt and world.total_starting_triforce_count >= triforce_goal(worlds) - world.settings.world_count:
                 # We have enough starting Triforce pieces that putting a piece on every world's Song from Impa would hit the goal count
                 # and render the game unbeatable, so for simplicity's sake we forbid putting pieces on any world's Song from Impa.
                 add_item_rule(location, lambda location, item: not item.triforce_piece)

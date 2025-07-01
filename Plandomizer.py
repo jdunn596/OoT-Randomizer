@@ -1213,7 +1213,11 @@ class Distribution:
             world_dist.cloak(worlds, location_pools, model_pools)
 
     def configure_triforce_hunt(self, worlds: list[World]) -> None:
-        total_count = 0
+        from World import triforce_count, triforce_goal
+
+        if triforce_goal(worlds) > triforce_count(worlds):
+            raise ValueError("Triforces required cannot be more than the triforce count.")
+
         total_starting_count = 0
         for world in worlds:
             for triforce_piece in triforce_pieces:
@@ -1222,13 +1226,9 @@ class Distribution:
                 #TODO add starting pieces from other skipped checks (Links Pocket, pre-completed dungeons)
                 if world.skip_child_zelda and 'Song from Impa' in world.distribution.locations and world.distribution.locations['Song from Impa'].item == triforce_piece:
                     total_starting_count += 1
-            if world.settings.triforce_hunt:
-                total_count += world.triforce_count_per_world
-                if world.settings.triforce_hunt_mode == 'ice_percent': #TODO instead of hardcoding Ice%, scan filled locations
-                    total_count += 1
 
-        if total_starting_count >= world.triforce_goal:
-            raise RuntimeError('Too many Triforce Pieces in starting items. There should be at most %d and there are %d.' % (world.triforce_goal - 1, total_starting_count))
+        if total_starting_count >= triforce_goal(worlds):
+            raise RuntimeError(f'Too many Triforce Pieces in starting items. There should be at most {triforce_goal(worlds) - 1} and there are {total_starting_count}.')
 
         for world in worlds:
             world.total_starting_triforce_count = total_starting_count # used later in Rules.py

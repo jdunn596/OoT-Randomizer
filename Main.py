@@ -148,7 +148,7 @@ def build_world_graphs(world_settings: list[Settings]) -> list[World]:
         world.set_scrub_prices()
 
         logger.info('Calculating Access Rules.')
-        set_rules(world)
+        set_rules(worlds, world)
 
         logger.info('Generating Item Pool.')
         generate_itempool(world)
