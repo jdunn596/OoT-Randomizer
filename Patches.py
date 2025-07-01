@@ -34,7 +34,7 @@ from Sounds import move_audiobank_table
 from Spoiler import Spoiler
 from TextBox import line_wrap
 from Utils import data_path, get_version_bytes
-from World import World
+from World import World, triforce_goal
 from rs.rom import BigStream
 from texture_util import ci4_rgba16patch_to_ci8, rgba16_patch
 from rs.version import __version__, base_version, branch_identifier, supplementary_version
@@ -1077,11 +1077,11 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
         rom.write_int16(count_symbol, flags)
 
     if world.settings.triforce_hunt:
-        rom.write_int16(rom.sym('TRIFORCE_PIECES_REQUIRED'), world.triforce_goal)
+        rom.write_int16(rom.sym('TRIFORCE_PIECES_REQUIRED'), triforce_goal(spoiler.worlds))
         rom.write_int16(rom.sym('TRIFORCE_HUNT_ENABLED'), 1)
         if (
             world.settings.triforce_hunt_mode == 'ice_percent'
-            and world.triforce_goal == 1
+            and triforce_goal(spoiler.worlds) == 1
             and world.get_location('Ice Cavern MQ Iron Boots Chest' if world.dungeon_mq['Ice Cavern'] else 'Ice Cavern Iron Boots Chest').item.name == 'Triforce Piece'
         ): # use normal Triforce Hunt behavior for multiworld Ice% or plando shenanigans
             rom.write_byte(rom.sym('ICE_PERCENT'), 1)
@@ -1884,31 +1884,31 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
     if world.settings.incorrect_chest_appearances:
         rom.write_byte(rom.sym('INCORRECT_CHEST_APPEARANCES'), 1)
         any_small_skull_chests = any(
-            world_dist.settings.bridge != 'tokens'
-            and world_dist.settings.lacs_condition != 'tokens'
-            and (world_dist.settings.triforce_hunt or world_dist.settings.shuffle_ganon_bosskey != 'tokens')
-            for world_dist in world.settings.distribution.world_dists
-            if world_dist.settings.tokensanity != 'off'
+            world.settings.bridge != 'tokens'
+            and world.settings.lacs_condition != 'tokens'
+            and (world.settings.triforce_hunt or world.settings.shuffle_ganon_bosskey != 'tokens')
+            for world in spoiler.worlds
+            if world.settings.tokensanity != 'off'
         )
         any_big_skull_chests = any(
-            world_dist.settings.bridge == 'tokens'
-            or world_dist.settings.lacs_condition == 'tokens'
-            or (world_dist.settings.shuffle_ganon_bosskey == 'tokens' and not world_dist.settings.triforce_hunt)
-            for world_dist in world.settings.distribution.world_dists
-            if world_dist.settings.tokensanity != 'off'
+            world.settings.bridge == 'tokens'
+            or world.settings.lacs_condition == 'tokens'
+            or (world.settings.shuffle_ganon_bosskey == 'tokens' and not world.settings.triforce_hunt)
+            for world in spoiler.worlds
+            if world.settings.tokensanity != 'off'
         )
         rom.write_byte(rom.sym('SKULL_CHEST_SIZES'), 2 * any_big_skull_chests + any_small_skull_chests)
         any_small_heart_chests = any(
-            world_dist.settings.bridge != 'hearts'
-            and world_dist.settings.lacs_condition != 'hearts'
-            and (world_dist.settings.triforce_hunt or world_dist.settings.shuffle_ganon_bosskey != 'hearts')
-            for world_dist in world.settings.distribution.world_dists
+            world.settings.bridge != 'hearts'
+            and world.settings.lacs_condition != 'hearts'
+            and (world.settings.triforce_hunt or world.settings.shuffle_ganon_bosskey != 'hearts')
+            for world in spoiler.worlds
         )
         any_big_heart_chests = any(
-            world_dist.settings.bridge == 'hearts'
-            or world_dist.settings.lacs_condition == 'hearts'
-            or (world_dist.settings.shuffle_ganon_bosskey == 'hearts' and not world_dist.settings.triforce_hunt)
-            for world_dist in world.settings.distribution.world_dists
+            world.settings.bridge == 'hearts'
+            or world.settings.lacs_condition == 'hearts'
+            or (world.settings.shuffle_ganon_bosskey == 'hearts' and not world.settings.triforce_hunt)
+            for world in spoiler.worlds
         )
         rom.write_byte(rom.sym('HEART_CHEST_SIZES'), 2 * any_big_heart_chests + any_small_heart_chests)
 

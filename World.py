@@ -176,21 +176,6 @@ class World:
         else:
             self.triforce_count_per_world = settings.triforce_count_per_world
             self.triforce_goal_per_world = settings.triforce_goal_per_world
-        self.triforce_goal: int = sum(
-            1 if world_dist.settings.triforce_hunt_mode == 'ice_percent'
-            else 3 if world_dist.settings.triforce_hunt_mode == 'blitz'
-            else world_dist.settings.triforce_goal_per_world
-            for world_dist in settings.distribution.world_dists
-            if world_dist.settings.triforce_hunt
-        )
-        self.triforce_count: int = sum(
-            world_dist.settings.triforce_count_per_world
-            + sum(world_dist.settings.starting_items[triforce_piece].count for triforce_piece in triforce_pieces if triforce_piece in world_dist.settings.starting_items)
-            for world_dist in settings.distribution.world_dists
-            if world_dist.settings.triforce_hunt
-        )
-        if self.triforce_goal > self.triforce_count:
-            raise ValueError("Triforces required cannot be more than the triforce count.")
 
         # trials that can be skipped will be decided later
         self.skipped_trials: dict[str, bool] = {
@@ -435,8 +420,6 @@ class World:
         new_world.dungeon_mq = copy.copy(self.dungeon_mq)
         new_world.precompleted_dungeons = copy.copy(self.precompleted_dungeons)
         new_world.shop_prices = copy.copy(self.shop_prices)
-        new_world.triforce_goal = self.triforce_goal
-        new_world.triforce_count = self.triforce_count
         new_world.total_starting_triforce_count = self.total_starting_triforce_count
         new_world.maximum_wallets = self.maximum_wallets
         new_world.distribution = self.distribution
@@ -1675,3 +1658,21 @@ class World:
 
     def __repr__(self) -> str:
         return "W%d" % (self.id)
+
+
+def triforce_goal(worlds: Iterable[World]) -> int:
+    return sum(
+        1 if world.settings.triforce_hunt_mode == 'ice_percent'
+        else 3 if world.settings.triforce_hunt_mode == 'blitz'
+        else world.settings.triforce_goal_per_world
+        for world in worlds
+        if world.settings.triforce_hunt
+    )
+
+def triforce_count(worlds: Iterable[World]) -> int:
+    return sum(
+        world.settings.triforce_count_per_world
+        + sum(world.settings.starting_items[triforce_piece].count for triforce_piece in triforce_pieces if triforce_piece in world.settings.starting_items)
+        for world in worlds
+        if world.settings.triforce_hunt
+    )
