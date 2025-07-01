@@ -1366,6 +1366,8 @@ class Distribution:
         return dump_obj(self.to_json())
 
     def update_spoiler(self, spoiler: Spoiler, output_spoiler: bool) -> None:
+        from World import triforce_count
+
         self.file_hash = [HASH_ICONS[icon] for icon in spoiler.file_hash]
         self.password = [PASSWORD_NOTES[note - 1] for note in spoiler.password]
 
@@ -1395,7 +1397,7 @@ class Distribution:
                         goal_text = goal_text[0].upper() + goal_text[1:]
                         # Add Token/Triforce Piece/heart reachability data
                         if goal.items[0]['name'] == 'Triforce Piece':
-                            goal_text +=  ' (' + str(goal.items[0]['quantity']) + '/' + str(world.triforce_count) + ' reachable)'
+                            goal_text +=  ' (' + str(goal.items[0]['quantity']) + '/' + str(triforce_count(spoiler.worlds)) + ' reachable)'
                         if goal.items[0]['name'] == 'Gold Skulltula Token':
                             goal_text +=  ' (' + str(goal.items[0]['quantity']) + '/100 reachable)'
                         if goal.items[0]['name'] == 'Piece of Heart':
