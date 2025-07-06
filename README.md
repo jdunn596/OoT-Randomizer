@@ -151,6 +151,9 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
 * [Changelog](#changelog)
 
 ## RealRob Changelog
+### 8.3.17.Rob-1
+  * Merge main dev
+
 ### 8.3.12.Rob-2
   * Fix Deku Tree MQ Upper Deku Baba logic
 
