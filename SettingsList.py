@@ -2671,6 +2671,20 @@ class SettingInfos:
         },
     )
 
+    shuffle_100_skulltula_rupee = Checkbutton(
+        gui_text       = 'Shuffle 100 Skulltula Reward',
+        gui_tooltip    = '''\
+            Enabling this adds the repeatable Huge Rupee reward
+            from the Skulltula house to the item pool. This is obtained
+            by collecting all 100 gold skulltulas.
+        ''',
+        default        = False,
+        shared         = True,
+        gui_params     = {
+            'randomize_key': 'randomize_settings',
+        },
+    )
+
     shuffle_loach_reward = Combobox(
         gui_text       = 'Shuffle Hyrule Loach Reward',
         gui_tooltip    = '''\
@@ -3775,6 +3789,7 @@ class SettingInfos:
             '30_skulltulas':       'House of Skulltula: 30',
             '40_skulltulas':       'House of Skulltula: 40',
             '50_skulltulas':       'House of Skulltula: 50',
+            '100_skulltulas':      'House of Skulltula: 100',
             'frogs2':              'Frogs Ocarina Game',
             'mask_shop':           'Shuffled Mask Shop',
             'unique_merchants':    'Unique Merchants',
