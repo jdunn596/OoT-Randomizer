@@ -99,6 +99,7 @@ def get_preset(presets, name):
         return None
 
 def print_rust_json_setting(name, value, indent):
+    #TODO special formatting for hint_dist_user
     if isinstance(value, list):
         if value:
             print(' ' * indent + f'format!("{name}") => json!([')
@@ -112,8 +113,9 @@ def print_rust_json_setting(name, value, indent):
         if value:
             print(' ' * indent + f'format!("{name}") => json!({{')
             for key, elt in value.items():
-                print_rust_json_setting(key, elt, indent + 4)
-            print('}),')
+                for line in (json.dumps(key, indent=4) + ': ' + json.dumps(elt, indent=4) + ',').splitlines():
+                    print(' ' * (indent + 4) + line)
+            print(' ' * indent + '}),')
         else:
             print(' ' * indent + f'format!("{name}") => json!({{}}),')
     else:
