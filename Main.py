@@ -25,7 +25,7 @@ from Patches import patch_rom
 from Rom import Rom
 from Rules import set_rules, set_shop_rules
 from Settings import Settings
-from SettingsList import logic_tricks
+from SettingsList import logic_tricks, advanced_logic_tricks
 from Spoiler import Spoiler
 from Utils import default_output_path, is_bundled, run_process, data_path
 from World import World
@@ -97,6 +97,8 @@ def resolve_settings(settings: Settings) -> Tuple[Optional[Rom], list[Settings]]
     for settings in world_settings:
         for trick in logic_tricks.values():
             settings.settings_dict[trick['name']] = trick['name'] in settings.allowed_tricks
+        for trick in advanced_logic_tricks.values():
+            settings.settings_dict[trick['name']] = trick['name'] in settings.advanced_allowed_tricks
 
         # Set to a custom hint distribution if plando is overriding the distro
         if len(settings.hint_dist_user) != 0:
@@ -130,7 +132,7 @@ def build_world_graphs(world_settings: list[Settings]) -> list[World]:
         logger.info('Creating Overworld')
 
         # Load common json rule files (those used regardless of MQ status)
-        if world.settings.logic_rules == 'glitched':
+        if world.settings.logic_rules == 'advanced':
             path = 'Glitched World'
         else:
             path = 'World'

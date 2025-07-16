@@ -204,7 +204,7 @@
             "KF Kokiri Shop": "True",
             "KF Outside Deku Tree": "is_adult or open_deku or 'Showed Mido Sword & Shield'",
             "Lost Woods": "True",
-            "LW Bridge From Forest": "open_forest or is_adult or 'Deku Tree Clear'",
+            "LW Bridge From Forest": "is_adult or 'Deku Tree Clear' or open_forest",
             "KF Storms Grotto": "can_open_storm_grotto"
         }
     },

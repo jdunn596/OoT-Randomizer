@@ -11,7 +11,7 @@ from Item import ItemInfo
 from Location import LocationIterator
 from LocationList import location_table
 from Models import get_model_choices
-from SettingsListTricks import logic_tricks
+from SettingsListTricks import logic_tricks, advanced_logic_tricks
 from SettingTypes import SettingInfo, SettingInfoStr, SettingInfoList, SettingInfoDict, Textbox, Button, Checkbutton, \
     Combobox, Radiobutton, Fileinput, Directoryinput, Textinput, ComboboxInt, Scale, Numberinput, MultipleSelect, \
     SearchBox
@@ -724,7 +724,7 @@ class SettingInfos:
         default        = 'glitchless',
         choices        = {
             'glitchless': 'Glitchless',
-            'glitched':   'Glitched',
+            'advanced':   'Advanced',
             'none':       'No Logic',
         },
         gui_tooltip    = '''\
@@ -736,21 +736,19 @@ class SettingInfos:
             some minor tricks. Add minor tricks to consider for logic
             in the 'Detailed Logic' tab.
 
-            'Glitched': Movement-oriented glitches are likely required.
-            No locations excluded.
+            'Advanced': More Glitchless tricks and toggleable
+            glitches for accessability to curate the overall difficulty
+            level for every skill level.
 
             'No Logic': Maximize randomization, All locations are
             considered available. MAY BE IMPOSSIBLE TO BEAT.
         ''',
         disable        = {
-            'glitchless': {'settings': ['tricks_list_msg']},
-            'glitched':   {'settings': ['allowed_tricks', 'shuffle_interior_entrances', 'shuffle_hideout_entrances', 'shuffle_gerudo_fortress_heart_piece', 'shuffle_grotto_entrances',
-                                         'shuffle_dungeon_entrances', 'shuffle_overworld_entrances', 'shuffle_gerudo_valley_river_exit', 'owl_drops',
-                                         'warp_songs', 'blue_warps', 'shuffle_child_spawn', 'shuffle_adult_spawn', 'mq_dungeons_mode', 'mq_dungeons_specific',
-                                         'mq_dungeons_count', 'shuffle_bosses', 'shuffle_ganon_tower', 'dungeon_shortcuts', 'deadly_bonks',
-                                         'shuffle_freestanding_items', 'shuffle_pots', 'shuffle_empty_pots', 'shuffle_crates', 'shuffle_empty_crates', 'shuffle_beehives', 'shuffle_silver_rupees', 'shuffle_wonderitems',
-                                         'mix_entrance_pools', 'decouple_entrances', 'logic_water_gold_scale_no_entry']},
-            'none':       {'settings': ['dungeon_back_access', 'allowed_tricks', 'logic_no_night_tokens_without_suns_song', 'logic_water_gold_scale_no_entry', 'reachable_locations']},
+            'glitchless': {'settings': ['tricks_list_msg', 'advanced_allowed_tricks']},
+            # Forcing blue fire arrows to be on, and the tcg lens setting to be off as we can do it without the lens logically
+            # and don't care if people do 1/32
+            'advanced':   {'settings': ['tricks_list_msg', 'blue_fire_arrows', 'tcg_requires_lens']},
+            'none':       {'settings': ['dungeon_back_access', 'allowed_tricks', 'advanced_allowed_tricks', 'logic_no_night_tokens_without_suns_song', 'logic_water_gold_scale_no_entry', 'reachable_locations']},
         },
         shared         = True,
     )
@@ -3768,8 +3766,26 @@ class SettingInfos:
             and MAY be required to complete the game.
 
             Tricks in the left column are NEVER required.
+        '''
+    )
 
-            Tricks are only relevant for Glitchless logic.
+    advanced_allowed_tricks = SearchBox(
+        gui_text       = "Enable Advanced Tricks",
+        shared         = True,
+        choices        = {
+            val['name']: gui_text for gui_text, val in advanced_logic_tricks.items()
+        },
+        default        = [],
+        gui_params     = {
+            'choice_tooltip': {choice['name']: choice['tooltip'] for choice in advanced_logic_tricks.values()},
+            'filterdata': {val['name']: val['tags'] for _, val in advanced_logic_tricks.items()},
+            "hide_when_disabled": True,
+        },
+        gui_tooltip='''
+            Tricks moved to the right column are in-logic
+            and MAY be required to complete the game.
+
+            Tricks in the left column are NEVER required.
         '''
     )
 
@@ -4614,14 +4630,18 @@ class SettingInfos:
     )
 
     blue_fire_arrows = Checkbutton(
-        gui_text       = 'Blue Fire Arrows',
-        gui_tooltip    = '''\
+        gui_text            = 'Blue Fire Arrows',
+        gui_tooltip         = '''\
             Ice arrows gain the power of blue fire.
             They can be used to melt red ice
             and break the mud walls in Dodongo's Cavern.
         ''',
-        default        = False,
-        shared         = True,
+        default             = False,
+        disabled_default    = True,
+        gui_params          = {
+            "hide_when_disabled": True,
+        },
+        shared              = True,
     )
 
     fix_broken_drops = Checkbutton(
