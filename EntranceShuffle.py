@@ -439,9 +439,8 @@ def set_entrances(worlds: list[World], savewarps_to_connect: list[tuple[Entrance
         savewarp.connect(savewarp.replaces.connected_region)
 
     for world in worlds:
-        if world.settings.logic_rules != 'glitched':
-            # Set entrance data for all entrances, even those we aren't shuffling
-            set_all_entrances_data(world)
+        # Set entrance data for all entrances, even those we aren't shuffling
+        set_all_entrances_data(world)
 
     if any(world.entrance_shuffle for world in worlds):
         shuffle_random_entrances(worlds)
@@ -1155,7 +1154,9 @@ def validate_world(world: World, worlds: list[World], entrance_placed: Optional[
     CHILD_FORBIDDEN = ()
     ADULT_FORBIDDEN = ()
     if not world.settings.decouple_entrances:
-        CHILD_FORBIDDEN += ('OGC Great Fairy Fountain -> Castle Grounds', 'GV Carpenter Tent -> GV Fortress Side')
+        CHILD_FORBIDDEN += ('OGC Great Fairy Fountain -> Castle Grounds',)
+        if world.settings.logic_rules == 'glitchless':
+            CHILD_FORBIDDEN += ('GV Carpenter Tent -> GV Fortress Side',)
         ADULT_FORBIDDEN += ('HC Great Fairy Fountain -> Castle Grounds', 'HC Storms Grotto -> Castle Grounds')
     if not world.dungeon_back_access:
         # Logic for back access to Shadow and Spirit temples is experimental
