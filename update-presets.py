@@ -3,18 +3,19 @@
 Usage:
   update-presets.py [options]
   update-presets.py add <preset>
-  update-presets.py list-non-default [--rust | --compact] <preset>
+  update-presets.py list-non-default [--rust-password | --rust-no-password | --compact] <preset>
   update-presets.py diff <left> <right>
   update-presets.py (-h | --help)
 
 Options:
-  -h, --help         show this help message and exit
-  --compact          print settings on a single line
-  --defaults         fill in missing settings with their default values
-  --from=<rev>       update presets to match the given git commit
-  --hook             run noninteractively for git pre-commit hook purposes
-  --preset=<preset>  only update the named preset
-  --rust             list non-default settings in Rust syntax appropriate for the midos.house codebase
+  -h, --help          show this help message and exit
+  --compact           print settings on a single line
+  --defaults          fill in missing settings with their default values
+  --from=<rev>        update presets to match the given git commit
+  --hook              run noninteractively for git pre-commit hook purposes
+  --preset=<preset>   only update the named preset
+  --rust-no-password  list non-default settings in Rust syntax appropriate for the midos.house codebase (disable password lock)
+  --rust-password     list non-default settings in Rust syntax appropriate for the midos.house codebase (enable password lock)
 """
 
 import sys
@@ -130,8 +131,12 @@ if __name__ == '__main__':
         preset = get_preset(presets, arguments['<preset>'])
         if preset is None:
             preset = json.loads(subprocess.run([sys.executable, 'OoTRandomizer.py', '--convert_settings', '--settings_string', arguments['<preset>']], stdout=subprocess.PIPE, encoding='utf-8', check=True).stdout)
+        if arguments['--rust-password']:
+            preset['password_lock'] = True
+        if arguments['--rust-no-password']:
+            preset['password_lock'] = False
         non_default = {name: value for name, value in preset.items() if value != SETTINGS_DICT[name].default}
-        if arguments['--rust']:
+        if arguments['--rust-password'] or arguments['--rust-no-password']:
             print('    collect![')
             for name, value in non_default.items():
                 if name == 'aliases':
