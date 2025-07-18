@@ -878,9 +878,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.38"
+version = "4.5.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed93b9805f8ba930df42c2590f05453d5ec36cbb85d018868a5b24d31f6ac000"
+checksum = "be92d32e80243a54711e5d7ce823c35c41c9d929dc4ab58e1276f625841aadf9"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -888,9 +888,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.38"
+version = "4.5.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "379026ff283facf611b0ea629334361c4211d1b12ee01024eec1591133b04120"
+checksum = "707eab41e9622f9139419d573eca0900137718000c517d47da73045f54331c3d"
 dependencies = [
  "anstream",
  "anstyle",
@@ -900,9 +900,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.5.32"
+version = "4.5.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09176aae279615badda0765c0c0b3f6ed53f4709118af73cf4655d85d1530cd7"
+checksum = "ef4f52386a59ca4c860f7393bcf8abd8dfd91ecccc0f774635ff68e92eeef491"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
@@ -1409,12 +1409,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "directories"
+version = "6.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "16f5094c54661b38d03bd7e50df373292118db60b585c08a411c6d840017fe7d"
+dependencies = [
+ "dirs-sys 0.5.0",
+]
+
+[[package]]
 name = "dirs"
 version = "4.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca3aa72a6f96ea37bbc5aa912f6788242832f75369bdfdadcb0e38423f100059"
 dependencies = [
- "dirs-sys",
+ "dirs-sys 0.3.7",
 ]
 
 [[package]]
@@ -1424,8 +1433,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b1d1d91c932ef41c0f2663aa8b0ca0342d444d842c06914aa0a7e352d0bada6"
 dependencies = [
  "libc",
- "redox_users",
+ "redox_users 0.4.6",
  "winapi",
+]
+
+[[package]]
+name = "dirs-sys"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e01a3366d27ee9890022452ee61b2b63a67e6f13f58900b651ff5665f0bb1fab"
+dependencies = [
+ "libc",
+ "option-ext",
+ "redox_users 0.5.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -1692,7 +1713,7 @@ dependencies = [
 
 [[package]]
 name = "fill-test"
-version = "8.3.22-fenhl.2.riir.2"
+version = "8.3.22-fenhl.2.riir.3"
 dependencies = [
  "collect-mac",
  "itertools",
@@ -3586,9 +3607,11 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
 name = "ootr-build"
-version = "8.3.22-fenhl.2.riir.2"
+version = "8.3.22-fenhl.2.riir.3"
 dependencies = [
+ "clap",
  "decompress",
+ "directories",
  "futures",
  "itermore",
  "lazy-regex",
@@ -3601,7 +3624,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-cli"
-version = "8.3.22-fenhl.2.riir.2"
+version = "8.3.22-fenhl.2.riir.3"
 dependencies = [
  "clap",
  "mimalloc",
@@ -3613,7 +3636,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-common"
-version = "8.3.22-fenhl.2.riir.2"
+version = "8.3.22-fenhl.2.riir.3"
 dependencies = [
  "async-trait",
  "gres",
@@ -3630,7 +3653,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-gui"
-version = "8.3.22-fenhl.2.riir.2"
+version = "8.3.22-fenhl.2.riir.3"
 dependencies = [
  "async_zip",
  "collect-mac",
@@ -3665,7 +3688,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-macros"
-version = "8.3.22-fenhl.2.riir.2"
+version = "8.3.22-fenhl.2.riir.3"
 dependencies = [
  "indexmap 2.9.0",
  "proc-macro2",
@@ -3675,7 +3698,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-python"
-version = "8.3.22-fenhl.2.riir.2"
+version = "8.3.22-fenhl.2.riir.3"
 dependencies = [
  "anyhow",
  "arrayref",
@@ -3687,6 +3710,12 @@ dependencies = [
  "semver",
  "wheel",
 ]
+
+[[package]]
+name = "option-ext"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
 name = "orbclient"
@@ -4287,6 +4316,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "redox_users"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd6f9d3d47bdd2ad6945c5015a226ec6155d0bcdfd8f7cd29f86b71f8de99d2b"
+dependencies = [
+ "getrandom 0.2.16",
+ "libredox",
+ "thiserror 2.0.12",
+]
+
+[[package]]
 name = "regex"
 version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4388,7 +4428,7 @@ dependencies = [
 
 [[package]]
 name = "rust-n64-test"
-version = "8.3.22-fenhl.2.riir.2"
+version = "8.3.22-fenhl.2.riir.3"
 dependencies = [
  "cbindgen",
 ]

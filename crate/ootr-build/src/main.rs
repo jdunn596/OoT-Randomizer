@@ -5,10 +5,14 @@ use {
             HashMap,
         },
         env,
-        iter::FusedIterator,
+        iter::{
+            self,
+            FusedIterator,
+        },
         path::Path,
     },
     decompress::fix_crc,
+    directories::UserDirs,
     futures::stream::TryStreamExt as _,
     itermore::IterArrayChunks as _,
     lazy_regex::regex_captures,
@@ -78,6 +82,14 @@ struct DataSymbol {
     length: usize,
 }
 
+#[derive(clap::Parser)]
+#[clap(version)]
+struct Args {
+    /// Build Rust code called from Python without optimizations.
+    #[clap(long)]
+    debug: bool,
+}
+
 #[derive(Debug, thiserror::Error)]
 enum Error {
     #[error(transparent)] EnvJoinPaths(#[from] env::JoinPathsError),
@@ -89,7 +101,7 @@ enum Error {
 }
 
 #[wheel::main]
-async fn main() -> Result<(), Error> {
+async fn main(Args { debug }: Args) -> Result<(), Error> {
     let root_dir = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../ASM"));
     let tools_dir = root_dir.join("tools");
     // Makes it possible to use the "tools" directory as the prefix for the toolchain
@@ -209,6 +221,22 @@ async fn main() -> Result<(), Error> {
             }
         }
     }
+
+    // build Rust code called from Python
+    let mut cargo = Command::new("cargo");
+    if let Some(user_dirs) = UserDirs::new() {
+        cargo.env("PATH", env::join_paths(iter::once(user_dirs.home_dir().join(".cargo").join("bin")).chain(env::var_os("PATH").map(|path| env::split_paths(&path).collect::<Vec<_>>()).into_iter().flatten()))?);
+    }
+    cargo.arg("build");
+    if !debug {
+        cargo.arg("--release");
+    }
+    cargo.arg("--package=ootr-python");
+    cargo.current_dir(concat!(env!("CARGO_MANIFEST_DIR"), "/../.."));
+    cargo.check("cargo build").await?;
+    #[cfg(target_os = "windows")] fs::copy(concat!(env!("CARGO_MANIFEST_DIR"), "/../../target/release/rs.dll"), concat!(env!("CARGO_MANIFEST_DIR"), "/../../rs.pyd")).await?;
+    #[cfg(target_os = "linux")] fs::copy(concat!(env!("CARGO_MANIFEST_DIR"), "/../../target/release/librs.so"), concat!(env!("CARGO_MANIFEST_DIR"), "/../../rs.so")).await?;
+    #[cfg(target_os = "macos")] fs::copy(concat!(env!("CARGO_MANIFEST_DIR"), "/../../target/release/librs.dylib"), concat!(env!("CARGO_MANIFEST_DIR"), "/../../rs.so")).await?;
 
     Ok(())
 }
