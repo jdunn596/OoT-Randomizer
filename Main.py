@@ -613,34 +613,3 @@ def cosmetic_patch(settings: Settings) -> None:
         logger.info('Success: Rom patched successfully')
 
     logger.debug('Total Time: %s', time.process_time() - start)
-
-
-def diff_roms(settings: Settings, diff_rom_file: str) -> None:
-    start = time.process_time()
-    logger = logging.getLogger('')
-
-    logger.info('Loading base ROM.')
-    rom = Rom(settings.rom)
-    rom.force_patch = set()
-
-    filename_split = os.path.basename(diff_rom_file).rpartition('.')
-    output_filename_base = settings.output_file if settings.output_file else filename_split[0]
-    output_dir = default_output_path(settings.output_dir)
-    output_path = os.path.join(output_dir, output_filename_base)
-
-    logger.info('Loading patched ROM.')
-    rom.read_rom(diff_rom_file, f"{output_path}_decomp.z64", verify_crc=False)
-    try:
-        os.remove(f"{output_path}_decomp.z64")
-    except FileNotFoundError:
-        pass
-
-    logger.info('Searching for changes.')
-    rom.rescan_changed_bytes()
-    rom.scan_dmadata_update(assume_move=True)
-
-    logger.info('Creating patch file.')
-    create_patch_file(rom, f"{output_path}.zpf")
-    logger.info(f"Created patchfile at: {output_path}.zpf")
-    logger.info('Done. Enjoy.')
-    logger.debug('Total Time: %s', time.process_time() - start)

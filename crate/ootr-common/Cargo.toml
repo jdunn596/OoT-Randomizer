@@ -7,14 +7,16 @@ edition.workspace = true
 workspace = true
 
 [dependencies]
+arrayref = "0.3.9"
+async-compression = { version = "0.4", features = ["tokio", "zlib"] }
 async-trait = "0.1.88"
 gres = { git = "https://github.com/fenhl/gres", branch = "main" }
 indexmap = { version = "2.6.0", features = ["serde"] }
+itermore = { version = "0.8.0", features = ["array_windows"] }
+itertools = "0.14.0"
 nonempty-collections = "0.3.0"
-pyo3 = { version = "0.24", features = [
-    "auto-initialize",
-    "indexmap",
-] }
+pyo3 = { version = "0.24", features = ["auto-initialize", "indexmap"] }
+rand = "0.9"
 serde = { version = "1.0.214", features = ["derive"] }
 serde_json = { package = "serde_json_path_to_error", version = "0.1" }
 tempfile = "3.19.1"

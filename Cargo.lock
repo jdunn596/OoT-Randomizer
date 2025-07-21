@@ -320,6 +320,7 @@ dependencies = [
  "futures-io",
  "memchr",
  "pin-project-lite",
+ "tokio",
  "xz2",
  "zstd",
  "zstd-safe",
@@ -1244,6 +1245,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
 
 [[package]]
+name = "crossterm"
+version = "0.28.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "829d955a0bb380ef178a640b91779e3987da38c9aea133b20614cfed8cdea9c6"
+dependencies = [
+ "bitflags 2.9.0",
+ "crossterm_winapi",
+ "mio",
+ "parking_lot 0.12.3",
+ "rustix 0.38.44",
+ "signal-hook",
+ "signal-hook-mio",
+ "winapi",
+]
+
+[[package]]
+name = "crossterm_winapi"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "acdd7c62a3665c7f6830a51635d9ac9b23ed385797f70a83bb8bafe9c572ab2b"
+dependencies = [
+ "winapi",
+]
+
+[[package]]
 name = "crunchy"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1359,7 +1385,7 @@ version = "3.0.1"
 source = "git+https://github.com/fenhl/OoT_Decompressor?branch=riir#329e7a1653539153693edafc0e10a985400cb920"
 dependencies = [
  "arrayref",
- "itermore",
+ "itermore 0.7.1",
  "thiserror 2.0.12",
  "wheel",
 ]
@@ -1713,7 +1739,7 @@ dependencies = [
 
 [[package]]
 name = "fill-test"
-version = "8.3.22-fenhl.2.riir.3"
+version = "8.3.22-fenhl.2.riir.4"
 dependencies = [
  "collect-mac",
  "itertools",
@@ -2797,6 +2823,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "io-uring"
+version = "0.7.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b86e202f00093dcba4275d4636b93ef9dd75d025ae560d2521b45ea28ab49013"
+dependencies = [
+ "bitflags 2.9.0",
+ "cfg-if",
+ "libc",
+]
+
+[[package]]
 name = "is_terminal_polyfill"
 version = "1.70.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2807,6 +2844,15 @@ name = "itermore"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fed0daf803a3818d3693fe1fdd82d8ac0f41d0ea3f05709d5e144c4eb2b85ba5"
+dependencies = [
+ "arrays",
+]
+
+[[package]]
+name = "itermore"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac87f762608cc2efb6f8f45e419c5047daa2e781a7b57b2ed1b30abf55549e06"
 dependencies = [
  "arrays",
 ]
@@ -3181,6 +3227,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2886843bf800fba2e3377cff24abf6379b4c4d5c6681eaf9ea5b0d15090450bd"
 dependencies = [
  "libc",
+ "log",
  "wasi 0.11.0+wasi-snapshot-preview1",
  "windows-sys 0.52.0",
 ]
@@ -3607,13 +3654,13 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
 name = "ootr-build"
-version = "8.3.22-fenhl.2.riir.3"
+version = "8.3.22-fenhl.2.riir.4"
 dependencies = [
  "clap",
  "decompress",
  "directories",
  "futures",
- "itermore",
+ "itermore 0.7.1",
  "lazy-regex",
  "serde",
  "thiserror 2.0.12",
@@ -3624,25 +3671,35 @@ dependencies = [
 
 [[package]]
 name = "ootr-cli"
-version = "8.3.22-fenhl.2.riir.3"
+version = "8.3.22-fenhl.2.riir.4"
 dependencies = [
  "clap",
+ "crossterm",
+ "decompress",
  "mimalloc",
+ "ootr-common",
  "pyo3",
  "pyo3-build-config",
  "thiserror 2.0.12",
+ "tokio",
+ "tokio-util",
  "wheel",
 ]
 
 [[package]]
 name = "ootr-common"
-version = "8.3.22-fenhl.2.riir.3"
+version = "8.3.22-fenhl.2.riir.4"
 dependencies = [
+ "arrayref",
+ "async-compression",
  "async-trait",
  "gres",
  "indexmap 2.9.0",
+ "itermore 0.8.0",
+ "itertools",
  "nonempty-collections",
  "pyo3",
+ "rand 0.9.1",
  "serde",
  "serde_json_path_to_error",
  "tempfile",
@@ -3653,7 +3710,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-gui"
-version = "8.3.22-fenhl.2.riir.3"
+version = "8.3.22-fenhl.2.riir.4"
 dependencies = [
  "async_zip",
  "collect-mac",
@@ -3688,7 +3745,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-macros"
-version = "8.3.22-fenhl.2.riir.3"
+version = "8.3.22-fenhl.2.riir.4"
 dependencies = [
  "indexmap 2.9.0",
  "proc-macro2",
@@ -3698,7 +3755,7 @@ dependencies = [
 
 [[package]]
 name = "ootr-python"
-version = "8.3.22-fenhl.2.riir.3"
+version = "8.3.22-fenhl.2.riir.4"
 dependencies = [
  "anyhow",
  "arrayref",
@@ -4428,7 +4485,7 @@ dependencies = [
 
 [[package]]
 name = "rust-n64-test"
-version = "8.3.22-fenhl.2.riir.3"
+version = "8.3.22-fenhl.2.riir.4"
 dependencies = [
  "cbindgen",
 ]
@@ -4721,6 +4778,27 @@ name = "shlex"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
+
+[[package]]
+name = "signal-hook"
+version = "0.3.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d881a16cf4426aa584979d30bd82cb33429027e42122b169753d6ef1085ed6e2"
+dependencies = [
+ "libc",
+ "signal-hook-registry",
+]
+
+[[package]]
+name = "signal-hook-mio"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34db1a06d485c9142248b7a054f034b349b212551f3dfd19c94d45a754a217cd"
+dependencies = [
+ "libc",
+ "mio",
+ "signal-hook",
+]
 
 [[package]]
 name = "signal-hook-registry"
@@ -5184,17 +5262,19 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.45.0"
+version = "1.46.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2513ca694ef9ede0fb23fe71a4ee4107cb102b9dc1930f6d0fd77aae068ae165"
+checksum = "0cc3a2344dafbe23a245241fe8b09735b521110d30fcefbbd5feb1797ca35d17"
 dependencies = [
  "backtrace",
  "bytes",
+ "io-uring",
  "libc",
  "mio",
  "parking_lot 0.12.3",
  "pin-project-lite",
  "signal-hook-registry",
+ "slab",
  "socket2",
  "tokio-macros",
  "tracing",

@@ -7,14 +7,14 @@ import os
 import time
 from typing import TYPE_CHECKING
 
-from Main import main, from_patch_file, cosmetic_patch, diff_roms
+from Main import main, from_patch_file, cosmetic_patch
 from Utils import check_version, VersionError, local_path
 
 if TYPE_CHECKING:
     from Settings import Settings
 
 
-def start(settings: Settings, loglevel: int, no_log_file: bool, diff_rom: bool) -> None:
+def start(settings: Settings, loglevel: int, no_log_file: bool) -> None:
     # set up logger
     logging.basicConfig(format='%(message)s', level=loglevel)
     logger = logging.getLogger('')
@@ -29,9 +29,7 @@ def start(settings: Settings, loglevel: int, no_log_file: bool, diff_rom: bool) 
         logger.addHandler(log_file)
 
     try:
-        if diff_rom:
-            diff_roms(settings, diff_rom)
-        elif settings.cosmetics_only:
+        if settings.cosmetics_only:
             cosmetic_patch(settings)
         elif settings.patch_file != '':
             from_patch_file(settings)

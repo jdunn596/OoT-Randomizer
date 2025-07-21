@@ -24,6 +24,7 @@ use {
     wheel::traits::IoResultExt as _,
 };
 
+pub mod patch;
 pub mod settings;
 
 const ATTEMPTS: NonZero<usize> = NonZero::new(10).unwrap();
