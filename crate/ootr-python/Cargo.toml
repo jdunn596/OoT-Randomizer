@@ -23,9 +23,9 @@ arrayref = "0.3.9"
 decompress = { git = "https://github.com/fenhl/OoT_Decompressor", branch = "riir" }
 itertools = "0.14.0"
 lazy-regex = "3"
-pyo3 = { version = "0.24", features = ["anyhow", "auto-initialize", "extension-module"] }
+pyo3 = { version = "0.25", features = ["anyhow", "auto-initialize", "extension-module"] }
 semver = "1"
 wheel = { git = "https://github.com/fenhl/wheel", branch = "main", features = ["pyo3"] }
 
 [build-dependencies]
-pyo3-build-config = "0.24"
+pyo3-build-config = "0.25"

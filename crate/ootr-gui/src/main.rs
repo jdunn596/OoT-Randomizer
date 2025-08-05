@@ -172,6 +172,7 @@ enum Message {
     ConfirmRenamePresetOrPlando,
     CopyPresetOrPlando(String),
     CopyRollDebugInfo(window::Id),
+    CosmeticPlandoBrowse(window::Id),
     CustomizeSettings,
     DeletePlando(String),
     DeletePreset(String),
@@ -205,7 +206,7 @@ enum Message {
         plandos: BTreeSet<String>,
         settings_mapping: settings::Mapping,
     },
-    MarkPatchSaved {
+    MarkCompressedRomSaved {
         window: window::Id,
         player: NonZero<u8>,
     },
@@ -241,6 +242,7 @@ enum Message {
         from: String,
         to: String,
     },
+    ResetPlayerNumber(window::Id),
     RetrySeed(window::Id),
     RunGenerator {
         window: window::Id,
@@ -266,6 +268,10 @@ enum Message {
         response: rfd::MessageDialogResult,
     },
     SetBaseRomPath(PathBuf),
+    SetCosmeticPlandoPath {
+        window: window::Id,
+        path: PathBuf,
+    },
     SetLanguage(Language),
     SetPalRomPath(PathBuf),
     SetPresetOrPlando(String),
@@ -328,6 +334,10 @@ enum WindowState {
 #[derive(Debug, Clone)]
 struct Seed {
     inner: ootr_common::Seed,
+    cosmetic_plando_path: PathBuf,
+    saving_compressed_rom: bool,
+    saving_patches: bool,
+    saving_spoiler_log: bool,
     patches_saved: NEVec<bool>,
     spoiler_log_saved: bool,
 }
@@ -355,7 +365,7 @@ impl Seed {
                 English => "Nintendo 64 rom";
             }, &["z64"]);
         Ok(if let Some(file) = dialog.save_file().await {
-            self.inner.write_compressed_rom(world, base_rom_path, file.path().to_owned()).await?;
+            self.inner.write_compressed_rom(world, base_rom_path, Some(self.cosmetic_plando_path.clone()).filter(|p| !p.as_os_str().is_empty()), file.path().to_owned()).await?;
             true
         } else {
             false
@@ -655,7 +665,7 @@ impl Gui {
                         return iced::exit()
                     }
                     WindowState::Preset { .. } => {}
-                    WindowState::Generator { .. } => {}
+                    WindowState::Generator { .. } => {} //TODO cancel rolling seed (ask first?)
                     WindowState::Seed { seed, .. } => if let Some(msg) = seed.before_close_message(window, window) {
                         return cmd(future::ok(msg))
                     },
@@ -759,6 +769,22 @@ impl Gui {
                 }
                 return clipboard::write(builder.build())
             },
+            Message::CosmeticPlandoBrowse(window) => {
+                let lang = self.language;
+                return cmd(async move {
+                    Ok(if let Some(file) = AsyncFileDialog::default()
+                        .add_filter(translate! {
+                            lang;
+                            English => "Cosmetic plandomizer";
+                        }, &["json"])
+                        .pick_file().await
+                    {
+                        Message::SetCosmeticPlandoPath { window, path: file.path().to_owned() }
+                    } else {
+                        Message::Nop
+                    })
+                })
+            }
             Message::CustomizeSettings => self.main_view = MainWindowView::CustomizingPresets { renaming: None },
             Message::DeletePlando(name) => {
                 self.plandos.remove(&name);
@@ -800,6 +826,10 @@ impl Gui {
             Message::Done { window, seed } => if let Some(window_state) = self.windows.get_mut(&window) {
                 *window_state = WindowState::Seed {
                     seed: Seed {
+                        cosmetic_plando_path: PathBuf::default(),
+                        saving_compressed_rom: false,
+                        saving_patches: false,
+                        saving_spoiler_log: false,
                         patches_saved: seed.patches.nonempty_iter().map(|_| false).collect(),
                         spoiler_log_saved: false,
                         inner: seed,
@@ -919,11 +949,15 @@ impl Gui {
                 self.windows.insert(main_window_id, WindowState::Main);
                 return window_open_task.map(|_| Message::Nop)
             }
-            Message::MarkPatchSaved { window, player } => {
-                self.seed_mut(window).patches_saved[usize::from(player.get() - 1)] = true;
+            Message::MarkCompressedRomSaved { window, player } => {
+                let seed = self.seed_mut(window);
+                seed.saving_compressed_rom = false;
+                seed.patches_saved[usize::from(player.get() - 1)] = true;
             }
             Message::MarkPatchesSaved { window } => {
-                for saved in self.seed_mut(window).patches_saved.nonempty_iter_mut() {
+                let seed = self.seed_mut(window);
+                seed.saving_patches = false;
+                for saved in seed.patches_saved.nonempty_iter_mut() {
                     *saved = true;
                 }
             }
@@ -934,7 +968,9 @@ impl Gui {
                 return cmd(future::ok(Message::CloseRequested(window_to_close)))
             }
             Message::MarkSpoilerSaved { window } => {
-                self.seed_mut(window).spoiler_log_saved = true;
+                let seed = self.seed_mut(window);
+                seed.saving_spoiler_log = false;
+                seed.spoiler_log_saved = true;
             }
             Message::MarkSpoilerSavedAndContinueClosing { window_to_close, window_to_check } => {
                 self.seed_mut(window_to_check).spoiler_log_saved = true;
@@ -998,6 +1034,9 @@ impl Gui {
                     *preset_name = to;
                 }
             }
+            Message::ResetPlayerNumber(window) => if let Some(WindowState::Seed { player, .. }) = self.windows.get_mut(&window) {
+                *player = None;
+            },
             Message::RetrySeed(window) => if let Some(window_state) = self.windows.get_mut(&window) {
                 if let WindowState::RollError { settings_base, .. } = window_state {
                     let generator = Arc::new(Generator::new(settings_base.clone()));
@@ -1026,11 +1065,13 @@ impl Gui {
             Message::SaveCompressedRom { window } => if let Some(&WindowState::Seed { player, .. }) = self.windows.get(&window) {
                 let lang = self.language;
                 let base_rom_path = Some(self.base_rom_path.clone()).filter(|path| !path.as_os_str().is_empty()).unwrap_or_else(|| PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../../ZOOTDEC.z64")));
-                let seed = self.seed(window).clone();
+                let seed = self.seed_mut(window);
+                seed.saving_compressed_rom = true;
+                let seed = seed.clone();
                 let player = player.unwrap_or(NonZero::<u8>::MIN);
                 return cmd(async move {
                     Ok(if seed.compressed_rom_save_dialog(lang, base_rom_path, player).await? {
-                        Message::MarkPatchSaved { window, player }
+                        Message::MarkCompressedRomSaved { window, player }
                     } else {
                         Message::Nop
                     })
@@ -1038,7 +1079,9 @@ impl Gui {
             },
             Message::SavePatches { window } => {
                 let lang = self.language;
-                let seed = self.seed(window).clone();
+                let seed = self.seed_mut(window);
+                seed.saving_patches = true;
+                let seed = seed.clone();
                 return cmd(async move {
                     Ok(if seed.patches_save_dialog(lang).await? {
                         Message::MarkPatchesSaved { window }
@@ -1088,7 +1131,9 @@ impl Gui {
             },
             Message::SaveSpoiler { window } => {
                 let lang = self.language;
-                let seed = self.seed(window).clone();
+                let seed = self.seed_mut(window);
+                seed.saving_spoiler_log = true;
+                let seed = seed.clone();
                 return cmd(async move {
                     Ok(if seed.spoiler_save_dialog(lang).await? {
                         Message::MarkSpoilerSaved { window }
@@ -1137,6 +1182,7 @@ impl Gui {
                 unreachable!("got non-custom response from dialog with custom labels")
             },
             Message::SetBaseRomPath(new_path) => self.base_rom_path = new_path,
+            Message::SetCosmeticPlandoPath { window, path } => self.seed_mut(window).cosmetic_plando_path = path,
             Message::SetLanguage(language) => self.language = language,
             Message::SetPalRomPath(new_path) => self.pal_rom_path = new_path,
             Message::SetPresetOrPlando(selected_preset_or_plando) => self.main_view = MainWindowView::Default { selected_preset_or_plando },
@@ -1462,45 +1508,100 @@ impl Gui {
                     self.language;
                     English => "Seed";
                 }).size(24)) //TODO show file hash instead
+                .push(Row::new()
+                    .push(translate! {
+                        self.language;
+                        English => "Cosmetic plando:";
+                    })
+                    .push(TextInput::new(translate! {
+                        self.language;
+                        English => "None";
+                    }, &seed.cosmetic_plando_path.to_string_lossy())
+                        .on_input(move |s| Message::SetCosmeticPlandoPath { window, path: PathBuf::from(s) })
+                        .on_paste(move |s| Message::SetCosmeticPlandoPath { window, path: PathBuf::from(s) })
+                    )
+                    .push(Button::new(translate! {
+                        self.language;
+                        English => "Browse…";
+                    }).on_press(Message::CosmeticPlandoBrowse(window)))
+                    .align_y(iced::Alignment::Center)
+                    .spacing(8)
+                )
                 .push({
                     let mut row = Row::new()
-                        .push(Button::new(translate! {
-                            self.language;
-                            English => "Save rom";
-                        }).on_press_maybe((seed.inner.patches.len() == NonZero::<usize>::MIN || player.is_some()).then(|| Message::SaveCompressedRom { window })))
+                        .push(if seed.saving_compressed_rom {
+                            Button::new(translate! {
+                                self.language;
+                                English => "Saving rom…";
+                            })
+                        } else {
+                            Button::new(translate! {
+                                self.language;
+                                English => "Save rom";
+                            }).on_press_maybe((seed.inner.patches.len() == NonZero::<usize>::MIN || player.is_some()).then(|| Message::SaveCompressedRom { window }))
+                        })
                         //TODO “or” text + button to save wad (shares player number selection with “Save rom”)
                     ;
                     if seed.inner.patches.len() != NonZero::<usize>::MIN {
                         row = row
                             .push("for player")
-                            .push(TextInput::new(&format!("1–{}", seed.inner.patches.len()), &player.map(|player| player.to_string()).unwrap_or_default()).on_input(move |new_value: String| if_chain! {
-                                if let Ok(new_value) = new_value.parse::<NonZero<u8>>();
-                                if NonZero::<usize>::from(new_value) <= seed.inner.patches.len();
-                                then {
-                                    Message::EditPlayerNumber { window, new_value }
-                                } else {
-                                    Message::Nop
+                            .push(TextInput::new(&format!("1–{}", seed.inner.patches.len()), &player.map(|player| player.to_string()).unwrap_or_default()).on_input(move |new_value: String| if new_value.is_empty() {
+                                Message::ResetPlayerNumber(window)
+                            } else {
+                                if_chain! {
+                                    if let Ok(new_value) = new_value.parse::<NonZero<u8>>();
+                                    if NonZero::<usize>::from(new_value) <= seed.inner.patches.len();
+                                    then {
+                                        Message::EditPlayerNumber { window, new_value }
+                                    } else {
+                                        Message::Nop
+                                    }
                                 }
                             }).width(48).align_x(iced::Alignment::End))
                         ;
                     }
                     row.align_y(iced::Alignment::Center).spacing(8)
                 })
-                .push(Button::new(if seed.inner.patches.len() == NonZero::<usize>::MIN {
-                    translate! {
-                        self.language;
-                        English => "Save patch file";
-                    }
-                } else {
-                    translate! {
-                        self.language;
-                        English => "Save patch file archive";
-                    }
-                }).on_press(Message::SavePatches { window }))
-                .push(Button::new(translate! {
-                    self.language;
-                    English => "Save spoiler log";
-                }).on_press(Message::SaveSpoiler { window }))
+                .push(Rule::horizontal(1))
+                .push(Row::new()
+                    .push(if seed.saving_spoiler_log {
+                        Button::new(translate! {
+                            self.language;
+                            English => "Saving spoiler log…";
+                        })
+                    } else {
+                        Button::new(translate! {
+                            self.language;
+                            English => "Save spoiler log";
+                        }).on_press(Message::SaveSpoiler { window })
+                    })
+                    .push(if seed.saving_patches {
+                        Button::new(if seed.inner.patches.len() == NonZero::<usize>::MIN {
+                            translate! {
+                                self.language;
+                                English => "Saving patch file…";
+                            }
+                        } else {
+                            translate! {
+                                self.language;
+                                English => "Saving patch file archive…";
+                            }
+                        })
+                    } else {
+                        Button::new(if seed.inner.patches.len() == NonZero::<usize>::MIN {
+                            translate! {
+                                self.language;
+                                English => "Save patch file";
+                            }
+                        } else {
+                            translate! {
+                                self.language;
+                                English => "Save patch file archive";
+                            }
+                        }).on_press_maybe((!seed.saving_patches).then(|| Message::SavePatches { window }))
+                    })
+                    .spacing(8)
+                )
                 .spacing(8)
                 .padding(8)
                 .into(),

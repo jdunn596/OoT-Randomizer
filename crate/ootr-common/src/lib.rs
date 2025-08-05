@@ -48,8 +48,16 @@ pub enum PatchError {
     #[error(transparent)] Python(#[from] PyErr),
     #[error(transparent)] Task(#[from] tokio::task::JoinError),
     #[error(transparent)] Wheel(#[from] wheel::Error),
+    #[error("path was not valid UTF-8")]
+    OsString(std::ffi::OsString),
     #[error("world number out of range")]
     WorldIdx,
+}
+
+impl From<std::ffi::OsString> for PatchError {
+    fn from(s: std::ffi::OsString) -> Self {
+        Self::OsString(s)
+    }
 }
 
 /// The main entry point of the randomizer.
@@ -158,16 +166,25 @@ pub struct Seed {
 }
 
 impl Seed {
-    pub fn write_uncompressed_rom(&self, world: NonZero<u8>, base_rom_path: PathBuf) -> Result<Vec<u8>, PatchError> {
+    pub fn write_uncompressed_rom(&self, world: NonZero<u8>, base_rom_path: PathBuf, cosmetic_plando: Option<PathBuf>) -> Result<Vec<u8>, PatchError> {
         Python::with_gil(|py| {
             let rom = py.import("Rom")?.call_method1("Rom", (base_rom_path,))?;
-            py.import("N64Patch")?.call_method1("apply_patch_data", (&rom, self.patches.get(usize::from(world.get() - 1)).ok_or(PatchError::WorldIdx)?, false /*TODO option to repatch cosmetics */))?;
+            py.import("N64Patch")?.call_method1("apply_patch_data", (&rom, self.patches.get(usize::from(world.get() - 1)).ok_or(PatchError::WorldIdx)?, false))?;
+            if let Some(cosmetic_plando) = cosmetic_plando {
+                let cosmetic_settings = PyDict::new(py);
+                cosmetic_settings.set_item("enable_cosmetic_file", true)?;
+                cosmetic_settings.set_item("cosmetic_file", cosmetic_plando.into_os_string().into_string()?)?;
+                let kwargs = PyDict::new(py);
+                kwargs.set_item("strict", true)?;
+                let cosmetic_settings = py.import("Settings")?.call_method("Settings", (cosmetic_settings,), Some(&kwargs))?;
+                py.import("Cosmetics")?.call_method1("patch_cosmetics", (cosmetic_settings, &rom))?; //TODO option to save cosmetics log
+            }
             Ok(rom.getattr("buffer")?.get_item(PySlice::full(py))?.extract()?)
         })
     }
 
-    pub async fn write_compressed_rom(&self, world: NonZero<u8>, base_rom_path: PathBuf, out_path: PathBuf) -> Result<(), PatchError> {
-        let uncompressed_rom = self.write_uncompressed_rom(world, base_rom_path)?; //TODO spawn_blocking?
+    pub async fn write_compressed_rom(&self, world: NonZero<u8>, base_rom_path: PathBuf, cosmetic_plando: Option<PathBuf>, out_path: PathBuf) -> Result<(), PatchError> {
+        let uncompressed_rom = self.write_uncompressed_rom(world, base_rom_path, cosmetic_plando)?; //TODO spawn_blocking?
         let uncompressed_file = tempfile::Builder::new().prefix("ootr_").suffix(".n64").tempfile().at_unknown()?;
         tokio::fs::File::from_std(uncompressed_file.reopen().at(&uncompressed_file)?).write_all(&uncompressed_rom).await.at(&uncompressed_file)?;
         let uncompressed_file = uncompressed_file.into_temp_path();
