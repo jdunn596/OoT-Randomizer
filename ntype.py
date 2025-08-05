@@ -4,6 +4,13 @@ from collections.abc import Sequence
 import struct
 
 
+class uint24:
+    @staticmethod
+    def bytes(value: int) -> bytearray:
+        value = value & 0xFFFFFF
+        return bytearray([(value >> 16) & 0xFF, (value >> 8) & 0xFF, value & 0xFF])
+
+
 class uint32:
     _struct = struct.Struct('>I')
 

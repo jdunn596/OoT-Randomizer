@@ -2,6 +2,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import struct
 from collections.abc import Iterator, Sequence
 from typing import Optional
 
@@ -9,6 +10,7 @@ from Models import restrictiveBytes
 import rs.rom
 from Utils import local_path, data_path, get_version_bytes
 from crc import calculate_crc
+from ntype import uint24
 from rs.rom import BigStream
 from rs.version import base_version, branch_identifier, supplementary_version
 
@@ -129,6 +131,33 @@ class Rom(BigStream):
     def write_byte(self, address: int, value: int) -> None:
         super().write_byte(address, value)
         self.changed_address[self.last_address-1] = value
+
+    #HACK the following 5 methods are overridden here to make them properly update `self.changed_address`, which the code ported to Rust doesn't do because it doesn't know about Python inheritance.
+    #TODO fix properly by porting `Rom` to Rust as well.
+    def write_sbyte(self, address: Optional[int], value: int) -> None:
+        if address is None:
+            address = self.last_address
+        self.write_bytes(address, struct.pack('b', value))
+
+    def write_int16(self, address: Optional[int], value: int) -> None:
+        if address is None:
+            address = self.last_address
+        self.write_bytes(address, struct.pack('>H', value))
+
+    def write_int24(self, address: Optional[int], value: int) -> None:
+        if address is None:
+            address = self.last_address
+        self.write_bytes(address, uint24.bytes(value))
+
+    def write_int32(self, address: Optional[int], value: int) -> None:
+        if address is None:
+            address = self.last_address
+        self.write_bytes(address, struct.pack('>I', value))
+
+    def write_f32(self, address: Optional[int], value: float) -> None:
+        if address is None:
+            address = self.last_address
+        self.write_bytes(address, struct.pack('>f', value))
 
     def write_bytes_restrictive(self, start: int, size: int, values: Sequence[int]) -> None:
         for i in range(size):
