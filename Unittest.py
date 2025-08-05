@@ -892,7 +892,7 @@ class TestValidSpoilers(unittest.TestCase):
                     self.verify_disables(spoiler)
 
     def test_advanced_tricks(self):
-        filename =  os.path.join(test_dir, 'glitched-standard.sav')
+        filename = 'glitched-standard.sav'
         settings = load_settings(filename, seed='TESTTESTTEST')
         # Enable all standard logic tricks
         settings.allowed_tricks = [trick['name'] for trick in logic_tricks.values()]
@@ -911,7 +911,7 @@ class TestValidSpoilers(unittest.TestCase):
                 self.verify_disables(spoiler)
 
     def test_advanced_tricks_entrances(self):
-        filename =  os.path.join(test_dir, 'glitched-entrances.sav')
+        filename = 'glitched-entrances.sav'
         settings = load_settings(filename, seed='TESTTESTTEST')
         # Enable all standard logic tricks
         settings.allowed_tricks = [trick['name'] for trick in logic_tricks.values()]

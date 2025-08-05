@@ -20,7 +20,6 @@ Differences between `riir` and [`dev-fenhl`](https://github.com/fenhl/OoT-Random
 Differences between [`dev-fenhl`](https://github.com/fenhl/OoT-Randomizer) and [`Dev-R`](https://github.com/Roman971/OoT-Randomizer):
 
 * New settings and options:
-  * More options for “Open Door of Time” setting ([#2423](https://github.com/OoTRandomizer/OoT-Randomizer/pull/2423))
   * New plando-only “Chest, Pot, Crate, & Beehive Appearance Does Not Match Contents” setting which makes each chest etc. randomly choose any appearance except the correct one ([#1950](https://github.com/OoTRandomizer/OoT-Randomizer/pull/1950))
   * New “Vanilla Locations” option for the “Shuffle Songs” setting ([#1882](https://github.com/OoTRandomizer/OoT-Randomizer/pull/1882))
   * New “Bosses” option for the “Mix Entrance Pools” setting (based on [#1820](https://github.com/OoTRandomizer/OoT-Randomizer/pull/1820))
