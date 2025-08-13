@@ -386,6 +386,25 @@ jal Object_GetIndex
     lw      t9, 0x0(t9)
     nop
 
+; in EffectSsIceSmoke_Draw, remove call to Object_GetSlot and use the stored slot instead
+; slot is stored during init in reg[0] at offset 0x42 in the effect struct
+; effect pointer stored in s2
+.org 0x80b7e878
+; Replaces:
+;   jal     Object_GetSlot
+;   li      a1, 0x114
+    lh      v0, 0x40(s2)
+    nop
+
+; Same thing in EffectSsIceSmoke_Update
+; effect pointer is stored at 0x28(sp)
+.org 0x80b7eb04
+; Replaces:
+;   jal     Object_GetSlot
+;   li      a1, 0x114
+    lw      v0, 0x28(sp)
+    lh      v0, 0x40(v0)
+
 ; effect_ss_stick
 .headersize(0x80B319C0 - 0x00EAD0F0)
 .org 0x80B31C4C
