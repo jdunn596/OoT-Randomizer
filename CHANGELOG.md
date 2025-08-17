@@ -15,6 +15,7 @@
 * The Deku Shield pot in the Spirit Temple is no longer shuffled when both `Fix Broken Drops` and `Include Empty Pots` are off.
 * For consistency with other location types, excluded pot/crate/beehive/wonderitem/etc. locations no longer behave as if their shuffle setting was off.
 * The Triforce Piece counter display has been moved to a CRT-safe position.
+* Fix Complete Mask Quest not working if Zelda's Letter is found in Kakariko.
 
 ## Other changes
 * Big poe souls can now be collected while riding Epona.
