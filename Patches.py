@@ -568,6 +568,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
         world.settings.shuffle_song_items not in ('vanilla', 'song')
         or world.distribution.songs_as_items
         or any(name in song_list and record.count for name, record in world.settings.starting_items.items())
+        or any(name in song_list and count for name, count in world.randomized_starting_items.items())
         or world.settings.shuffle_individual_ocarina_notes
     )
     if songs_as_items:
@@ -2217,6 +2218,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
 
     # actually write the save table to rom
     world.distribution.give_items(world, save_context)
+    world.distribution.give_randomized_items(world, save_context)
     if world.settings.starting_age == 'adult':
         # When starting as adult, the pedestal doesn't handle child default equips when going back child the first time, so we have to equip them ourselves
         save_context.equip_default_items('child')

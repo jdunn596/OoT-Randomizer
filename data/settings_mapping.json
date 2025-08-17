@@ -345,6 +345,7 @@
           "col_span": 2,
           "row_span": [1,1,1],
           "settings": [
+            "add_random_starting_items",
             "start_with_consumables",
             "start_with_rupees",
             "starting_hearts"

@@ -156,6 +156,7 @@
         "starting_equipment": [],
         "starting_inventory": [],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": false,
         "start_with_rupees": false,
         "starting_hearts": 3,
@@ -397,6 +398,7 @@
         "starting_equipment": [],
         "starting_inventory": [],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": false,
         "start_with_rupees": false,
         "starting_hearts": 3,
@@ -608,6 +610,7 @@
         "starting_equipment": [],
         "starting_inventory": [],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": false,
         "start_with_rupees": false,
         "starting_hearts": 3,
@@ -803,6 +806,7 @@
         "starting_equipment": [],
         "starting_inventory": [],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
         "start_with_rupees": true,
         "starting_hearts": 3,
@@ -1011,6 +1015,7 @@
         "starting_equipment": [],
         "starting_inventory": [],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": false,
         "start_with_rupees": false,
         "starting_hearts": 3,
@@ -1219,6 +1224,7 @@
         "starting_equipment": [],
         "starting_inventory": [],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
         "start_with_rupees": true,
         "starting_hearts": 3,
@@ -1449,6 +1455,7 @@
             "zeldas_letter"
         ],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
         "start_with_rupees": false,
         "starting_hearts": 3,
@@ -1696,6 +1703,7 @@
             "zeldas_letter"
         ],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
         "start_with_rupees": true,
         "starting_hearts": 3,
@@ -2220,6 +2228,7 @@
             "lens"
         ],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": false,
         "start_with_rupees": true,
         "starting_hearts": 3,
@@ -2741,6 +2750,7 @@
             "lens"
         ],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": false,
         "start_with_rupees": true,
         "starting_hearts": 3,
@@ -2977,6 +2987,7 @@
             "zeldas_letter"
         ],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
         "start_with_rupees": false,
         "starting_hearts": 3,
@@ -3205,6 +3216,7 @@
         "starting_songs": [
             "prelude"
         ],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
         "start_with_rupees": true,
         "starting_hearts": 3,
@@ -3425,6 +3437,7 @@
             "zeldas_letter"
         ],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
         "start_with_rupees": true,
         "starting_hearts": 3,
@@ -3665,6 +3678,7 @@
             "zeldas_letter"
         ],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
         "start_with_rupees": false,
         "starting_hearts": 3,
@@ -3738,14 +3752,14 @@
         "custom_ice_trap_count": 100,
         "ice_trap_appearance": "anything"
     },
-    "Standard Weekly (2025-06-07)": {
+    "Standard Weekly (2025-08-16)": {
         "aliases": [
             "Standard Weekly (Latest)",
             "weekly"
         ],
         "language": "english",
         "show_seed_info": true,
-        "user_message": "Standard Weekly (2025-06-07)",
+        "user_message": "Standard Weekly (2025-08-16)",
         "world_count": 1,
         "create_spoiler": true,
         "password_lock": false,
@@ -3762,7 +3776,7 @@
         "lacs_rewards_specific": [],
         "lacs_tokens": 100,
         "lacs_hearts": 20,
-        "bridge": "dungeons",
+        "bridge": "vanilla",
         "bridge_medallions": 6,
         "bridge_stones": 3,
         "bridge_rewards": 9,
@@ -3771,7 +3785,7 @@
         "bridge_hearts": 20,
         "trials_random": false,
         "trials": 0,
-        "shuffle_ganon_bosskey": "remove",
+        "shuffle_ganon_bosskey": "medallions",
         "ganon_bosskey_medallions": 6,
         "ganon_bosskey_stones": 3,
         "ganon_bosskey_rewards": 9,
@@ -3791,12 +3805,9 @@
         "mq_dungeons_mode": "vanilla",
         "mq_dungeons_specific": [],
         "mq_dungeons_count": 0,
-        "empty_dungeons_mode": "rewards",
+        "empty_dungeons_mode": "none",
         "empty_dungeons_specific": [],
-        "empty_dungeons_rewards": [
-            "Shadow Medallion",
-            "Spirit Medallion"
-        ],
+        "empty_dungeons_rewards": [],
         "empty_dungeons_count": 2,
         "empty_dungeons_count_include_ganon": false,
         "shuffle_interior_entrances": "off",
@@ -3813,7 +3824,7 @@
         "owl_drops": "off",
         "warp_songs": "off",
         "shuffle_child_spawn": "balanced",
-        "shuffle_adult_spawn": "balanced",
+        "shuffle_adult_spawn": "off",
         "blue_warps": "dungeon",
         "exclusive_one_ways": false,
         "dungeon_back_access": false,
@@ -3898,6 +3909,7 @@
             "zeldas_letter"
         ],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
         "start_with_rupees": false,
         "starting_hearts": 3,
@@ -3909,14 +3921,14 @@
         "complete_mask_quest": false,
         "useful_cutscenes": false,
         "fast_chests": true,
-        "scarecrow_behavior": "free",
+        "scarecrow_behavior": "vanilla",
         "fast_bunny_hood": true,
         "auto_equip_masks": false,
-        "plant_beans": true,
+        "plant_beans": false,
         "easier_fire_arrow_entry": false,
         "fae_torch_count": 3,
-        "ruto_already_f1_jabu": true,
-        "fast_shadow_boat": true,
+        "ruto_already_f1_jabu": false,
+        "fast_shadow_boat": false,
         "chicken_count_random": false,
         "chicken_count": 3,
         "big_poe_count_random": false,
@@ -3926,9 +3938,7 @@
         "hint_dist": "weekly",
         "item_hints": [],
         "hint_dist_user": {},
-        "plandomized_locations": {
-            "ToT Reward from Rauru": "Light Medallion"
-        },
+        "plandomized_locations": {},
         "misc_hints": [
             "altar",
             "ganondorf",
@@ -4135,6 +4145,7 @@
             "zeldas_letter"
         ],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": false,
         "start_with_rupees": false,
         "starting_hearts": 3,
@@ -4341,10 +4352,19 @@
         "logic_no_night_tokens_without_suns_song": false,
         "logic_water_gold_scale_no_entry": false,
         "disabled_locations": [
+            "Sheik at Temple",
             "Deku Theater Mask of Truth",
             "Kak 40 Gold Skulltula Reward",
             "Kak 50 Gold Skulltula Reward",
-            "GF HBA 1500 Points"
+            "GF HBA 1500 Points",
+            "Ganons Castle Light Trial First Left Chest",
+            "Ganons Castle Light Trial Second Left Chest",
+            "Ganons Castle Light Trial Third Left Chest",
+            "Ganons Castle Light Trial First Right Chest",
+            "Ganons Castle Light Trial Second Right Chest",
+            "Ganons Castle Light Trial Third Right Chest",
+            "Ganons Castle Light Trial Invisible Enemies Chest",
+            "Ganons Castle Light Trial Lullaby Chest"
         ],
         "allowed_tricks": [
             "logic_fewer_tunic_requirements",
@@ -4364,19 +4384,23 @@
         ],
         "advanced_allowed_tricks": [],
         "starting_equipment": [
-            "deku_shield"
+            "deku_shield",
+            "hylian_shield",
+            "defense"
         ],
         "starting_inventory": [
             "ocarina",
+            "farores_wind",
             "lens",
             "zeldas_letter"
         ],
         "starting_songs": [
             "prelude"
         ],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
-        "start_with_rupees": true,
-        "starting_hearts": 4,
+        "start_with_rupees": false,
+        "starting_hearts": 3,
         "skip_reward_from_rauru": true,
         "no_escape_sequence": true,
         "no_guard_stealth": true,
@@ -4392,7 +4416,7 @@
         "easier_fire_arrow_entry": false,
         "fae_torch_count": 3,
         "ruto_already_f1_jabu": true,
-        "fast_shadow_boat": false,
+        "fast_shadow_boat": true,
         "chicken_count_random": false,
         "chicken_count": 3,
         "big_poe_count_random": false,
@@ -4407,9 +4431,10 @@
             "ganondorf",
             "20_skulltulas",
             "30_skulltulas",
-            "warp_songs_and_owls"
+            "warp_songs_and_owls",
+            "big_poes"
         ],
-        "correct_chest_appearances": "textures",
+        "correct_chest_appearances": "both",
         "chest_textures_specific": [
             "major",
             "bosskeys",
@@ -4431,6 +4456,7 @@
         "incorrect_chest_appearances": false,
         "soa_unlocks_potcrate_texture": false,
         "clearer_item_models": [
+            "keys",
             "keyrings",
             "silver_rupee_pouches",
             "warp_songs"
@@ -4440,9 +4466,9 @@
         "damage_multiplier": "normal",
         "deadly_bonks": "none",
         "starting_tod": "default",
-        "blue_fire_arrows": false,
+        "blue_fire_arrows": true,
         "fix_broken_drops": false,
-        "tcg_requires_lens": false,
+        "tcg_requires_lens": true,
         "no_collectible_hearts": false,
         "one_item_per_dungeon": false,
         "item_pool_value": "balanced",
@@ -4610,6 +4636,7 @@
             "zeldas_letter"
         ],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
         "start_with_rupees": true,
         "starting_hearts": 3,
@@ -4856,6 +4883,7 @@
         "starting_songs": [
             "prelude"
         ],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
         "start_with_rupees": false,
         "starting_hearts": 3,
@@ -5283,6 +5311,7 @@
         "starting_equipment": [],
         "starting_inventory": [],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": false,
         "start_with_rupees": false,
         "starting_hearts": 3,
@@ -5501,6 +5530,7 @@
         "starting_equipment": [],
         "starting_inventory": [],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": false,
         "start_with_rupees": false,
         "starting_hearts": 3,
@@ -5748,6 +5778,7 @@
         "starting_songs": [
             "prelude"
         ],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
         "start_with_rupees": true,
         "starting_hearts": 3,
@@ -5992,6 +6023,7 @@
             "zeldas_letter"
         ],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": true,
         "start_with_rupees": true,
         "starting_hearts": 3,
@@ -6203,6 +6235,7 @@
             "zeldas_letter"
         ],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": false,
         "start_with_rupees": true,
         "starting_hearts": 3,
@@ -6497,6 +6530,7 @@
             "zeldas_letter"
         ],
         "starting_songs": [],
+        "add_random_starting_items": 0,
         "start_with_consumables": false,
         "start_with_rupees": false,
         "starting_hearts": 3,

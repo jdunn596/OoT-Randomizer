@@ -3827,6 +3827,18 @@ class SettingInfos:
         ''',
     )
 
+    add_random_starting_items = Scale(
+        gui_text         = 'Additional Random Starting Items',
+        gui_tooltip    = '''\
+            Begin the game with this many randomly selected items in
+            addition to your selections from the tables.
+        ''',
+        default          = 0,
+        minimum          = 0,
+        maximum          = 10,
+        shared           = True,
+    )
+
     start_with_consumables = Checkbutton(
         gui_text       = 'Start with Consumables',
         gui_tooltip    = '''\

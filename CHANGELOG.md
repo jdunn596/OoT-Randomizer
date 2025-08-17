@@ -9,11 +9,13 @@
 * Glitched logic has been renamed to `Advanced` and been revamped to work with any settings, including Entrance Randomization.
 * A slew of advanced tricks and glitches have been added for the new `Advanced` logic setting.
 * The `Open Door of Time` setting has been renamed to `Door of Time`, with new options to require the Spiritual Stones and/or the Ocarina of Time.
+* New `Additional Random Starting Items` setting.
 
 ## Bug fixes
 * The Deku Shield pot in the Spirit Temple is no longer shuffled when both `Fix Broken Drops` and `Include Empty Pots` are off.
 * For consistency with other location types, excluded pot/crate/beehive/wonderitem/etc. locations no longer behave as if their shuffle setting was off.
 * The Triforce Piece counter display has been moved to a CRT-safe position.
+* Fix Complete Mask Quest not working if Zelda's Letter is found in Kakariko.
 
 ## Other changes
 * Big poe souls can now be collected while riding Epona.

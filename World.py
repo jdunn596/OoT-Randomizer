@@ -59,6 +59,7 @@ class World:
         self.barren_dungeon: int = 0
         self.woth_dungeon: int = 0
         self.randomized_list: list[str] = []
+        self.randomized_starting_items: dict[str, int] = {}
         self.cached_bigocto_location: Optional[EllipsisType | Location] = ...
 
         self.parser: Rule_AST_Transformer = Rule_AST_Transformer(self)
@@ -436,6 +437,7 @@ class World:
         new_world.randomized_list = list(self.randomized_list)
         for randomized_item in new_world.randomized_list:
             setattr(new_world, randomized_item, getattr(self.settings, randomized_item))
+        new_world.distribution.randomized_starting_items = new_world.randomized_starting_items = copy.copy(self.randomized_starting_items)
 
         new_world.always_hints = list(self.always_hints)
         new_world.max_progressions = copy.copy(self.max_progressions)
