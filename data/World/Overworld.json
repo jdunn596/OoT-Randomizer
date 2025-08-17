@@ -1618,7 +1618,7 @@
         },
         "exits": {
             "ToT Entrance": "True",
-            "Beyond Door of Time": "can_play(Song_of_Time) or open_door_of_time"
+            "Beyond Door of Time": "can_open_door_of_time"
         }
     },
     {
@@ -1726,8 +1726,9 @@
         "scene": "Castle Grounds",
         "hint": "OUTSIDE_GANONS_CASTLE",
         "exits": {
-            "Hyrule Castle Grounds": "is_child",
+            # The rainbow bridge cutscene trigger doesn't extend to the castle entrance
             "Ganons Castle Ledge": "is_adult"
+            # No exit back into the castle because the entrance places Link in midair if the bridge isn't spawned
         }
     },
     {
@@ -2504,8 +2505,8 @@
             "Goron City": "True",
             "Death Mountain Summit": "
                 (here(can_pass_boulder('DMT_MIDDLE_BOULDER')) and (
-                    ((boulder_type('DMT_UPPER_BOULDER') == BOULDER_TYPE_BROWN) and here(can_blast_or_smash)) or 
-                    ((boulder_type('DMT_UPPER_BOULDER') == BOULDER_TYPE_BRONZE) and here(can_use(Megaton_Hammer))) or 
+                    ((boulder_type('DMT_UPPER_BOULDER') == BOULDER_TYPE_BROWN) and here(can_blast_or_smash)) or
+                    ((boulder_type('DMT_UPPER_BOULDER') == BOULDER_TYPE_BRONZE) and here(can_use(Megaton_Hammer))) or
                     at('Death Mountain Summit', (boulder_type('DMT_UPPER_BOULDER') == BOULDER_TYPE_RED_ICE) and Blue_Fire)
                 )) or
                 (is_adult and here(can_plant_bean and (plant_beans or Progressive_Strength_Upgrade))) or
@@ -2677,7 +2678,7 @@
             "GC Boulder Maze 2 Chests": "
                 can_pass_boulder('GC_BOULDER_MAZE_27') or
                 can_pass_boulder('GC_BOULDER_MAZE_42') or
-                can_pass_boulder('GC_BOULDER_MAZE_21')        
+                can_pass_boulder('GC_BOULDER_MAZE_21')
             "
         }
     },
@@ -2799,7 +2800,7 @@
         "scene": "Goron City",
         "hint": "GORON_CITY",
         "events": {
-            "GC Woods Warp Open": "(can_pass_boulder('GC_LW_BOULDER_1') or can_pass_boulder('GC_LW_BOULDER_2') or can_pass_boulder('GC_LW_BOULDER_3')) or 
+            "GC Woods Warp Open": "(can_pass_boulder('GC_LW_BOULDER_1') or can_pass_boulder('GC_LW_BOULDER_2') or can_pass_boulder('GC_LW_BOULDER_3')) or
             (
                 (boulder_type('GC_LW_BOULDER_1') == BOULDER_TYPE_BROWN or
                 boulder_type('GC_LW_BOULDER_2') == BOULDER_TYPE_BROWN or

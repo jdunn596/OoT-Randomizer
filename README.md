@@ -26,6 +26,9 @@ Fishing Game Shuffle - Shuffle the fish from the fishing game. The fish in the p
 * [Changelog](#changelog)
 
 ## RealRob Changelog
+### 8.3.30.Rob-1
+  * Update to latest main Dev
+
 ### 8.3.17.Rob-2
   * Fix a crash when opening an ice trap chest in a room that has ice traps in vanilla and quickly exiting the room.
 

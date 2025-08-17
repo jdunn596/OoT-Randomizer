@@ -27,6 +27,7 @@ z64_Flags_SetTempClear = 0x800206AC;
 OnePointCutscene_Init = 0x8006b6fc;
 Player_InCsMode = 0x8007943c;
 EffectSsKakera_Spawn = 0x8001d998;
+CutsceneFlags_Get = 0x8005991C;
 z64_Gfx_SetupDL_42Opa = 0x8007E868;
 Audio_StopCurrentMusic = 0x800C7684;
 sprintf = 0x800CE7b4;
@@ -71,3 +72,5 @@ OVL_BgMoriBigst_SetupDone = 0x809276c0;
 OVL_EnKarebaba_SetupDeadItemDrop = 0x809ba560;
 
 OVL_EnKusa_Draw = 0x80a80a50;
+OVL_EnOkarinaTag_Action2 = 0x80a872d0;
+OVL_EnOkarinaTag_Action1 = 0x80a87088;

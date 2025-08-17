@@ -308,7 +308,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
         (29, 'texture_smallcrate_heart',    0xF7ECA0,      None,            2048,   rgba16_patch,               'textures/crate/smallcrate_heart_rgba16_patch.bin'),
         (31, 'texture_grass_custom',        0xF6A140,      None,            2048,   rgba16_from_file,           'textures/grass/grass_texture_gray_rgba16.bin'),
         (32, 'texture_grass_small_custom',  0xF6A140,      None,            2048,   rgba16_from_file,           'textures/grass/grass_small_texture_gray_rgba16.bin'),
-        
+
     ]
 
     # Loop through the textures and apply the patch. Add the new textures as a new file in rom.
@@ -496,6 +496,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
         world.settings.shuffle_song_items != 'song'
         or world.distribution.songs_as_items
         or any(name in song_list and record.count for name, record in world.settings.starting_items.items())
+        or any(name in song_list and count for name, count in world.randomized_starting_items.items())
         or world.settings.shuffle_individual_ocarina_notes
     )
     if songs_as_items:
@@ -816,7 +817,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
     if world.settings.adult_trade_shuffle or world.settings.item_pool_value in ('plentiful', 'ludicrous'):
         rom.write_byte(rom.sym('CFG_ADULT_TRADE_SHUFFLE'), 0x01)
         move_fado_in_lost_woods(rom)
-    if world.settings.shuffle_child_trade or world.settings.logic_rules == 'glitched':
+    if world.settings.shuffle_child_trade or world.settings.logic_rules == 'advanced':
         rom.write_byte(rom.sym('CFG_CHILD_TRADE_SHUFFLE'), 0x01)
 
     if world.settings.shuffle_overworld_entrances:
@@ -1045,6 +1046,23 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
         rom.write_int16(count_symbol, world.settings.lacs_hearts * 0x10)
     else:
         rom.write_int32(symbol, 0)
+
+    symbol = rom.sym('DOT_CONDITION')
+    if world.settings.open_door_of_time == 'open':
+        rom.write_byte(symbol, 0)
+        save_context.write_bits(0xEDC, 0x08)  # "Opened the Door of Time"
+    elif world.settings.open_door_of_time == 'sot':
+        rom.write_byte(symbol, 1)
+    elif world.settings.open_door_of_time == 'oot_sot':
+        rom.write_byte(symbol, 2)
+    elif world.settings.open_door_of_time == 'stones':
+        rom.write_byte(symbol, 3)
+    elif world.settings.open_door_of_time == 'stones_sot':
+        rom.write_byte(symbol, 4)
+    elif world.settings.open_door_of_time == 'stones_oot_sot':
+        rom.write_byte(symbol, 5)
+    else:
+        raise NotImplementedError(f'Unknown open_door_of_time option {world.settings.open_door_of_time!r}')
 
     # "fast-ganon" stuff
     symbol = rom.sym('NO_ESCAPE_SEQUENCE')
@@ -1902,10 +1920,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
                     area = GossipText(area.text(world.settings.clearer_hints, preposition=True, use_2nd_person=True), [area.color], prefix='', capitalize=False)
                     compass_message = f"\x13\x75\x08You found the \x05\x41Compass\x05\x40\x01for {dungeon_name}\x05\x40!\x01The {vanilla_reward} can be found\x01{area}!\x09"
                 else:
-                    if world.settings.logic_rules == 'glitched':
-                        boss_location = world.get_location(dungeon.vanilla_boss_name)
-                    else:
-                        boss_location = next(filter(lambda loc: loc.type == 'Boss', world.get_entrance(f'{dungeon} Before Boss -> {dungeon.vanilla_boss_name} Boss Room').connected_region.locations))
+                    boss_location = next(filter(lambda loc: loc.type == 'Boss', world.get_entrance(f'{dungeon} Before Boss -> {dungeon.vanilla_boss_name} Boss Room').connected_region.locations))
                     dungeon_reward = boss_location.item.name
                     compass_message = f"\x13\x75\x08You found the \x05\x41Compass\x05\x40\x01for {dungeon_name}\x05\x40!\x01It holds the \x05{COLOR_MAP[REWARD_COLORS[dungeon_reward]]}{dungeon_reward}\x05\x40!\x09"
                 if world.settings.shuffle_dungeon_rewards != 'dungeon':
@@ -1924,7 +1939,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
     if world.settings.tokensanity == 'off':
         # Change the GS token pickup message to fade out after 2 seconds (40 frames)
         update_message_by_id(messages, 0x00B4, bytearray(get_message_by_id(messages, 0x00B4).raw_text)[:-1] + b'\x0E\x28', allow_duplicates=True)
-        # Prevent the GS token actor from freezing the player and waiting for the textbox to be closed 
+        # Prevent the GS token actor from freezing the player and waiting for the textbox to be closed
         rom.write_int32s(0xEC68C0, [0x00000000, 0x00000000])
         rom.write_int32s(0xEC69B0, [0x00000000, 0x00000000])
         rom.write_int32(0xEC6A10, 0x34020002) # li v0, 2
@@ -2064,7 +2079,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
         patch_boulders(world.boulders_by_id, rom)
 
         # Update brown bombable boulders to use collider for explosion detection instead of fixed distance
-        # Hack in ObjBombiwa_Update at 0x80a8388c, ROM 
+        # Hack in ObjBombiwa_Update at 0x80a8388c, ROM
         # Replaces:
         # jal 0x8002650C
         # or a1, s0, r0
@@ -2171,6 +2186,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
 
     # actually write the save table to rom
     world.distribution.give_items(world, save_context)
+    world.distribution.give_randomized_items(world, save_context)
     if world.settings.starting_age == 'adult':
         # When starting as adult, the pedestal doesn't handle child default equips when going back child the first time, so we have to equip them ourselves
         save_context.equip_default_items('child')

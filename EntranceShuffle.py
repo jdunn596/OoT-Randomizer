@@ -436,9 +436,8 @@ def set_entrances(worlds: list[World], savewarps_to_connect: list[tuple[Entrance
         savewarp.connect(savewarp.replaces.connected_region)
 
     for world in worlds:
-        if world.settings.logic_rules != 'glitched':
-            # Set entrance data for all entrances, even those we aren't shuffling
-            set_all_entrances_data(world)
+        # Set entrance data for all entrances, even those we aren't shuffling
+        set_all_entrances_data(world)
 
 # Shuffles entrances that need to be shuffled in all worlds
 def shuffle_random_entrances(worlds: list[World]) -> None:
@@ -943,18 +942,20 @@ def validate_world(world: World, worlds: list[World], entrance_placed: Optional[
     if placed_one_way_entrances is None:
         placed_one_way_entrances = []
 
+    CHILD_FORBIDDEN = []
+    ADULT_FORBIDDEN = []
     if not world.settings.decouple_entrances:
         # Unless entrances are decoupled, we don't want the player to end up through certain entrances as the wrong age
         # This means we need to hard check that none of the relevant entrances are ever reachable as that age
         # This is mostly relevant when mixing entrance pools or shuffling special interiors (such as windmill or kak potion shop)
         # Warp Songs and Overworld Spawns can also end up inside certain indoors so those need to be handled as well
         # Allowing child to enter Spirit from the boss would severely complicate key logic
-        CHILD_FORBIDDEN = ['OGC Great Fairy Fountain -> Castle Grounds', 'GV Carpenter Tent -> GV Fortress Side', 'Ganons Castle Lobby -> Castle Grounds From Ganons Castle', 'Bongo Bongo Boss Room -> Shadow Temple Before Boss', 'Twinrova Boss Room -> Spirit Temple Before Boss']
-        ADULT_FORBIDDEN = ['HC Great Fairy Fountain -> Castle Grounds', 'HC Storms Grotto -> Castle Grounds', 'Bongo Bongo Boss Room -> Shadow Temple Before Boss', 'Twinrova Boss Room -> Spirit Temple Before Boss']
-        if world.dungeon_mq['Forest Temple'] and 'Forest Temple' in world.settings.dungeon_shortcuts:
-            CHILD_FORBIDDEN.append('Phantom Ganon Boss Room -> Forest Temple Before Boss')
-            ADULT_FORBIDDEN.append('Phantom Ganon Boss Room -> Forest Temple Before Boss')
+        CHILD_FORBIDDEN += ['OGC Great Fairy Fountain -> Castle Grounds', 'Ganons Castle Lobby -> Castle Grounds From Ganons Castle', 'Bongo Bongo Boss Room -> Shadow Temple Before Boss', 'Twinrova Boss Room -> Spirit Temple Before Boss']
+        if world.settings.logic_rules == 'glitchless':
+            CHILD_FORBIDDEN += ('GV Carpenter Tent -> GV Fortress Side',)
+        ADULT_FORBIDDEN += ['HC Great Fairy Fountain -> Castle Grounds', 'HC Storms Grotto -> Castle Grounds', 'Bongo Bongo Boss Room -> Shadow Temple Before Boss', 'Twinrova Boss Room -> Spirit Temple Before Boss']
 
+    if CHILD_FORBIDDEN or ADULT_FORBIDDEN:
         for entrance in world.get_shufflable_entrances():
             if entrance.shuffled:
                 if entrance.replaces:

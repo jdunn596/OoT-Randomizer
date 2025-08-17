@@ -2666,5 +2666,7 @@ extern int32_t z64_Flags_GetClear(z64_game_t* globalCtx, int32_t flag);
 extern void z64_Flags_SetSwitch(z64_game_t* globalCtx, int32_t flag);
 extern int32_t z64_Flags_GetSwitch(z64_game_t* globalCtx, int32_t flag);
 extern void z64_Flags_SetTempClear(z64_game_t* globalCtx, int32_t flag);
+extern int32_t CutsceneFlags_Get(void* play, int16_t flag);
+extern int32_t DemoKankyo_CutsceneFlags_Get_Hook(void* play, int16_t flag);
 
 #endif

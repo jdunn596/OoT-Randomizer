@@ -2207,7 +2207,7 @@ location_table: dict[str, tuple[str, Optional[int], LocationDefault, LocationAdd
 
     # Dodongo's Cavern MQ Gossip Stones
     ("Dodongos Cavern MQ Gossip Stone Drop",                         ("GossipStone",  0x1,   (0,0,1), None,                         'Rupees (20)',                           ("Dodongo's Cavern MQ", "Master Quest", "GossipStone"))),
-    
+
     # Dodongo's Cavern Shared
     ("Dodongos Cavern Boss Room Chest",                              ("Chest",        0x12,  0x00, None,                            'Bombs (5)',                             ("Dodongo's Cavern", "Dodongo's Cavern MQ", "Vanilla Dungeons", "Master Quest", "Chests",))),
     ("Dodongos Cavern King Dodongo Heart",                           ("BossHeart",    0x12,  0x4F, None,                            'Heart Container',                       ("Dodongo's Cavern", "Dodongo's Cavern MQ", "Vanilla Dungeons", "Master Quest",))),

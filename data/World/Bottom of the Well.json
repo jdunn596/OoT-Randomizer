@@ -73,7 +73,7 @@
             "Bottom of the Well Left Side": "(Silver_Rupee_Bottom_of_the_Well_Basement, 5)",
             "Bottom of the Well Underwater": "can_play(Zeldas_Lullaby)",
             "Bottom of the Well Near Map Chest": "
-                can_pass_boulder('BOTW_CHEST_BOULDER_1') or can_pass_boulder('BOTW_CHEST_BOULDER_2') or 
+                can_pass_boulder('BOTW_CHEST_BOULDER_1') or can_pass_boulder('BOTW_CHEST_BOULDER_2') or
                 ((boulder_type('BOTW_CHEST_BOULDER_1') == BOULDER_TYPE_BROWN or boulder_type('BOTW_CHEST_BOULDER_2') == BOULDER_TYPE_BROWN) and
                 (Progressive_Strength_Upgrade and Bottom_of_the_Well_Boulders_Near_Bomb_Flowers_Destroyed))",
             "Bottom of the Well Behind Fake Walls": "logic_lens_botw or can_use(Lens_of_Truth)"

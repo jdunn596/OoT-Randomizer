@@ -268,6 +268,8 @@ SHUFFLE_FISHIES:
 .byte 0x00
 CFG_BOULDER_SHUFFLE:
 .byte 0x00
+DOT_CONDITION:
+.byte 0x01
 .align 4
 
 ; These configuration values are given fixed addresses to aid auto-trackers.

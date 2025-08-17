@@ -354,7 +354,7 @@ class Settings(SettingInfos):
         for randomize_keys in randomize_keys_enabled:
             setattr(self, randomize_keys, True)
 
-    def to_json(self, *, legacy_starting_items: bool = False) -> dict[str, Any]:
+    def to_json(self, *, legacy_starting_items: bool = False, include_disabled: bool = False) -> dict[str, Any]:
         if legacy_starting_items:
             settings = self.copy()
             for setting_name, items in LEGACY_STARTING_ITEM_SETTINGS.items():
@@ -458,7 +458,7 @@ def get_settings_from_command_line_args() -> tuple[Settings, bool, str, bool, st
     if args.convert_settings:
         if args.settings_string is not None:
             # used by the GUI which doesn't support the new dict-style starting items yet
-            print(json.dumps(settings.to_json(legacy_starting_items=True)))
+            print(json.dumps(settings.to_json(legacy_starting_items=True, include_disabled=True)))
         else:
             print(settings.get_settings_string())
         sys.exit(0)

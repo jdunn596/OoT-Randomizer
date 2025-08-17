@@ -10,7 +10,7 @@ from Item import ItemInfo
 from Location import LocationIterator
 from LocationList import location_table
 from Models import get_model_choices
-from SettingsListTricks import logic_tricks
+from SettingsListTricks import logic_tricks, advanced_logic_tricks
 from SettingTypes import SettingInfo, SettingInfoStr, SettingInfoList, SettingInfoDict, Textbox, Button, Checkbutton, \
     Combobox, Radiobutton, Fileinput, Directoryinput, Textinput, ComboboxInt, Scale, Numberinput, MultipleSelect, \
     SearchBox
@@ -634,7 +634,7 @@ class SettingInfos:
         default        = 'glitchless',
         choices        = {
             'glitchless': 'Glitchless',
-            'glitched':   'Glitched',
+            'advanced':   'Advanced',
             'none':       'No Logic',
         },
         gui_tooltip    = '''\
@@ -646,21 +646,20 @@ class SettingInfos:
             some minor tricks. Add minor tricks to consider for logic
             in the 'Detailed Logic' tab.
 
-            'Glitched': Movement-oriented glitches are likely required.
-            No locations excluded.
+            'Advanced': More Glitchless tricks and toggleable
+            glitches for accessability to curate the overall difficulty
+            level for every skill level.
 
             'No Logic': Maximize randomization, All locations are
             considered available. MAY BE IMPOSSIBLE TO BEAT.
         ''',
         disable        = {
-            'glitchless': {'settings': ['tricks_list_msg']},
-            'glitched':   {'settings': ['allowed_tricks', 'shuffle_interior_entrances', 'shuffle_hideout_entrances', 'shuffle_gerudo_fortress_heart_piece', 'shuffle_grotto_entrances',
-                                         'shuffle_dungeon_entrances', 'shuffle_overworld_entrances', 'shuffle_gerudo_valley_river_exit', 'owl_drops',
-                                         'warp_songs', 'spawn_positions', 'mq_dungeons_mode', 'mq_dungeons_specific',
-                                         'mq_dungeons_count', 'shuffle_bosses', 'shuffle_ganon_tower', 'dungeon_shortcuts', 'deadly_bonks',
-                                         'shuffle_freestanding_items', 'shuffle_pots', 'shuffle_crates', 'shuffle_beehives', 'shuffle_silver_rupees', 'shuffle_wonderitems',
-                                         'mix_entrance_pools', 'decouple_entrances']},
-            'none':       {'settings': ['allowed_tricks', 'logic_no_night_tokens_without_suns_song', 'reachable_locations']},
+            'glitchless': {'settings': ['tricks_list_msg', 'advanced_allowed_tricks']},
+            # Forcing blue fire arrows to be on, and the tcg lens setting to be off as we can do it without the lens logically
+            # and don't care if people do 1/32
+            'advanced':   {'settings': ['tricks_list_msg', 'blue_fire_arrows', 'tcg_requires_lens'
+                                ]},
+            'none':       {'settings': ['allowed_tricks', 'advanced_allowed_tricks', 'logic_no_night_tokens_without_suns_song', 'reachable_locations']},
         },
         shared         = True,
     )
@@ -1283,13 +1282,40 @@ class SettingInfos:
         },
     )
 
-    open_door_of_time = Checkbutton(
-        gui_text       = 'Open Door of Time',
+    open_door_of_time = Combobox(
+        gui_text       = 'Door of Time',
+        default        = 'sot',
+        choices        = {
+            'open':           'Open',
+            'sot':            'Song of Time',
+            'oot_sot':        'Ocarina of Time + Song of Time',
+            'stones':         '3 Spiritual Stones',
+            'stones_sot':     '3 Stones + Song of Time',
+            'stones_oot_sot': '3 Stones + OoT + SoT',
+        },
         gui_tooltip    = '''\
-            The Door of Time starts opened instead of needing to
-            play the Song of Time. If this is not set, only
-            an Ocarina and Song of Time must be found to open
-            the Door of Time.
+            'Open': The Door of Time starts opened instead of
+            needing to play the Song of Time.
+
+            'Song of Time': Only an Ocarina and Song of Time
+            must be found to open the Door of Time. This is the
+            vanilla behavior despite what the story suggests.
+
+            'Ocarina of Time + Song of Time': The Door of Time
+            is opened by playing the Song of Time on the
+            Ocarina of Time.
+
+            '3 Spiritual Stones': The Door of Time
+            automatically opens upon collecting all three
+            Spiritual Stones. Song of Time is not required.
+
+            '3 Stones + Song of Time': The Door of Time is
+            opened by playing the Song of Time after collecting
+            all three Spiritual Stones.
+
+            '3 Stones + OoT + SoT': The Door of Time is opened
+            by playing the Song of Time on the Ocarina of Time
+            after collecting all three Spiritual Stones.
         ''',
         shared         = True,
         gui_params     = {
@@ -3352,8 +3378,26 @@ class SettingInfos:
             and MAY be required to complete the game.
 
             Tricks in the left column are NEVER required.
+        '''
+    )
 
-            Tricks are only relevant for Glitchless logic.
+    advanced_allowed_tricks = SearchBox(
+        gui_text       = "Enable Advanced Tricks",
+        shared         = True,
+        choices        = {
+            val['name']: gui_text for gui_text, val in advanced_logic_tricks.items()
+        },
+        default        = [],
+        gui_params     = {
+            'choice_tooltip': {choice['name']: choice['tooltip'] for choice in advanced_logic_tricks.values()},
+            'filterdata': {val['name']: val['tags'] for _, val in advanced_logic_tricks.items()},
+            "hide_when_disabled": True,
+        },
+        gui_tooltip='''
+            Tricks moved to the right column are in-logic
+            and MAY be required to complete the game.
+
+            Tricks in the left column are NEVER required.
         '''
     )
 
@@ -3400,6 +3444,18 @@ class SettingInfos:
         gui_tooltip    = '''\
             Begin the game with the selected songs already learnt.
         ''',
+    )
+
+    add_random_starting_items = Scale(
+        gui_text         = 'Additional Random Starting Items',
+        gui_tooltip    = '''\
+            Begin the game with this many randomly selected items in
+            addition to your selections from the tables.
+        ''',
+        default          = 0,
+        minimum          = 0,
+        maximum          = 10,
+        shared           = True,
     )
 
     start_with_consumables = Checkbutton(
@@ -4152,14 +4208,18 @@ class SettingInfos:
     )
 
     blue_fire_arrows = Checkbutton(
-        gui_text       = 'Blue Fire Arrows',
-        gui_tooltip    = '''\
+        gui_text            = 'Blue Fire Arrows',
+        gui_tooltip         = '''\
             Ice arrows gain the power of blue fire.
             They can be used to melt red ice
             and break the mud walls in Dodongo's Cavern.
         ''',
-        default        = False,
-        shared         = True,
+        default             = False,
+        disabled_default    = True,
+        gui_params          = {
+            "hide_when_disabled": True,
+        },
+        shared              = True,
     )
 
     fix_broken_actors = Checkbutton(
@@ -4169,8 +4229,8 @@ class SettingInfos:
 
             There is a deku shield drop from a pot in the Spirit Temple child
             side Anubis room that does not appear in the vanilla game, and
-            logic might require you to get a deku shield this way. 
-            
+            logic might require you to get a deku shield this way.
+
             There is a
             magic jar on top of the Gerudo Training Ground eye statue that does
             not always refill your magic in the vanilla game.
@@ -4206,7 +4266,7 @@ class SettingInfos:
     #     default       = False,
     #     disable        = {
     #         False:  {'settings': ['nnn_2', 'nnn_3', 'nnn_4', 'nnn_5']}
-    #     }, 
+    #     },
     # )
 
     # nnn_2 = Checkbutton (
