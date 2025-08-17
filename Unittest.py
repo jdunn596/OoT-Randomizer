@@ -328,6 +328,7 @@ class TestPlandomizer(unittest.TestCase):
             "plando-potscrates-allmq",
             "plando-beehives",
             "plando-freestanding-pots-crates-beehives-triforcehunt",
+            "random_starting_items",
         ]
         for filename in filenames:
             with self.subTest(filename):

@@ -345,6 +345,14 @@ child_trade_items: tuple[str, ...] = (
     "Mask of Truth",
 )
 
+ocarina_buttons: tuple[str, ...] = (
+    'Ocarina A Button',
+    'Ocarina C down Button',
+    'Ocarina C right Button',
+    'Ocarina C left Button',
+    'Ocarina C up Button',
+)
+
 normal_bottles: list[str] = [bottle for bottle in sorted(ItemInfo.bottles) if bottle not in ('Deliver Letter', 'Sell Big Poe')] + ['Bottle with Big Poe']
 reward_list: list[str] = [item.name for item in sorted([i for n, i in ItemInfo.items.items() if i.type == 'DungeonReward'], key=lambda x: x.special['item_id'])]
 song_list: list[str] = [item.name for item in sorted([i for n, i in ItemInfo.items.items() if i.type == 'Song'], key=lambda x: x.index if x.index is not None else 0)]
@@ -572,7 +580,7 @@ def get_pool_core(world: World) -> tuple[list[str], dict[str, Item]]:
         if world.settings.shuffle_song_items == 'any':
             pending_junk_pool.extend(song_list)
         if world.settings.shuffle_individual_ocarina_notes:
-            pending_junk_pool.extend(['Ocarina A Button', 'Ocarina C up Button', 'Ocarina C left Button', 'Ocarina C down Button', 'Ocarina C right Button'])
+            pending_junk_pool.extend(ocarina_buttons)
 
     if world.settings.triforce_hunt:
         if world.settings.triforce_hunt_mode == 'normal':
@@ -584,11 +592,7 @@ def get_pool_core(world: World) -> tuple[list[str], dict[str, Item]]:
             pending_junk_pool.extend(triforce_blitz_items)
         # Ice% is handled below
     if world.settings.shuffle_individual_ocarina_notes:
-        pending_junk_pool.append('Ocarina A Button')
-        pending_junk_pool.append('Ocarina C up Button')
-        pending_junk_pool.append('Ocarina C left Button')
-        pending_junk_pool.append('Ocarina C down Button')
-        pending_junk_pool.append('Ocarina C right Button')
+        pending_junk_pool.extend(ocarina_buttons)
 
     # Use the vanilla items in the world's locations when appropriate.
     vanilla_items_processed = Counter()
@@ -1075,6 +1079,25 @@ def get_pool_core(world: World) -> tuple[list[str], dict[str, Item]]:
             pool.remove(junk_item)
             pool.append(pending_item)
 
+    world.distribution.collect_starters(world.state)
+
+    if not world.settings.shuffle_individual_ocarina_notes:
+        for ocarina_button in ocarina_buttons:
+            world.state.collect(ItemFactory(ocarina_button, world))
+
+    for _ in range(world.settings.add_random_starting_items):
+        random_starting_items_pool = sorted({item for item in pool if item not in ItemInfo.junk_weight}) # give each item the same weight regardless of how many copies there are
+        selected_item = random.choice(random_starting_items_pool)
+        world.randomized_starting_items[selected_item] = world.randomized_starting_items.get(selected_item, 0) + 1
+        pool.remove(selected_item)
+        pool.extend(get_junk_item())
+    for item, count in world.randomized_starting_items.items():
+        item = ItemFactory(item, world)
+        for _ in range(count):
+            if item.solver_id is not None:
+                world.state.collect(item)
+    world.distribution.randomized_starting_items = world.randomized_starting_items
+
     if world.settings.junk_ice_traps in ('custom_count', 'custom_percent'):
         junk_pool[:] = [('Ice Trap', 1)]
         # Get a list of all "junk" type items
@@ -1137,14 +1160,5 @@ def get_pool_core(world: World) -> tuple[list[str], dict[str, Item]]:
         # Fix for unit tests reusing globals after ludicrous pool mutates them
         item_groups['Junk'] = remove_junk_items
         world.distribution.distribution.search_groups['Junk'] = remove_junk_items
-
-    world.distribution.collect_starters(world.state)
-
-    if not world.settings.shuffle_individual_ocarina_notes:
-        world.state.collect(ItemFactory('Ocarina A Button', world))
-        world.state.collect(ItemFactory('Ocarina C up Button', world))
-        world.state.collect(ItemFactory('Ocarina C down Button', world))
-        world.state.collect(ItemFactory('Ocarina C left Button', world))
-        world.state.collect(ItemFactory('Ocarina C right Button', world))
 
     return pool, placed_items
