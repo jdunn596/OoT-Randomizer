@@ -97,7 +97,6 @@
         "locations": {},
         "exits": {
             "Water Temple East Column": "True",
-            "Water Temple Storage Room": "True",
             "Water Temple South Basement": "glitch_water_south_basement_clip or (Zora_Tunic and Iron_Boots)",
             "Water Temple North Basement": "
                 (glitch_water_bk_area_antigrav and can_live_dmg(0.5))

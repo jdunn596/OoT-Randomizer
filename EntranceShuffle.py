@@ -482,8 +482,9 @@ def shuffle_random_entrances(worlds: list[World]) -> None:
 
         if world.settings.warp_songs != 'off':
             one_way_entrance_pools[EntranceKind.WarpSong] = world.get_shufflable_entrances(type=EntranceKind.WarpSong)
-            if world.settings.reachable_locations != 'beatable' and world.settings.logic_rules == 'glitchless':
+            if world.settings.reachable_locations != 'beatable' and world.settings.logic_rules != 'none':
                 # In glitchless, there aren't any other ways to access these areas
+                # This also applies in Advanced logic when specific tricks aren't enabled
                 wincons = {world.shuffle_ganon_bosskey}
                 if world.settings.reachable_locations == 'all' or not (world.shuffle_special_dungeon_entrances or world.settings.shuffle_ganon_tower):
                     wincons.add(world.settings.bridge)
@@ -497,11 +498,13 @@ def shuffle_random_entrances(worlds: list[World]) -> None:
                     )
                 ):
                     wincons -= {'dungeons', 'specific_rewards', 'stones', 'medallions'}
+
                 if (
                     world.settings.reachable_locations == 'all'
                     or ('tokens' in wincons and world.settings.tokensanity in ('off', 'dungeons'))
                 ):
                     one_way_priorities['Bolero'] = priority_entrance_table['Bolero']
+
                 if (
                     (
                         'Dungeon' not in world.mix_entrance_pools
@@ -509,8 +512,22 @@ def shuffle_random_entrances(worlds: list[World]) -> None:
                             'Overworld' not in world.mix_entrance_pools
                             and ((not world.shuffle_special_interior_entrances and world.settings.shuffle_hideout_entrances == 'off') or 'Interior' not in world.mix_entrance_pools)
                         )
-                    )
-                    and (
+                    ) and (
+                        world.settings.logic_rules == 'glitchless'
+                        or (
+                            world.settings.logic_rules == 'advanced'
+                            and not (
+                                'glitch_isg' in world.settings.advanced_allowed_tricks
+                                and (
+                                    (
+                                        'glitch_graveyard_shadow_early_hover' in world.settings.advanced_allowed_tricks
+                                        and 'glitch_hovering' in world.settings.advanced_allowed_tricks
+                                    )
+                                    or 'glitch_graveyard_shadow_early_hookshot' in world.settings.advanced_allowed_tricks
+                                )
+                            )
+                        )
+                    ) and (
                         world.settings.reachable_locations == 'all'
                         or 'dungeons' in wincons
                         or 'specific_rewards' in wincons #TODO check if the reward in the dungeon is required
@@ -519,8 +536,26 @@ def shuffle_random_entrances(worlds: list[World]) -> None:
                     )
                 ):
                     one_way_priorities['Nocturne'] = priority_entrance_table['Nocturne']
+
                 if (
-                    not world.shuffle_dungeon_entrances
+                    (
+                        world.settings.logic_rules == 'glitchless'
+                        or (
+                            world.settings.logic_rules == 'advanced'
+                            and not (
+                                'logic_wasteland_crossing' in world.settings.allowed_tricks
+                                and (
+                                    (
+                                        'glitch_isg' in world.settings.advanced_allowed_tricks
+                                        and 'glitch_hovering' in world.settings.advanced_allowed_tricks
+                                    )
+                                    or 'adv_cucco_jump' in world.settings.advanced_allowed_tricks
+                                    or 'glitch_megaflip' in world.settings.advanced_allowed_tricks
+                                )
+                            )
+                        )
+                    )
+                    and not world.shuffle_dungeon_entrances
                     and not world.settings.shuffle_overworld_entrances
                     and not world.shuffle_special_interior_entrances
                     and world.settings.shuffle_hideout_entrances == 'off'
