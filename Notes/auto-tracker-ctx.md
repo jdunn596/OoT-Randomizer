@@ -1,6 +1,6 @@
 The **auto-tracker context** is a region of memory where a portion of the randomizer's configuration variables are stored in a versioned layout defined below. Its intent is to give some symbols added by the randomizer well-defined addresses so that auto-trackers can read them reliably without needing the symbols.json for the specific randomizer version that was used to generate the seed.
 
-The starting address of the auto-tracker context is listed at address `0x8040_000C` (randomizer context + `0xC`). On versions of the randomizer before this feature was added, the starting address is given as zero. At that address, a 4-byte integer can be found. This is the version number of the auto-tracker context and defines the layout of the remainder of the context according to the sections below. The current version is 5.
+The starting address of the auto-tracker context is listed at address `0x8040_000C` (randomizer context + `0xC`). On versions of the randomizer before this feature was added, the starting address is given as zero. At that address, a 4-byte integer can be found. This is the version number of the auto-tracker context and defines the layout of the remainder of the context according to the sections below. The current version is 6.
 
 # Versions 1–2
 
@@ -27,7 +27,7 @@ The starting address of the auto-tracker context is listed at address `0x8040_00
 
 Special care needs to be taken when working with version 3 of the auto-tracker context, since a breaking change was made in version 6.2.181 of the randomizer without an accompanying change to the auto-tracker context version. Versions 6.2.180 of the randomizer and earlier use the same layout as version 2 described above (with the addition of the `CFG_DUNGEON_REWARD_AREAS` field), while versions 6.2.181 and later use the same layout as version 4 described below. The version number at addresses 0x35–0x37 of the ROM header may be used to check for the randomizer version, but this may not be accurate for forks of the randomizer if they merged the change early.
 
-# Versions 4–5
+# Versions 4–6
 
 |Offset|Name|Min version|Size|Description|
 |--:|---|--:|--:|---|
@@ -50,3 +50,5 @@ Special care needs to be taken when working with version 3 of the auto-tracker c
 |`0x0054`|`CFG_DUNGEON_REWARD_AREAS`|4|`0xCF`|For each dungeon reward in the order of Emerald, Ruby, Sapphire, Light, Forest, Fire, Water, Shadow, and Spirit, a null-terminated `0x16`-byte (`0x17` including the null terminator) ASCII string containing the hint area of that reward, padded with spaces on the right.|
 |`0x0123`|`CFG_ADULT_TRADE_SHUFFLE`|5|`0x01`|`1` if the item-cycling functionality for the adult trade inventory slot is enabled.|
 |`0x0124`|`CFG_CHILD_TRADE_SHUFFLE`|5|`0x01`|`1` if the item-cycling functionality for the child trade inventory slot is enabled.|
+|`0x0125`|`CFG_DUNGEON_ENTRANCES`|6|`0x0C`|Mapping of dungeon entrances displayed on the map screen on the pause menu. The index into this array defines the exit, and the value at that index defines the entrance it leads to. All zeroes if the setting to display this info is off or if dungeon entrances are mixed. The ordering is Deku, DC, Jabu, Forest, Fire, Water, Shadow, Spirit, Well, Ice, GTG, Ganon.|
+|`0x0131`|`CFG_BOSSES`|6|`0x0C`|Mapping of boss entrances displayed on the map screen on the pause menu. The index into this array defines the exit, and the value at that index defines the entrance it leads to. All zeroes if the setting to display this info is off or if boss entrances are mixed. The ordering is Gohma, KD, Bari, PG, Volv, Morpha, Bongo, Rova, (Well), (Ice), (GTG), Tower. The parenthesized boss entrances don't actually exist and are treated as if they were vanilla (i.e. their values will be `8`, `9`, and `10` respectively).|

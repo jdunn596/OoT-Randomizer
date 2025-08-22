@@ -260,19 +260,13 @@ CFG_DUNGEON_PRECOMPLETED:
 .endarea
 DOT_CONDITION:
 .byte 0x01
-.area 0xC, 0x00
-CFG_DUNGEON_ENTRANCES:
-.endarea
-.area 0xC, 0x00
-CFG_BOSSES:
-.endarea
 .align 4
 
 ; These configuration values are given fixed addresses to aid auto-trackers.
 ; Any changes made here should be documented in Notes/auto-tracker-ctx.md
 AUTO_TRACKER_CONTEXT:
 AUTO_TRACKER_VERSION:
-.word 5 ; Increment this if the auto-tracker context layout changes
+.word 6 ; Increment this if the auto-tracker context layout changes
 
 CFG_DUNGEON_INFO_ENABLE:
 .word 0
@@ -338,5 +332,12 @@ CFG_ADULT_TRADE_SHUFFLE:
 .byte 0x00
 CFG_CHILD_TRADE_SHUFFLE:
 .byte 0x00
+
+.area 0xC, 0x00
+CFG_DUNGEON_ENTRANCES:
+.endarea
+.area 0xC, 0x00
+CFG_BOSSES:
+.endarea
 
 .align 4

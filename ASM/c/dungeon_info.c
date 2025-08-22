@@ -317,7 +317,7 @@ void draw_world_info(z64_disp_buf_t* db) {
                  }
             }
         }
-        else { 
+        else {
             if (show_bosses) {
                 for (int i = 0; i < rows - 1; i++) {
                     gDPPipeSync(db->p++);

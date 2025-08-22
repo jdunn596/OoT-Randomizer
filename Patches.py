@@ -1810,7 +1810,7 @@ def patch_rom(spoiler: Spoiler, world: World, rom: Rom) -> Rom:
 
         dungeon_entrances = []
         if 'map_dungeon_location' in world.settings.enhance_map_compass and world.settings.shuffle_dungeon_entrances != 'off':
-            for dungeon_entrance in dungeon_entrances_list:    
+            for dungeon_entrance in dungeon_entrances_list:
                 connected_region = world.get_entrance(dungeon_entrance).connected_region
                 dungeon_entrances.append(connected_region.name)
 
@@ -2663,7 +2663,7 @@ def configure_dungeon_info(rom: Rom, world: World) -> None:
 
     dungeon_entrances = []
     if 'map_dungeon_location' in world.settings.enhance_map_compass and world.settings.shuffle_dungeon_entrances != 'off':
-        for dungeon_entrance in dungeon_entrances_list:    
+        for dungeon_entrance in dungeon_entrances_list:
             connected_region = world.get_entrance(dungeon_entrance).connected_region
             dungeon_entrances.append(dungeon_lobby_list.index(connected_region.name))
 
@@ -2677,7 +2677,7 @@ def configure_dungeon_info(rom: Rom, world: World) -> None:
 
     bosses = []
     if 'map_boss_location' in world.settings.enhance_map_compass and world.settings.shuffle_bosses != 'off':
-        for boss_entrance in bosses_entrances_list:    
+        for boss_entrance in bosses_entrances_list:
             connected_region = world.get_entrance(boss_entrance).connected_region
             bosses.append(boss_lobby_list.index(connected_region.name))
         # BOTW, Ice and GTG have no boss so just put their normal index to display a "-"
