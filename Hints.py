@@ -1146,15 +1146,13 @@ def get_junk_hint(spoiler: Spoiler, world: World, checked: set[str]) -> HintRetu
 def get_important_check_hint(spoiler: Spoiler, world: World, checked: set[str]) -> HintReturn:
     top_level_locations = []
     for location in world.get_filled_locations():
-        if (HintArea.at(location).text(world.settings.clearer_hints) not in top_level_locations
-                and (HintArea.at(location).text(world.settings.clearer_hints) + ' Important Check') not in checked
-                and HintArea.at(location) != HintArea.ROOT):
-            top_level_locations.append(HintArea.at(location).text(world.settings.clearer_hints))
-    hint_loc = random.choice(top_level_locations)
+        hint_area = HintArea.at(location)
+        if hint_area not in top_level_locations and hint_area not in checked and hint_area != HintArea.ROOT:
+            top_level_locations.append(hint_area)
+    hint_area = random.choice(top_level_locations)
     item_count = 0
     for location in world.get_filled_locations():
-        region = HintArea.at(location).text(world.settings.clearer_hints)
-        if region == hint_loc:
+        if HintArea.at(location) == hint_area:
             if (location.item.majoritem
                 # exclude locked items
                 and not location.locked
@@ -1175,7 +1173,7 @@ def get_important_check_hint(spoiler: Spoiler, world: World, checked: set[str]) 
                     or world.settings.shuffle_ganon_bosskey == 'dungeons' or world.settings.shuffle_ganon_bosskey == 'tokens'))):
                 item_count = item_count + 1
 
-    checked.add(hint_loc + ' Important Check')
+    checked.add(hint_area)
 
     if item_count == 0:
         numcolor = 'Red'
@@ -1188,7 +1186,7 @@ def get_important_check_hint(spoiler: Spoiler, world: World, checked: set[str]) 
     else:
         numcolor = 'Green'
 
-    return GossipText('#%s# has #%d# major item%s.' % (hint_loc, item_count, "s" if item_count != 1 else ""), ['Green', numcolor]), None
+    return GossipText('#%s# has #%d# major item%s.' % (hint_area.text(world.settings.clearer_hints), item_count, "s" if item_count != 1 else ""), ['Green', numcolor]), None
 
 
 hint_func: dict[str, HintFunc | BarrenFunc] = {
