@@ -18,10 +18,25 @@ typedef struct {
     uint8_t silver_rupee_puzzles_mq[4];
 } dungeon_entry_t;
 
+typedef struct {
+    uint8_t index;
+    uint8_t has_map;
+    char name[10];
+} dungeon_entrance_t;
+
+typedef struct {
+    uint8_t index;
+    uint8_t has_map;
+    char name[10];
+} boss_entry_t;
+
 extern int dungeon_count;
 extern dungeon_entry_t dungeons[14];
+extern dungeon_entrance_t dungeon_entrances[12];
+extern boss_entry_t bosses[12];
 
 void draw_dungeon_info(z64_disp_buf_t* db);
+void draw_world_info(z64_disp_buf_t* db);
 void draw_silver_rupee_count(z64_game_t* globalCtx, z64_disp_buf_t* db);
 void draw_boss_key(z64_game_t* globalCtx, z64_disp_buf_t* db);
 extern uint8_t bk_display;
@@ -36,6 +51,12 @@ static int show_dungeon_info = 0;
 #define CAN_DRAW_DUNGEON_INFO (CFG_DUNGEON_INFO_ENABLE != 0 && \
         z64_game.pause_ctxt.state == PAUSE_STATE_MAIN && \
         z64_game.pause_ctxt.screen_idx == 0 && \
+        (!z64_game.pause_ctxt.changing || \
+        z64_game.pause_ctxt.changing == 3))
+
+#define CAN_DRAW_WORLD_INFO (CFG_DUNGEON_INFO_ENABLE != 0 && \
+        z64_game.pause_ctxt.state == PAUSE_STATE_MAIN && \
+        z64_game.pause_ctxt.screen_idx == 1 && \
         (!z64_game.pause_ctxt.changing || \
         z64_game.pause_ctxt.changing == 3))
 

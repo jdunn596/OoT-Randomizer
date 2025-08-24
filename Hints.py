@@ -1282,7 +1282,7 @@ def build_gossip_hints(spoiler: Spoiler, worlds: list[World]) -> None:
             if location is None:
                 # ignore starting items
                 continue
-            if world.settings.enhance_map_compass:
+            if 'compass_reward' in world.settings.enhance_map_compass:
                 if world.entrance_rando_reward_hints:
                     # In these settings, there is not necessarily one dungeon reward in each dungeon,
                     # so we instead have each compass hint the area of its dungeon's vanilla reward.
