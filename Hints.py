@@ -733,10 +733,8 @@ def get_barren_hint(spoiler: Spoiler, world: World, checked: set[str], all_check
     # Randomly choose between overworld or dungeon
     dungeon_areas = list(filter(lambda area: world.empty_areas[area]['dungeon'], areas))
     overworld_areas = list(filter(lambda area: not world.empty_areas[area]['dungeon'], areas))
-    
     prioritize_dungeon_hints = 'prioritize_barren_dungeons' in world.hint_dist_user and world.hint_dist_user['prioritize_barren_dungeons']
-    if prioritize_dungeon_hints and len(dungeon_areas) > 0:
-        world.get_barren_hint_prev = RegionRestriction.OVERWORLD
+
     if not dungeon_areas:
         # no dungeons left, default to overworld
         world.get_barren_hint_prev = RegionRestriction.OVERWORLD
@@ -744,9 +742,12 @@ def get_barren_hint(spoiler: Spoiler, world: World, checked: set[str], all_check
         # no overworld left, default to dungeons
         world.get_barren_hint_prev = RegionRestriction.DUNGEON
     else:
-        if world.get_barren_hint_prev == RegionRestriction.NONE:
-            # 50/50 draw on the first hint
-            world.get_barren_hint_prev = random.choices([RegionRestriction.DUNGEON, RegionRestriction.OVERWORLD], [0.5, 0.5])[0]
+        if world.get_barren_hint_prev == RegionRestriction.NONE and prioritize_dungeon_hints:
+            if prioritize_dungeon_hints:
+                world.get_barren_hint_prev = RegionRestriction.DUNGEON
+            else:
+                # 50/50 draw on the first hint
+                world.get_barren_hint_prev = random.choices([RegionRestriction.DUNGEON, RegionRestriction.OVERWORLD], [0.5, 0.5])[0]
         elif world.get_barren_hint_prev == RegionRestriction.DUNGEON:
             # weights 75% against drawing dungeon again
             world.get_barren_hint_prev = random.choices([RegionRestriction.DUNGEON, RegionRestriction.OVERWORLD], [0.25, 0.75])[0]
