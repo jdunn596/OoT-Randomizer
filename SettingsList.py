@@ -3254,13 +3254,42 @@ class SettingInfos:
         ''',
     )
 
-    add_random_starting_items = Scale(
+    add_random_starting_items = Checkbutton(
         gui_text         = 'Additional Random Starting Items',
         gui_tooltip    = '''\
-            Begin the game with this many randomly selected items in
+            Begin the game with a configurable amount of randomly selected items in
             addition to your selections from the tables.
         ''',
+        disable          = {
+            False: {'settings': ['random_starting_items_exclude', 'random_starting_items_count']}
+        },
+        shared           = True,
+    )
+
+    random_starting_items_exclude = MultipleSelect(
+        gui_text         = 'Exclude Item Types',
+        gui_tooltip    = '''\
+            Selections here will be excluded from the random starting item pool.
+        ''',
+        choices          = {
+            'bombchus': 'Bombchus',
+            'shields': 'Deku/Hylian Shields',
+            'deku_upgrades': 'Deku Stick/Nut Upgrades',
+            'health_upgrades': 'Health Upgrades',
+            'junk': 'Junk Items'
+        },
+        default          = [],
+        disabled_default = [],
+        shared           = True,
+    )
+
+    random_starting_items_count = Scale(
+        gui_text         = 'Amount of Items',
+        gui_tooltip    = '''\
+            Configure the amount of random items to start with.
+        ''',
         default          = 0,
+        disabled_default = 0,
         minimum          = 0,
         maximum          = 10,
         shared           = True,
