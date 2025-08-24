@@ -1145,9 +1145,14 @@ def get_junk_hint(spoiler: Spoiler, world: World, checked: set[str]) -> HintRetu
 
 def get_important_check_hint(spoiler: Spoiler, world: World, checked: set[str]) -> HintReturn:
     top_level_locations = []
+    empty_dungeons = [dungeon for dungeon in world.precompleted_dungeons if world.precompleted_dungeons[dungeon]]
     for location in world.get_filled_locations():
         hint_area = HintArea.at(location)
-        if hint_area not in top_level_locations and hint_area not in checked and hint_area != HintArea.ROOT:
+        if (hint_area not in top_level_locations
+                and hint_area not in checked
+                and hint_area != HintArea.ROOT
+                and hint_area.dungeon_name not in empty_dungeons
+                and not location.locked):
             top_level_locations.append(hint_area)
     hint_area = random.choice(top_level_locations)
     item_count = 0
