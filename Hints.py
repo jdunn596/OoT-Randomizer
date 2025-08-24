@@ -733,6 +733,10 @@ def get_barren_hint(spoiler: Spoiler, world: World, checked: set[str], all_check
     # Randomly choose between overworld or dungeon
     dungeon_areas = list(filter(lambda area: world.empty_areas[area]['dungeon'], areas))
     overworld_areas = list(filter(lambda area: not world.empty_areas[area]['dungeon'], areas))
+    
+    prioritize_dungeon_hints = 'prioritize_barren_dungeons' in world.hint_dist_user and world.hint_dist_user['prioritize_barren_dungeons']
+    if prioritize_dungeon_hints and len(dungeon_areas) > 0:
+        world.get_barren_hint_prev = RegionRestriction.OVERWORLD
     if not dungeon_areas:
         # no dungeons left, default to overworld
         world.get_barren_hint_prev = RegionRestriction.OVERWORLD
