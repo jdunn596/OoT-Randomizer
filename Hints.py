@@ -1191,7 +1191,7 @@ def get_important_check_hint(spoiler: Spoiler, world: World, checked: set[str]) 
     else:
         numcolor = 'Green'
 
-    return GossipText('#%s# has #%d# major item%s.' % (hint_area.text(world.settings.clearer_hints), item_count, "s" if item_count != 1 else ""), ['Green', numcolor]), None
+    return GossipText('%s has #%d# major item%s.' % (hint_area.text(world.settings.clearer_hints), item_count, "s" if item_count != 1 else ""), ['Green', numcolor]), None
 
 
 hint_func: dict[str, HintFunc | BarrenFunc] = {
