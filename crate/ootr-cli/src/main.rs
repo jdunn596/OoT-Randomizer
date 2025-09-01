@@ -68,9 +68,9 @@ struct Args {
     /// Generate the specified seed.
     #[clap(long)]
     seed: Option<String>,
-    /// Suppresses the generation of a log file.
-    #[clap(long, alias = "no_log")]
-    no_log: bool,
+    /// Generate a log file.
+    #[clap(long)]
+    log: bool,
     /// Always outputs a settings.json file even when spoiler is enabled.
     #[clap(long, alias = "output_settings")]
     output_settings: bool,
@@ -113,7 +113,7 @@ impl<'a, 'py> From<pyo3::DowncastError<'a, 'py>> for Error {
 }
 
 #[wheel::main]
-async fn main(Args { log_level, settings_string, convert_settings, settings, settings_preset, seed, no_log, output_settings, subcommand }: Args) -> Result<i32, Error> {
+async fn main(Args { log_level, settings_string, convert_settings, settings, settings_preset, seed, log, output_settings, subcommand }: Args) -> Result<i32, Error> {
     match subcommand {
         None => match Python::with_gil(|py| {
             let py_version = py.version_info();
@@ -171,7 +171,7 @@ async fn main(Args { log_level, settings_string, convert_settings, settings, set
                 }
                 return Ok(0)
             }
-            py.import("OoTRandomizer")?.call_method1("start", (settings, log_level.try_into_py(py)?, no_log))?;
+            py.import("OoTRandomizer")?.call_method1("start", (settings, log_level.try_into_py(py)?, !log))?;
             Ok(0)
         }) {
             Err(Error::Python(e)) => {

@@ -1541,6 +1541,7 @@ impl Gui {
                             }).on_press_maybe((seed.inner.patches.len() == NonZero::<usize>::MIN || player.is_some()).then(|| Message::SaveCompressedRom { window }))
                         })
                         //TODO “or” text + button to save wad (shares player number selection with “Save rom”)
+                        //TODO convenience buttons to launch the seed in an emulator discovered on the system
                     ;
                     if seed.inner.patches.len() != NonZero::<usize>::MIN {
                         row = row
