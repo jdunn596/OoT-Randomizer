@@ -1160,7 +1160,7 @@ def get_important_check_hint(spoiler: Spoiler, world: World, checked: set[str]) 
                 and not location.locked):
             top_level_locations.append(hint_area)
     if not top_level_locations:
-        return None    
+        return None
     hint_area = random.choice(top_level_locations)
     item_count = 0
     for location in world.get_filled_locations():
