@@ -1230,8 +1230,8 @@ class SettingInfos:
         default        = 'closed',
         choices        = {
             'open':        'Open Forest',
-            'closed_deku': 'Closed Deku',
             'fast':        'Deku opens automatically',
+            'closed_deku': 'Closed Deku',
             'closed':      'Closed Forest',
             },
         gui_tooltip    = '''\
